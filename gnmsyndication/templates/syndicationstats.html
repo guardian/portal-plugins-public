@@ -1,6 +1,8 @@
 {% themeextends "base.html" %}
 
 {% block title %}Multimedia Syndication{% endblock %}
+{% load syndicationstats_customfilters %}
+
 {% block head %}
 <script src="//code.jquery.com/jquery-1.10.2.js"></script>
 <script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
@@ -8,6 +10,7 @@
 <script type="text/javascript" src="/sitemedia/js/chartjs/Lib/js/dx.chartjs.js"></script>
 <style>
     img.inline_icon { padding-right: 8px; }
+    .small { font-size: 0.8em; }
 </style>
 {% endblock %}
 {% block body %}

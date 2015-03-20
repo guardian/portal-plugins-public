@@ -1,0 +1,132 @@
+{% themeextends "base.html" %}
+
+{% block title %}Multimedia Syndication{% endblock %}
+{% block head %}
+<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/globalize/0.1.1/globalize.min.js"></script>
+<script type="text/javascript" src="/sitemedia/js/chartjs/Lib/js/dx.chartjs.js"></script>
+<style>
+    img.inline_icon { padding-right: 8px; }
+</style>
+{% endblock %}
+{% block body %}
+
+<div class="header">
+    <h1>Syndication Statistics Dashboard</h1>
+</div>
+
+<div class="content">
+    <div id="errordisplay"></div>
+    <div id="chartarea"></div>
+</div>
+
+<hr>
+
+<div class="content">
+    <div style="float:left; width: 12%; padding-right: 1%">
+        <h2>Details</h2>
+        <label for="details_date">Select a date</label>
+        <input type="datetime" onchange="details_date_changed();" id="details_date">
+    </div>
+    <div style="float:left; width:80%" id="details_area">
+
+    </div>
+</div>
+<script>
+    function lzero(s, len) {
+      s += ''; // cast to string
+      while(s.length() < len) s = "0".s;
+      return s;
+    }
+
+    function details_date_changed()
+    {
+        $.ajax('/gnmsyndication/stats/assets_by_day/'+ $('#details_date').val(),{
+            accept: 'text/html',
+            success: function(data,status,jqXHR){
+                $('#details_area').html(data);
+            },
+            error: function(jqXHR,status,error_thrown){
+                $('#details_area').html('<p class="error">' + error_thrown + '</p>');
+            }
+        });
+    }
+
+    var cachedData;
+    var showLabels=true;
+    var dataSeries=[
+        { type: 'bar', valueField: "gnm_master_publication_time", name: "Sent to Guardian Website", tag: "gnm_website" },
+        { type: 'bar', valueField: "gnm_master_dailymotion_publication_time", name: "Sent to Daily Motion",tag: "dailymotion" },
+        { type: 'bar', valueField: "gnm_master_mainstreamsyndication_publication_time", name: "Sent to Mainstream", tag:"mainstream" },
+        { type: 'bar', valueField: "gnm_master_youtubepublication_time", name: "Sent to Youtube", tag: "youtube" }
+    ];
+
+    function makeChart() {
+        if(cachedData==null){
+            var jqxhr=$.getJSON("/gnmsyndication/stats/data/platforms_by_day",null,function(data,textStatus,jqXHR){
+			    cachedData=data;
+			    makeChart();
+			});
+			jqxhr.fail(function(){
+			    $('#errordisplay').html('<p class="error">Unable to load data from Vidispine</p>');
+			});
+			return;
+        }
+
+        $('#chartarea').dxChart({
+            dataSource: cachedData,
+            series: dataSeries,
+            commonSeriesSettings: {
+                argumentField: 'timestamp',
+                label: {
+                    visible: showLabels,
+                    format: "fixedPoint",
+                    precision: 0
+                }
+            },
+            argumentAxis: {
+                label: {
+                    customizeText: function() {
+                        mydate=new Date(this.value*1000);
+                        return mydate.toDateString();
+                        //return mydate.toLocaleString();
+                    },
+                    rotationAngle:-90
+                },
+                tick: {
+                    visible: true
+                }
+            },
+            title: "Videos Sent to Syndication Partners",
+            legend: {
+                verticalAlignment: "bottom",
+                horizontalAlignment: "center"
+            },
+            pointClick: function (clickedPoint, clickEvent) {
+                this.select();
+                selectedSeries = this.series;
+                seriesTag = selectedSeries.tag;
+                timestamp = this.originalArgument;
+
+                console.log("selected series with tag " + seriesTag+ " at " + timestamp);
+
+                d = new Date(timestamp*1000);
+                console.log(d);
+
+                //dateString = lzero(d.getDate(),2) + "/" + lzero(d.getMonth(),2) + "/" + (d.getYear()+1900);
+                dateString = d.getDate() + "/" + (d.getMonth()+1) + "/" + (d.getYear()+1900);
+                $('#details_date').val(dateString);
+                details_date_changed();
+            }
+        });
+    }
+
+    $(document).ready(function(){
+        $('#details_date').datepicker({
+        dateFormat: "dd/mm/yy"
+        });
+        makeChart();
+    });
+</script>
+{% endblock %}

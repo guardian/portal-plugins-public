@@ -2,5 +2,33 @@
 
 {% block body %}
 
-<h1>Hello world!</h1>
+<div class="header">
+    <h1>Hello world!</h1>
+</div>
+
+<div class="content">
+    <h2 class="block-header">Hello h2</h2>
+    <div id="active-block"><p>This is some text</p></div>
+    <h3 class="block-header">Hello h3</h3>
+    <h4 class="block-header">Hello h4</h4>
+    <h5 class="block-header">Hello h5</h5>
+    <div class="panel">
+        <ul>
+            <li>First list item</li>
+            <li>Second list item</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function(){
+        $('#active-block').hide();
+        setInterval(function(){
+            $('#active-block').fadeIn(400);
+            setTimeout(function(){
+                $('#active-block').fadeOut(400);
+            }, 5000);
+        }, 12000);
+    });
+</script>
 {% endblock %}

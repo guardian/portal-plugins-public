@@ -154,8 +154,9 @@ def assets_by_day(request,date):
         'gnm_master_publication_time',
         'gnm_master_mainstreamsyndication_publication_time',
         'gnm_master_dailymotion_publication_time',
+        'gnm_master_generic_intendeduploadplatforms',
         'gnm_commission_title',
-        'gnm_project_title',
+        'gnm_project_headline',
     ]
     dt = datetime.datetime.strptime(date,"%d/%m/%Y")
 
@@ -202,13 +203,18 @@ def assets_by_day(request,date):
     assets = []
     for itemdata in data['item']:
         ref = {
-            'url': 'http://pluto.gnm.int/master/{0}'.format(itemdata['id']),
+            'url': '/master/{0}'.format(itemdata['id']),
         }
         for field in itemdata['metadata']['timespan'][0]['field']:
             if 'value' in field:
-                ref[field['name']] = field['value'][0]['value']
+                ref[field['name']] = []
+                for v in field['value']:
+                    ref[field['name']].append(v['value'])
+                if len(ref[field['name']]) == 1:
+                    ref[field['name']] = ref[field['name']][0]
                 try:
-                    ref[field['name']] = datetime.datetime.strptime(ref[field['name']],"%Y-%m-%dT%H:%M:%SZ")
+                    pass
+                    #ref[field['name']] = datetime.datetime.strptime(ref[field['name']],"%Y-%m-%dT%H:%M:%SZ")
                 except:
                     pass
         assets.append(ref)

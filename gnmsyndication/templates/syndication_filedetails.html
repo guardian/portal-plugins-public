@@ -6,7 +6,10 @@
         <tr>
             <td><a href="{{ item.url }}"><img width="15" src="/sitemedia/img/gnm/icon_master.png" alt="Master" class="inline_icon">{{ item.title }}<br>
                 <span class="small"><img width="15" src="/sitemedia/img/gnm/icon_commission.png" alt="Commission" class="inline_icon">{{ item.gnm_commission_title }}</span>&nbsp;&NonBreakingSpace;
-                <span class="small"><img width="15" src="/sitemedia/img/gnm/icon_project.png" alt="Project" class="inline_icon">{{ item.gnm_project_title }}</span>
+                <span class="small"><img width="15" src="/sitemedia/img/gnm/icon_project.png" alt="Project" class="inline_icon">{{ item.gnm_project_headline }}</span><br>
+                <span class="small">
+                    {{ item.gnm_master_generic_intendeduploadplatforms|platformindicator }}
+                </span>
             </a></td>
             <td>{{ item.gnm_master_website_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_master_publication_time }}</span></td>
             <td>{{ item.gnm_master_mainstreamsyndication_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_master_mainstreamsyndication_publication_time }}</span></td>

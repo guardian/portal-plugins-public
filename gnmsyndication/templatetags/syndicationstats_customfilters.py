@@ -36,3 +36,10 @@ def syndicationStatusFormatter(value):
         iconstr = ""
 
     return mark_safe(u"<span class=\"{0}\">{1}&nbsp;&nbsp;{2}</span>".format(value.lower(),iconstr,value))
+
+@register.filter("platformindicator")
+def platformIndicator(value):
+    if isinstance(value,list):
+        return " | ".join(value)
+    else:
+        return value

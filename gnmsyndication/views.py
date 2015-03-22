@@ -157,6 +157,7 @@ def assets_by_day(request,date):
         'gnm_master_generic_intendeduploadplatforms',
         'gnm_commission_title',
         'gnm_project_headline',
+        'gnm_master_pacdata_status'
     ]
     dt = datetime.datetime.strptime(date,"%d/%m/%Y")
 
@@ -204,6 +205,7 @@ def assets_by_day(request,date):
     for itemdata in data['item']:
         ref = {
             'url': '/master/{0}'.format(itemdata['id']),
+            'itemId': itemdata['id'],
         }
         for field in itemdata['metadata']['timespan'][0]['field']:
             if 'value' in field:

@@ -1,6 +1,6 @@
 {% themeextends "base.html" %}
 
-{% block title %}Multimedia Syndication{% endblock %}
+{% block title %}Multimedia Publication{% endblock %}
 {% load syndicationstats_customfilters %}
 
 {% block head %}
@@ -9,14 +9,16 @@
 <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/globalize/0.1.1/globalize.min.js"></script>
 <script type="text/javascript" src="/sitemedia/js/chartjs/Lib/js/dx.chartjs.js"></script>
 <style>
-    img.inline_icon { padding-right: 8px; }
+    img.inline_icon { padding-right: 8px; width: 15px; vertical-align:center; }
+    img.inline_medium_icon { padding-right: 8px; width: 25px; }
+    .tooltop_icon { }
     .small { font-size: 0.8em; }
 </style>
 {% endblock %}
 {% block body %}
 
 <div class="header">
-    <h1>Syndication Statistics Dashboard</h1>
+    <h1>Multimedia Publication Dashboard</h1>
 </div>
 
 <div class="content">
@@ -24,10 +26,8 @@
     <div id="chartarea"></div>
 </div>
 
-<hr>
-
 <div class="content">
-    <div style="float:left; width: 12%; padding-right: 1%">
+    <div style="float:left; width: 12%; margin-left:5px; padding-right: 1%">
         <h2>Details</h2>
         <label for="details_date">Select a date</label>
         <input type="datetime" onchange="details_date_changed();" id="details_date">
@@ -101,7 +101,7 @@
                     visible: true
                 }
             },
-            title: "Videos Sent to Syndication Partners",
+            title: "Multimedia Publication Summary",
             legend: {
                 verticalAlignment: "bottom",
                 horizontalAlignment: "center"
@@ -128,6 +128,17 @@
     $(document).ready(function(){
         $('#details_date').datepicker({
         dateFormat: "dd/mm/yy"
+        });
+
+        d = new Date();
+        dateString = d.getDate() + "/" + (d.getMonth()+1) + "/" + (d.getYear()+1900);
+        $('#details_date').val(dateString);
+        details_date_changed();
+
+        /* this SHOULD display tooltips for the ALT properties of images, as used in the syndication status indicator */
+        /* http://api.jqueryui.com/tooltip/#option-items */
+        $('.tooltip_icon').tooltip({
+            items: "img[alt]"
         });
         makeChart();
     });

@@ -2,6 +2,9 @@
 
 from django import template
 from django.utils.safestring import mark_safe
+import portal.plugins.gnmsyndication.models as models
+import logging
+
 register = template.Library()
 
 @register.filter("jobstatus_formatter")
@@ -39,7 +42,41 @@ def syndicationStatusFormatter(value):
 
 @register.filter("platformindicator")
 def platformIndicator(value):
-    if isinstance(value,list):
-        return " | ".join(value)
-    else:
-        return value
+    #if isinstance(value,list):
+    #    return " | ".join(value)
+    #else:
+    #    return value
+
+    logging.debug("platformindicator: upload intentions: {0}".format(value))
+    if not isinstance(value,list):
+        value = [value]
+
+    lowered_values = []
+    for v in value:
+        lowered_values.append(v.lower())
+
+    rtn = u""
+
+    for p in models.platform.objects.all():
+        if p.intention_label in lowered_values:
+            rtn += u"<img class=\"tooltip_icon inline_medium_icon\" src=\"{0}\" alt=\"{1} enabled\">".format(p.enabled_icon_url,p.name)
+        else:
+            rtn += u"<img class=\"tooltip_icon inline_medium_icon\" src=\"{0}\" alt=\"{1} disabled\">".format(p.disable_icon_url,p.name)
+
+    return mark_safe(rtn)
+
+@register.filter("pacformindicator")
+def pacformIndicator(value):
+    iconpath = '/sitemedia/img/gnm/'
+
+    icon_url = ""
+    if value=="valid":
+        icon_url = iconpath + 'severity_0.png'
+    elif value=="processing":
+        icon_url = iconpath + 'severity_1.png'
+    elif value=="invalid":
+        icon_url = iconpath + 'severity_3.png'
+    elif value=="missing":
+        icon_url = iconpath + 'severity_2.png'
+
+    return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,value))

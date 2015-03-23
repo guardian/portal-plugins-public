@@ -28,14 +28,6 @@
     - group: {{ owner_gid }}
     - file_mode: {{ module_perm }}
     
-patch_menu:
-  file.replace:
-    - name: {{ cantemo_templates }}/includes/navigation.html
-    - pattern: <li><a href="/roughcuteditor" title="{{ '{%' }} trans "Video editor" {{ '%}' }}">{{ '{%' }} trans "Video editor" {{ '%}' }}</a></li>
-    - repl: |
-        <li><a href="/roughcuteditor" title="{{ '{%' }} trans "Video editor" {{ '%}' }}">{{ '{%' }} trans "Video editor" {{ '%}' }}</a></li>
-        <li><a href="/gnmsyndication/stats/" title="{{ '{%' }} trans "Multimedia Publication Dashboard" {{ '%}' }}">{{ '{%' }} trans "Multimedia Publication Dashboard" {{ '%}' }}</a></li>
-
 patch_config:
 #  file.replace:
 #    - name: {{ cantemo_config }}
@@ -45,8 +37,8 @@ patch_config:
 #        /gnmsyndication/stats/ = Multimedia Publication Dashboard
   ini.options_present:
     - sections:
-       homepage_choices:
-        /gnmsyndication/stats/: Multimedia Publication Dashboard
+        homepage_choices:
+          /gnmsyndication/stats/: 'Multimedia Publication Dashboard'
 
 gnmsyndication_sync:
   cmd.run:

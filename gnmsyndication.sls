@@ -1,17 +1,17 @@
 {% set cantemo_root = "/opt/cantemo/portal" %}
-{% set cantemo_plugins = "{{ cantemo_root }}/plugins" %}
-{% set cantemo_media = "{{ cantemo_root }}/portal_media" %}
-{% set cantemo_templates = "{{ cantemo_root }}/portal_themes/gnm/templates" %}
+{% set cantemo_plugins = cantemo_root + "/portal/plugins" %}
+{% set cantemo_media = cantemo_root + "/portal_media" %}
+{% set cantemo_templates = cantemo_root + "/portal_themes/gnm/templates" %}
 {% set cantemo_config = "/etc/cantemo/portal/portal.conf" %}
 
 {% set owner_uid = "root" %}
-{% set ownder_gid = "www-data %}
+{% set owner_gid = "www-data" %}
 {% set module_perm = "0640" %}
 
 {{ cantemo_plugins }}/gnmsyndication:
   file.recurse:
-    - source: salt://gnm_plugins/files/gnmsyndication
-    - exclude_pat: 'E@(\.git)'
+    - source: salt://gnmplugins/files/gnmsyndication
+    - exclude_pat: 'E@(\.git|static/)'
     - include_empty: true
     - makedirs: true
     - user: {{ owner_uid }}
@@ -20,7 +20,7 @@
 
 {{ cantemo_media }}/img/gnmsyndication:
   file.recurse:
-    - source: salt://gnm_plugins/files/gnmsyndication/static
+    - source: salt://gnmplugins/files/gnmsyndication/static
     - exclude_pat: 'E@(\.git)'
     - include_empty: true
     - makedirs: true
@@ -30,19 +30,23 @@
     
 patch_menu:
   file.replace:
-    - name: {{ cantemo_templates }}/gnm/includes/navigation.html
-    - pattern: '<li><a href="/roughcuteditor" title="{% trans "Video editor" %}">{% trans "Video editor" %}</a></li>'
+    - name: {{ cantemo_templates }}/includes/navigation.html
+    - pattern: <li><a href="/roughcuteditor" title="{{ '{%' }} trans "Video editor" {{ '%}' }}">{{ '{%' }} trans "Video editor" {{ '%}' }}</a></li>
     - repl: |
-        <li><a href="/roughcuteditor" title="{% trans "Video editor" %}">{% trans "Video editor" %}</a></li>
-        <li><a href="/gnmsyndication/stats/" title="{% trans "Multimedia Publication Dashboard" %}">{% trans "Multimedia Publication Dashboard" %}</a></li>
+        <li><a href="/roughcuteditor" title="{{ '{%' }} trans "Video editor" {{ '%}' }}">{{ '{%' }} trans "Video editor" {{ '%}' }}</a></li>
+        <li><a href="/gnmsyndication/stats/" title="{{ '{%' }} trans "Multimedia Publication Dashboard" {{ '%}' }}">{{ '{%' }} trans "Multimedia Publication Dashboard" {{ '%}' }}</a></li>
 
 patch_config:
-  file.replace:
-    - name: {{ cantemo_config }}
-    - pattern: '[homepage_choices]'
-    - repl: |
-        [homepage_choices]
-        /gnmsyndication/stats/ = Multimedia Publication Dashboard
+#  file.replace:
+#    - name: {{ cantemo_config }}
+#    - pattern: ^[homepage_choices]
+#    - repl: |
+#        [homepage_choices]
+#        /gnmsyndication/stats/ = Multimedia Publication Dashboard
+  ini.options_present:
+    - sections:
+       homepage_choices:
+        /gnmsyndication/stats/: Multimedia Publication Dashboard
 
 gnmsyndication_sync:
   cmd.run:

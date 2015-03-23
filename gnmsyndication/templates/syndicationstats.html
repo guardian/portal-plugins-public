@@ -13,6 +13,7 @@
     img.inline_medium_icon { padding-right: 8px; width: 25px; }
     .tooltop_icon { }
     .small { font-size: 0.8em; }
+    .regular { font-size: 1em; vertical-align: center;}
 </style>
 {% endblock %}
 {% block body %}
@@ -24,6 +25,11 @@
 <div class="content">
     <div id="errordisplay"></div>
     <div id="chartarea"></div>
+    <div style="margin-left: 5px;">
+        <h2>Total items sent to each platform in this period</h2>
+        <div id="totalsarea">
+        </div>
+    </div>
 </div>
 
 <div class="content">
@@ -36,7 +42,13 @@
 
     </div>
 </div>
+
 <script>
+    var known_platforms = {
+        {% for p in platforms %}{{ p.publicationtime_field }}: { display_name: '{{ p.name }}', display_icon: '{{ p.display_icon_url }}' },{% endfor %}
+        'dummy': {}
+    };
+
     function lzero(s, len) {
       s += ''; // cast to string
       while(s.length() < len) s = "0".s;
@@ -78,7 +90,7 @@
         }
 
         $('#chartarea').dxChart({
-            dataSource: cachedData,
+            dataSource: cachedData['data'],
             series: dataSeries,
             commonSeriesSettings: {
                 argumentField: 'timestamp',
@@ -123,6 +135,15 @@
                 details_date_changed();
             }
         });
+
+        var str = "";
+        $.each(cachedData['totals'], function(idx,ptr){
+            p = known_platforms[idx];
+            str += "<img class=\"inline_medium_icon\" src=\"" + p['display_icon'] + "\">";
+            str += "<span class=\"regular\" style=\"padding-right: 1em;\">";
+            str += p['display_name'] + "&nbsp;&nbsp;<b>" + ptr + "</b></span>";
+        })
+        $('#totalsarea').html(str);
     }
 
     $(document).ready(function(){

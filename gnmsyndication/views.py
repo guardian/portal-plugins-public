@@ -7,6 +7,7 @@ import dateutil
 import logging
 from django.conf import settings
 import re
+from models import platform
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -20,7 +21,9 @@ date_fields = [
 
 def index(request):
   #return HttpResponse(content="Hello world!",content_type="text/plain",status=200)
-  return render(request,"syndicationstats.html")
+  known_platforms = platform.objects.all()
+
+  return render(request,"syndicationstats.html", {'platforms': known_platforms })
 
 def make_facet_xml(fieldname,start_time=None,number=30,intervalTime=datetime.timedelta(days=1)):
     if start_time is None:
@@ -119,10 +122,15 @@ def platforms_by_day(request):
     if not 'facet' in data:
         raise StandardError("Vidispine did not return faceted data when requested")
 
-    rtn = []
+    rtn = {'totals': {},'data': []}
     reformatted_data = {}
 
     for facet in data['facet']:
+        fieldname = facet['field']
+        #parts = re.match(r'^gnm_master_(.*)_publication_time$',facet['field'])
+        #if parts:
+        #    fieldname = parts.group(1)
+
         for value in facet['range']:
             timestamp = mktimestamp(value['start'])
             if not timestamp in reformatted_data:
@@ -130,12 +138,16 @@ def platforms_by_day(request):
             reformatted_data[timestamp].append({
                 facet['field']: int(value['value'])
             })
+            if fieldname in rtn['totals']:
+                rtn['totals'][fieldname] += int(value['value'])
+            else:
+                rtn['totals'][fieldname] = int(value['value'])
 
     for k,v in reformatted_data.items():
         entry = {"timestamp": k}
         for datum in v:
             entry.update(datum)
-        rtn.append(entry)
+        rtn['data'].append(entry)
     #rtn = sorted(rtn,key=lambda x: x['timestamp'])
     return HttpResponse(json.dumps(rtn),content_type="application/json",status=200)
 

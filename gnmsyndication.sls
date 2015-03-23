@@ -7,6 +7,7 @@
 {% set owner_uid = "root" %}
 {% set owner_gid = "www-data" %}
 {% set module_perm = "0640" %}
+{% set media_perm = "0644" %}
 
 {{ cantemo_plugins }}/gnmsyndication:
   file.recurse:
@@ -26,15 +27,9 @@
     - makedirs: true
     - user: {{ owner_uid }}
     - group: {{ owner_gid }}
-    - file_mode: {{ module_perm }}
+    - file_mode: {{ media_perm }}
     
 patch_config:
-#  file.replace:
-#    - name: {{ cantemo_config }}
-#    - pattern: ^[homepage_choices]
-#    - repl: |
-#        [homepage_choices]
-#        /gnmsyndication/stats/ = Multimedia Publication Dashboard
   ini.options_present:
     - sections:
         homepage_choices:

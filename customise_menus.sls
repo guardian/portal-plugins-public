@@ -12,6 +12,6 @@ patch_menu:
   file.blockreplace:
     - name: {{ cantemo_templates }}/includes/navigation.html
     - marker_start: <li><a href="/roughcuteditor" title="{{ '{%' }} trans "Video editor" {{ '%}' }}">{{ '{%' }} trans "Video editor" {{ '%}' }}</a></li>
-    - marker_end: {% permissionrequired _collection_read %}
+    - marker_end: "{{ '{%' }} permissionrequired _collection_read {{ '%}' }}"
     - content: |
         <li><a href="/gnmsyndication/stats/" title="{{ '{%' }} trans "Multimedia Publication Dashboard" {{ '%}' }}">{{ '{%' }} trans "Multimedia Publication Dashboard" {{ '%}' }}</a></li>

@@ -1,0 +1,118 @@
+﻿<div class="phone-switcher">
+    <div class="selected" data-show="#day">
+        <div class="left"><span>Daily Sales</span></div>
+    </div>
+    <div data-show="#month">
+        <div class="right"><span>Monthly Sales</span></div>
+    </div>  
+</div>
+<div class="layout-box lb-1" id="day">
+    <div class="hb-1">
+        <div class="block-header clear-fix">
+            <h3>Daily Sales by <span class="criteria-name"></span> (<span class="dailySalesDateName"></span>)</h3>
+            <div class="hr"></div>
+        </div>
+        <div class="perf-items clear-fix">
+            <div class="perf-item layout-box lb-2">
+                TODAY
+                <div id="dTodaySales"></div>
+            </div>
+            <div class="perf-item layout-box lb-2">
+                YESTERDAY
+                <div id="dYesterdaySales"></div>
+            </div>
+            <div class="perf-item layout-box lb-2">
+                LAST WEEK
+                <div class="dLastWeekSales"></div>
+            </div>
+            <div class="perf-item layout-box lb-2 tablet-hide">
+                SALES BY <span class="criteria-name-upper"></span>
+                <div class="dailySalesDateName"></div>
+            </div>
+        </div>
+        <div class="perf-graph">
+            <div id="dailySalesChart">
+            </div>
+        </div>
+        <div>
+            <table class="perf-graph-navigation">
+                <tr>
+                    <td class="prev"><div id="getPrevDaySales"><span></span></div></td>
+                    <td class="yesterday"><div id="getLastDaySales">Yesterday</div></td>
+                    <td class="today"><div class="active" id="getThisDaySales">Today</div></td>
+                    <td class="next"><div class="disabled" id="getNextDaySales"><span></span></div></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="layout-box lb-1 phone-hide" id="month">
+    <div class="hb-1">
+        <div class="block-header clear-fix">
+            <h3>Unit Sales by <span class="criteria-name"></span> (<span class="monthlyUnitsDateName"></span>)</h3>
+            <div class="hr"></div>
+        </div>
+        <div class="perf-items clear-fix">
+            <div class="perf-item layout-box lb-2">
+                THIS MONTH
+                <div class="mThisMonthUnits"></div>
+            </div>
+            <div class="perf-item layout-box lb-2 right">
+                LAST MONTH
+                <div id="mLastMonthUnits"></div>
+            </div>
+            <div class="perf-item layout-box lb-2">
+                YTD
+                <div id="mYtdUnits"></div>
+            </div>
+            <div class="perf-item layout-box lb-2 right tablet-hide">
+                SALES BY <span class="criteria-name-upper"></span>
+                <div class="monthlyUnitsDateName"></div>
+            </div>
+        </div>
+        <div class="perf-graph">
+            <div id="monthlySalesChart">
+            </div>
+        </div>
+        <div>
+            <table class="perf-graph-navigation">
+                <tr>
+                    <td class="prev"><div id="getPrevMonthSales"><span></span></div></td>
+                    <td class="yesterday"><div id="getLastMonthSales">Last Month</div></td>
+                    <td class="today"><div class="active" id="getThisMonthSales">This Month</div></td>
+                    <td class="next"><div class="disabled" id="getNextMonthSales"><span></span></div></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="layout-box lb-4">
+    <div class="hb-4 phone-hide">
+        <div class="block-header clear-fix">
+            <h3><span class="criteria-name"></span> Sales by Range <span id="rangeYearName"></span></h3>
+            <div class="hr"></div>
+        </div>
+        <div class="move-up">
+            <div class="clear-fix">
+                <div class="layout-box lb-5">
+                    <div class="hb-5 pie-max" id="pieChart">
+                    </div>
+                </div>
+                <div class="layout-box lb-6">
+                    <div class="hb-5" id="barGauge">
+                    </div>
+                </div>
+            </div>
+            <div class="hb-6">
+                <div class="left-arrow" id="prevYear"></div>
+                <div id="range-selector">
+                </div>
+                <div class="right-arrow disabled" id="nextYear"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="scripts/criteriasales.js"></script>

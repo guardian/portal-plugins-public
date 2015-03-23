@@ -1,0 +1,130 @@
+﻿<div class="phone-switcher">
+    <div class="selected" data-show="#day">
+        <div class="left"><span>Daily Sales</span></div>
+    </div>
+    <div data-show="#month">
+        <div class="right"><span>Monthly Sales</span></div>
+    </div>  
+</div>
+<div class="layout-box lb-1" id="day">
+    <div class="hb-1">
+        <div class="block-header clear-fix">
+            <h3>Daily Sales Performance</h3>
+            <div class="hr"></div>
+        </div>
+        <div class="perf-items clear-fix">
+            <div class="perf-item layout-box lb-2">
+                TODAY
+                <div id="dTodaySales"></div>
+            </div>
+            <div class="perf-item layout-box lb-2">
+                YESTERDAY
+                <div id="dYesterdaySales"></div>
+            </div>
+            <div class="perf-item layout-box lb-2">
+                LAST WEEK
+                <div id="dLastWeekSales"></div>
+            </div>
+            <div class="perf-item layout-box lb-2 tablet-hide">
+                LAST YEAR SALES
+                <div class="annualPerfLastYearSales"></div>
+            </div>
+        </div>
+        <div class="perf-graph">
+            <div id="dailySalesChart"></div>
+        </div>
+        <div>
+            <table class="perf-graph-navigation phone-hide">
+                <tr>
+                    <td class="prev"><div id="getPrevDaySales"><span></span></div></td>
+                    <td class="yesterday"><div id="getLastDaySales">Yesterday</div></td>
+                    <td class="today"><div id="getThisDaySales" class="active">Today</div></td>
+                    <td class="next"><div id="getNextDaySales" class="disabled"><span></span></div></td>
+                </tr>
+            </table>
+        </div>
+    </div>   
+
+    <div class="hb-2 phone-hide">
+        <div class="block-header clear-fix">
+            <h3>Annual Sales Performance</h3>
+            <div class="hr"></div>
+        </div>
+        <div class="perf-gauges clear-fix">
+            <div class="layout-box lb-3">
+                <div class="perf-gauge" id="perfGaugeYTDSales"></div>
+                <div class="perf-item">
+                    YEAR TO DATE
+                    <div id="annualPerfYTDSales"></div>
+                </div>
+            </div>
+            <div class="layout-box lb-3">
+                <div class="perf-gauge" id="perfGaugeLastYearSales"></div>
+                <div class="perf-item">
+                    FISCAL YEAR <span id="fiscalYear"></span>
+                    <div class="annualPerfLastYearSales"></div>
+                </div>
+            </div>
+        </div>
+    </div> 
+    
+    <div class="hb-3 phone-hide">
+        <div class="header-surround">
+            <div class="block-header clear-fix">
+                <h3>Sales Forecast <span id="currentYear"></span></h3>
+                <div class="hr"></div>
+            </div>
+        </div>
+        <div class="forecast-graph" id="forecastGraph"></div>
+    </div>
+</div>
+
+<div class="layout-box lb-1 phone-hide" id="month">
+    <div class="hb-1">
+        <div class="block-header clear-fix">
+            <h3>Monthly Sales Performance</h3>
+            <div class="hr"></div>
+        </div>
+        <div class="perf-items clear-fix">
+            <div class="perf-item layout-box lb-2">
+                THIS MONTH
+                <div id="mThisMonthSales"></div>
+            </div>
+            <div class="perf-item layout-box lb-2  right">
+                LAST MONTH
+                <div id="mLastMonthSales"></div>
+            </div>
+            <div class="perf-item layout-box lb-2">
+                YTD
+                <div id="mYTDSales"></div>
+            </div>
+            <div class="perf-item layout-box lb-2 right tablet-hide">
+                LAST YEAR SALES
+                <div class="annualPerfLastYearSales"></div>
+            </div>
+        </div>
+        <div class="perf-graph">
+            <div id="monthlySalesChart"></div>
+        </div>
+        <div>
+            <table class="perf-graph-navigation phone-hide">
+                <tr>
+                    <td class="prev"><div id="getPrevMonthSales"><span></span></div></td>
+                    <td class="yesterday"><div id="getLastMonthSales">Last Month</div></td>
+                    <td class="today"><div class="active" id="getThisMonthSales">This Month</div></td>
+                    <td class="next"><div class="disabled" id="getNextMonthSales"><span></span></div></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="hb-4 phone-hide">
+        <div class="block-header clear-fix">
+            <h3>Sales by Sector</h3>
+            <div class="hr"></div>
+        </div>
+        <div class="pie-graph" id="pieChart"></div>
+    </div>
+</div>
+
+<script type="text/javascript" src="scripts/salesdashboard.js"></script>

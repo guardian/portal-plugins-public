@@ -1,0 +1,87 @@
+﻿<div class="phone-switcher">
+    <div class="selected" data-show="#day">
+        <div class="left"><span>Daily Sales</span></div>
+    </div>
+    <div data-show="#year">
+        <div class="right"><span>Sales By Range</span></div>
+    </div>  
+</div>
+
+<div class="layout-box lb-4" id="day">
+    <div class="hb-1">
+        <div class="block-header clear-fix">
+            <h3>Daily Sales Performance <span id="salesDate"></span></h3>
+            <div class="hr"></div>
+        </div>
+        <div class="perf-items clear-fix">
+            <div class="perf-item layout-box lb-2">
+                TOTAL
+                <div id="dailyTotal"></div>
+            </div>
+            <div class="perf-item layout-box lb-2">
+                DIRECT
+                <div id="dailyDirect"></div>
+            </div>
+            <div class="perf-item layout-box lb-2">
+                VARs
+                <div id="dailyVARs"></div>
+            </div>
+            <div class="perf-item layout-box lb-2">
+                CONSULTANTS
+                <div id="dailyConsultants"></div>
+            </div>
+            <div class="perf-item layout-box lb-2 phone-hide">
+                RESELLERS
+                <div id="dailyResellers"></div>
+            </div>
+            <div class="perf-item layout-box lb-2 phone-hide">
+                RETAIL
+                <div id="dailyRetail"></div>
+            </div>
+        </div>
+        <div class="perf-graph">
+            <div id="dailySalesChart">
+            </div>
+        </div>
+        <div>
+            <table class="perf-graph-navigation">
+                <tr>
+                    <td class="prev"><div id="prevDay"><span></span></div></td>
+                    <td><div class="gap"></div></td>
+                    <td class="next"><div class="disabled" id="nextDay"><span></span></div></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="layout-box lb-4 phone-hide" id="year">
+    <div class="hb-4">
+        <div class="block-header clear-fix">
+            <h3>Channel Sales by Range <span id="rangeYearName"></span></h3>
+            <div class="hr"></div>
+        </div>
+        <div class="move-up">
+            <div class="clear-fix">
+                <div class="layout-box lb-5">
+                    <div class="hb-5 pie-max" id="pieChart">
+                    </div>
+                </div>
+                <div class="layout-box lb-6  phone-hide">
+                    <div class="hb-5" id="barGauge">
+                    </div>
+                </div>
+            </div>
+            <div class="hb-6 phone-hide">
+                <div class="left-arrow" id="prevYear"></div>
+                <div id="rangeSelector">
+                </div>
+                <div class="right-arrow disabled" id="nextYear"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript" src="scripts/channels.js"></script>
+

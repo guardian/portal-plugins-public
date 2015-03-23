@@ -1,0 +1,129 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>		
+		<title>Winloss Sparklines</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<link href="../../../styles.css" rel="stylesheet" />
+		<script src="../../../js/jquery-1.10.2.min.js"></script>
+		<script src="../../../js/knockout-3.0.0.js"></script>
+		<script src="../../../js/globalize.min.js"></script>
+		<script src="../../../js/dx.chartjs.js"></script>
+                                      
+	</head>
+	<body>
+		<script>
+			$(function ()  
+				{
+   var alumOptions = {
+    dataSource: getAluminimCosts(),
+    argumentField: 'month',
+    valueField: '2010',
+    type: 'winloss',
+    showMinMax: true,
+    winlossThreshold: 2100
+},
+nickOptions = {
+    dataSource: getNickelCosts(),
+    argumentField: 'month',
+    valueField: '2010',
+    type: 'winloss',
+    showMinMax: true,
+    showFirstLast: false,
+    winColor: '#6babac',
+    lossColor: '#565077',
+    winlossThreshold: 19000
+},
+copOptions = {
+    dataSource: getCopperCosts(),
+    argumentField: 'month',
+    valueField: '2010',
+    type: 'winloss',
+    winlossThreshold: 8000,
+    winColor: '#7e4452',
+    lossColor: '#ebdd8f',
+    firstLastColor: '#e55253'
+};
+
+function getAluminimCosts() {
+    return [{ month: 1, 2010: 2262, 2011: 2454, 2012: 2262 },
+    { month: 2, 2010: 2087, 2011: 2537, 2012: 2087 },
+    { month: 3, 2010: 2238, 2011: 2586, 2012: 2238 },
+    { month: 4, 2010: 2349, 2011: 2689, 2012: 2349 },
+    { month: 5, 2010: 2071, 2011: 2591, 2012: 2071 },
+    { month: 6, 2010: 1957, 2011: 2584, 2012: 1957 },
+    { month: 7, 2010: 2008, 2011: 2554, 2012: 2008 },
+    { month: 8, 2010: 2119, 2011: 2413, 2012: 2119 },
+    { month: 9, 2010: 2199, 2011: 2327, 2012: 2199 },
+    { month: 10, 2010: 2374, 2011: 2210, 2012: 2374 },
+    { month: 11, 2010: 2354, 2011: 2102, 2012: 2354 },
+    { month: 12, 2010: 2369, 2011: 2038, 2012: 2369 }];
+};
+function getNickelCosts() {
+    return [{ month: 1, 2010: 18974, 2011: 24298, 2012: 18322 },
+    { month: 2, 2010: 18162, 2011: 27929, 2012: 21093 },
+    { month: 3, 2010: 20535, 2011: 28802, 2012: 19701 },
+    { month: 4, 2010: 24562, 2011: 26142, 2012: 17695 },
+    { month: 5, 2010: 26131, 2011: 26753, 2012: 17549 },
+    { month: 6, 2010: 19278, 2011: 23055, 2012: 16436 },
+    { month: 7, 2010: 19475, 2011: 22870, 2012: 16382 },
+    { month: 8, 2010: 20701, 2011: 24388, 2012: 15687 },
+    { month: 9, 2010: 21266, 2011: 21845, 2012: 16085 },
+    { month: 10, 2010: 23358, 2011: 18346, 2012: 18250 },
+    { month: 11, 2010: 23150, 2011: 18822, 2012: 16083 },
+    { month: 12, 2010: 23282, 2011: 17320, 2012: 17104 }];
+};
+function getCopperCosts() {
+    return [{ month: 1, 2010: 7341, 2011: 9585, 2012: 7501 },
+    { month: 2, 2010: 7016, 2011: 10026, 2012: 8470 },
+    { month: 3, 2010: 7202, 2011: 9889, 2012: 8591 },
+    { month: 4, 2010: 7851, 2011: 9460, 2012: 8459 },
+    { month: 5, 2010: 7481, 2011: 9373, 2012: 8320 },
+    { month: 6, 2010: 6532, 2011: 9108, 2012: 7465 },
+    { month: 7, 2010: 6498, 2011: 9295, 2012: 7475 },
+    { month: 8, 2010: 7191, 2011: 9834, 2012: 7430 },
+    { month: 9, 2010: 7596, 2011: 9121, 2012: 7614 },
+    { month: 10, 2010: 8057, 2011: 7125, 2012: 8245 },
+    { month: 11, 2010: 8373, 2011: 7871, 2012: 7727 },
+    { month: 12, 2010: 8636, 2011: 7725, 2012: 7880 }];
+};
+
+var html = '<table class="demo-table" border="1"><tr><th></th><th>Aluminium (UDS/ton)</th><th>Nickel (USD/ton)</th><th>Copper (USD/ton)</th></tr><tr><th>2010</th><td><div class="sparkline alum2010"></div></td><td><div class="sparkline nick2010"></div></td><td><div class="sparkline cop2010"></div></td></tr><tr><th>2011</th><td><div class="sparkline alum2011"></div></td><td><div class="sparkline nick2011"></div></td><td><div class="sparkline cop2011"></div></td></tr><tr><th>2012</th><td><div class="sparkline alum2012"></div></td><td><div class="sparkline nick2012"></div></td><td><div class="sparkline cop2012"></div></td></tr></table>';
+$("#chartContainer").append(html);
+
+$('.alum2010').dxSparkline(alumOptions);
+$('.nick2010').dxSparkline(nickOptions);
+$('.cop2010').dxSparkline(copOptions);
+
+$('.alum2011').dxSparkline($.extend(alumOptions, { valueField: '2011' }));
+$('.nick2011').dxSparkline($.extend(nickOptions, { valueField: '2011' }));
+$('.cop2011').dxSparkline($.extend(copOptions, { valueField: '2011' }));
+
+$('.alum2012').dxSparkline($.extend(alumOptions, { valueField: '2012' }));
+$('.nick2012').dxSparkline($.extend(nickOptions, { valueField: '2012' }));
+$('.cop2012').dxSparkline($.extend(copOptions, { valueField: '2012' }));
+}
+
+			);
+		</script>
+		<div class="header">
+			<div class="content">
+				<a class="button" title="Online Demo Gallery" target="_blank" href="http://chartjs.devexpress.com/Demos/VizGallery/">Online Demo Gallery</a>
+	<div class = "logo">
+					<a class="logo" title="ChartJS Gallery" href="../../../index.html"></a>
+				</div>
+			</div>
+		</div>
+		<div class="line"></div>		
+		<div class="title">
+			<h1>Sparklines</h1>&nbsp;&nbsp;&nbsp;<h2>Sparklines</h2>
+		</div>
+		<div class="content">
+			<div class="pane">
+				<div class="long-title"><h3>Monthly Prices of Alumunium, Nickel and Copper</h3></div>
+				<div id="chartContainer" class="case-container" style="width: 100%; height: 440px;"></div>
+				<div class="credits"></div>
+			</div>
+		</div>
+	</body>
+</html>

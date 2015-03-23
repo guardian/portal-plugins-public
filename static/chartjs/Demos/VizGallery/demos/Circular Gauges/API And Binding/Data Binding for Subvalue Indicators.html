@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>		
+		<title>Data Binding for Subvalue Indicators</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<link href="../../../styles.css" rel="stylesheet" />
+		<script src="../../../js/jquery-1.10.2.min.js"></script>
+		<script src="../../../js/knockout-3.0.0.js"></script>
+		<script src="../../../js/globalize.min.js"></script>
+		<script src="../../../js/dx.chartjs.js"></script>
+                                      
+	</head>
+	<body>
+		<script>
+			$(function ()  
+				{
+   var dataSource = [
+	{ name: 'Summer', mean: 35, min: 28, max: 38 },
+	{ name: 'Autumn', mean: 24, min: 20, max: 32 },
+	{ name: 'Winter', mean: 18, min: 16, max: 23 },
+	{ name: 'Spring', mean: 27, min: 18, max: 31 }
+];
+
+var model = {
+	items: dataSource,
+	selected: ko.observable(dataSource[0]),
+	value: ko.computed(function () {
+		return model.selected().mean;
+	}, null, { deferEvaluation: true }),
+	subvalues: ko.computed(function () {
+		return [model.selected().min, model.selected().max];
+	}, null, { deferEvaluation: true })
+};
+
+var html =
+'<div style="width: 80%; height: 100%; float: left;" data-bind="dxCircularGauge: {\
+	scale: {\
+		startValue: 10, endValue: 40,\
+		majorTick: { tickInterval: 5 },\
+		label: {\
+			customizeText: function (arg) {\
+				return arg.valueText + \' °C\';\
+			}\
+		}\
+	},\
+	rangeContainer: {\
+		ranges: [\
+			{ startValue: 10, endValue: 20, color: \'#0077BE\' },\
+			{ startValue: 20, endValue: 30, color: \'#E6E200\' },\
+			{ startValue: 30, endValue: 40, color: \'#77DD77\' }\
+		]\
+	},\
+	tooltip: { enabled: true },\
+	title: {\
+		text: \'Temperature in the Greenhouse\',\
+		font: { size: 28 },\
+	},\
+	value : value,\
+	subvalues : subvalues\
+}"></div>\
+<div style="width: 20%; float: left; text-align: left; margin-top: 20px;">\
+    <select data-bind="options: items, optionsText: \'name\', value: selected"></select>\
+</div>';
+
+$('#chartContainer').append(html);
+
+ko.applyBindings(model, $('#chartContainer').get(0));
+}
+
+			);
+		</script>
+		<div class="header">
+			<div class="content">
+				<a class="button" title="Online Demo Gallery" target="_blank" href="http://chartjs.devexpress.com/Demos/VizGallery/">Online Demo Gallery</a>
+	<div class = "logo">
+					<a class="logo" title="ChartJS Gallery" href="../../../index.html"></a>
+				</div>
+			</div>
+		</div>
+		<div class="line"></div>		
+		<div class="title">
+			<h1>Circular Gauges</h1>&nbsp;&nbsp;&nbsp;<h2>API And Binding</h2>
+		</div>
+		<div class="content">
+			<div class="pane">
+				<div class="long-title"><h3></h3></div>
+				<div id="chartContainer" class="case-container" style="width: 100%; height: 440px;"></div>
+				<div class="credits"></div>
+			</div>
+		</div>
+	</body>
+</html>

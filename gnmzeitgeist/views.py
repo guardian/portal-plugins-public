@@ -1,12 +1,12 @@
 from portal.generic.baseviews import ClassView
 from django.http import HttpResponse
-
 import logging
 
 def index(request):
     from django.shortcuts import render
     #return HttpResponse(content="Hello world!",content_type="text/plain",status=200)
     return render(request,"gnmzeitgeist.html")
+
 
 def make_vidispine_request(agent,method,urlpath,body,headers,content_type='application/xml'):
     import base64
@@ -25,10 +25,25 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
     (headers,content) = agent.request(url,method=method,body=body,headers=headers)
     return (headers,content)
 
+
 def data(request):
     import httplib2
     from xml.etree.ElementTree import Element, SubElement, Comment, tostring
     import json
+    from django.shortcuts import render
+    #from pprint import pprint
+
+    normalise = 42
+    if 'n' in request.GET:
+        normalise = int(request.GET['n'])
+
+    maxtags = 30
+    if 'max' in request.GET:
+        maxtags = int(request.GET['max'])
+
+    interesting_field = "gnm_master_website_keyword_ids"
+    if 'field' in request.GET:
+        interesting_field = request.GET['field']
 
     xmlroot = Element("ItemSearchDocument",{'xmlns': 'http://xml.vidispine.com/schema/vidispine'})
 
@@ -40,11 +55,44 @@ def data(request):
 
     facetroot = SubElement(xmlroot,"facet", {'count': "true"})
     facetfield = SubElement(facetroot,"field")
-    facetfield.text = "gnm_master_website_keyword_ids"
+    facetfield.text = interesting_field
 
     xmlstring = tostring(xmlroot,encoding="UTF-8")
 
     agent = httplib2.Http()
     (headers, content) = make_vidispine_request(agent,"PUT","/API/item;number=0",xmlstring,{'Accept': 'application/json'})
 
-    return HttpResponse(content,content_type='application/json',status=200)
+    vsdata = json.loads(content)
+    if 'notfound' in vsdata:
+        logging.error(vsdata)
+        raise StandardError("Vidispine error - field not found")
+
+    totalhits = -1
+    rtn = {}
+
+    root = ""
+
+    #pprint(vsdata)
+    for f in vsdata['facet']:
+        rtn[f['field']] = {}
+        if root == "":
+            root = f['field']
+        n = 0
+        #pprint(f)
+        for v in f['count']:
+            if n>=maxtags:
+                break
+            n+=1
+            if v['fieldValue'] == 'type/video':
+                continue
+            if v['fieldValue'].startswith('tone/'):
+                continue
+
+            if totalhits < 0:
+                totalhits = v['value']
+
+            print "totalhits are %s, current value is %s so factor is %s" % (float(totalhits),float(v['value']),float(v['value'])/float(totalhits))
+            rtn[f['field']][v['fieldValue']] = (float(v['value'])/float(totalhits)) * float(normalise)
+
+    return render(request,"tagsource.html",{'tagdata': rtn[root]})
+    #return HttpResponse(json.dumps(rtn),content_type='application/json',status=200)

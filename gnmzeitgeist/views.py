@@ -1,6 +1,8 @@
 from portal.generic.baseviews import ClassView
 from django.http import HttpResponse
 import logging
+import contentapi
+import re
 
 def index(request):
     from django.shortcuts import render
@@ -72,6 +74,8 @@ def data(request):
 
     root = ""
 
+    #http://content.guardianapis.com/uk/uk?page-size=0&api-key=test - look up tag data
+
     #pprint(vsdata)
     for f in vsdata['facet']:
         rtn[f['field']] = {}
@@ -91,8 +95,22 @@ def data(request):
             if totalhits < 0:
                 totalhits = v['value']
 
+            rtndata =  {"name": v['fieldValue'],
+                        "jsid": re.sub(r'/','_',v['fieldValue'])
+            }
+            try:
+                capidata = contentapi.lookup_tag(v['fieldValue'])
+                rtndata['name'] = capidata['webTitle']
+                rtndata["type"] =  capidata['type']
+                rtndata["section"] = capidata['sectionName']
+                rtndata["url"] = capidata['webUrl']
+            except StandardError as e:
+                logging.warning(str(e))
+
             print "totalhits are %s, current value is %s so factor is %s" % (float(totalhits),float(v['value']),float(v['value'])/float(totalhits))
-            rtn[f['field']][v['fieldValue']] = (float(v['value'])/float(totalhits)) * float(normalise)
+            rtndata["score"] = (float(v['value'])/float(totalhits)) * float(normalise)
+            rtn[f['field']][v['fieldValue']] = rtndata
+
 
     return render(request,"tagsource.html",{'tagdata': rtn[root]})
     #return HttpResponse(json.dumps(rtn),content_type='application/json',status=200)

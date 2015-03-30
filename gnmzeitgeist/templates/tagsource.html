@@ -1,5 +1,5 @@
 <ul>
     {% for k,v in tagdata.iteritems %}
-    <li><a href="#" target="_blank" data-weight="{{ v }}">{{ k }}</a></li>
+    <li><a href="#" id="{{ v.jsid }}" data-weight="{{ v.score }}" data-tagtype="{{ v.type }}" data-section="{{ v.section }}" data-url="{{ v.url }}" onClick="mouseOverTag('{{ v.jsid }}');">{{ v.name }}</a></li>
     {% endfor %}
 </ul>

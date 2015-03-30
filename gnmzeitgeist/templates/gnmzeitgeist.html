@@ -2,6 +2,7 @@
 
 {% block head %}
 <script type="text/javascript" src="/sitemedia/js/jquery.tagcanvas.min.js"></script>
+<script type="text/javascript" src="/sitemedia/js/wordcloud2.js"></script>
 {% endblock %}
 
 {% block body %}
@@ -38,12 +39,13 @@ function mouseOverTag(tagname)
     $('#details').html(str);
 }
 $(document).ready(function(){
+
     $.ajax('data',{
         //accepts: 'text/html',
         success: function(data,textStatus,jqXHR){
             $('#taglist').html(data);
             rtn = $('#tagarea').tagcanvas({
-                 textColour : '#1F4385', /* "guardian blue" */
+                 textColour : '#1F4385', // "guardian blue"
                  weightGradient: { 0: '#586885', 1: '#1F4385' },
                  outlineThickness : 0,
                  maxSpeed : 0.03,
@@ -54,6 +56,21 @@ $(document).ready(function(){
             }, 'taglist');
         }
     });
+    /*
+    $.getJSON('data', function(data){
+        console.log(data);
+        WordCloud(document.getElementById('tagarea'),{
+            list: data,
+            fontFamily: "Sans",
+            fontWeight: "normal",
+            color: '#1F4385',
+            minSize: 2,
+            weightFactor: 1,
+            clearCanvas: true,
+            minRotation: 0,
+            maxRotation: 1.57
+        });
+    });*/
 });
 </script>
 {% endblock %}

@@ -3,6 +3,8 @@ from django.http import HttpResponse
 import logging
 import contentapi
 import re
+from pprint import pprint
+
 
 def index(request):
     from django.shortcuts import render
@@ -82,6 +84,8 @@ def data(request):
         if root == "":
             root = f['field']
         n = 0
+        jsonrtn = []
+
         #pprint(f)
         for v in f['count']:
             if n>=maxtags:
@@ -110,7 +114,17 @@ def data(request):
             print "totalhits are %s, current value is %s so factor is %s" % (float(totalhits),float(v['value']),float(v['value'])/float(totalhits))
             rtndata["score"] = (float(v['value'])/float(totalhits)) * float(normalise)
             rtn[f['field']][v['fieldValue']] = rtndata
+            jsonrtn.append([rtndata['name'],rtndata['score']])
 
-
+    pprint(request.META)
+    if 'HTTP_ACCEPT' in request.META:
+        accept_types = request.META['HTTP_ACCEPT'].split(r', ')
+        pprint(accept_types)
+        if "application/json" in accept_types:
+            return HttpResponse(json.dumps(jsonrtn),content_type='application/json',status=200)
+        elif "text/html" in accept_types or "*/*" in accept_types:
+            return render(request,"tagsource.html",{'tagdata': rtn[root]})
+        else:
+            return HttpResponse("Invalid ACCEPT type",content_type='text/plain',status=405)
     return render(request,"tagsource.html",{'tagdata': rtn[root]})
     #return HttpResponse(json.dumps(rtn),content_type='application/json',status=200)

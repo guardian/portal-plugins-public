@@ -1,0 +1,67 @@
+{% themeextends "base.html" %}
+
+{% block head %}
+<style>
+    div.bordered {  border: 1px solid black;  }
+    div.floatingpanel { float: left; padding: 0.5em; margin: 0.5em;  width: 25%; height: 33%; }
+    div.scrollable { overflow-x: visible; overflow-y: scroll; max-height: 250px; margin-top: 0; }
+    label.fieldlabel { display: block; float: none; }
+</style>
+{% endblock %}
+
+{% block body %}
+
+<div class="header">
+    <h1>Search Vidispine Logs</h1>
+</div>
+
+<div class="content" id="searchparams">
+    <form method="POST" action="">
+        <!--<table>
+            {{ search_form.as_table }}
+        </table>-->
+        {% csrf_token %}
+        <div id="searchcontrols" style="display: block; overflow: hidden">
+        <div class="floatingpanel">
+            {{ search_form.type.errors }}
+            <label class="fieldlabel" for="id_name">Job Type</label>
+            <div class="scrollable">
+            {{ search_form.type }}
+            </div>
+        </div>
+        <div class="floatingpanel">
+            {{ search_form.state.errors }}
+            <label class="fieldlabel" for="id_name">Job State</label>
+            <div class="scrollable">
+            {{ search_form.state }}
+            </div>
+        </div>
+        <div class="floatingpanel">
+            {{ search_form.sort.errors }}
+            <label class="fieldlabel" for="id_name">Sort By</label>
+            {{ search_form.sort }}
+        </div>
+        <div class="floatingpanel">
+            {{ search_form.fileNameContains.errors }}
+            <label class="fieldlabel" for="id_name">Filename contains</label>
+            {{ search_form.fileNameContains }}
+        </div>
+        <div class="floatingpanel">
+            {{ search_form.jobmetadata.errors }}
+            <label class="fieldlabel" for="id_name">Metadata search (advanced)</label>
+            {{ search_form.jobmetadata }}
+        </div>
+        </div>
+        <div id="buttons" style="display: block; padding: 0.5em; margin: 0.5em;">
+            <input type="submit" value="Search">
+            <input type="reset" value="Clear">
+        </div>
+    </form>
+</div>
+
+<script>
+    $(document).ready(function(){
+
+    });
+</script>
+{% endblock %}

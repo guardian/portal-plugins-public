@@ -8,8 +8,19 @@
 {% block body %}
 
 <div class="header">
-    <h1>Hello world!</h1>
+    <h1>Tag Cloud</h1>
 </div>
+
+{% if source_form %}
+<div id="sourcecontainer">
+    <h3>Data Source</h3>
+    <form method="GET" action="">
+        {{ source_form.source.errors }}
+        {{ source_form.source }}
+        <input type="submit" value="Go">
+    </form>
+</div>
+{% endif %}
 
 <div id="detailscontainer" style="float: left; width: 28%; margin-left: 3px; margin-top: 3px">
     <h3>Details</h3>

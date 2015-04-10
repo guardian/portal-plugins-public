@@ -1,4 +1,5 @@
 {% themeextends "base.html" %}
+{% load logsearch_customtags %}
 
 {% block head %}
 <style>
@@ -69,6 +70,14 @@
 
 {% if search_hits %}
 <p class="info">Your search returned {{ search_hits }} result{{ search_hits|pluralize }}</p>
+<p class="info">Showing results {{ first_result }} to {{ last_result }}
+{% if prev_page %}
+<a href="?p={{ prev_page }}">&lt; previous</a>  |
+{% endif %}
+{% if next_page %}
+<a href="?p={{ next_page }}">next &gt;</a>
+{% endif %}
+</p>
 {% endif %}
 {% if search_results %}
 <div class="content" style="overflow: scroll;" id="searchresults">
@@ -106,9 +115,9 @@
 
         {% for row in search_results %}
         <tr class="{% cycle odd even %}">
-            <td>{{ row.jobId }}</td>
-            <td>{{ row.status }}</td>
-            <td>{{ row.type }}</td>
+            <td><b>{{ row.jobId }}</b></td>
+            <td>{{ row.status|jobstatus_formatter }}</td>
+            <td>{{ row.type|jobtype_formatter }}</td>
             <td>{{ row.started }}</td>
             <td>{{ row.priority }}</td>
             <td>{{ row.systemJobModule }}</td>

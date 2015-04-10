@@ -16,7 +16,7 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
     if not re.match(r'^/',urlpath):
         urlpath = '/' + urlpath
 
-    url = "{0}:{1}{2}".format("http://dc1-mmmw-05.dc1.gnm.int",settings.VIDISPINE_PORT,urlpath)
+    url = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
     logging.debug("URL is %s" % url)
     (headers,content) = agent.request(url,method=method,body=body,headers=headers)
     return (headers,content)
@@ -47,7 +47,7 @@ def doJobSearch(url):
 
 def index(request):
   from pprint import pprint
-  #return HttpResponse(content="Hello world!",content_type="text/plain",status=200)
+
   search_results = None
   search_error = None
   if request.method=="POST":
@@ -64,7 +64,12 @@ def index(request):
           search_error = str(e) + " contacting {0}".format(vsurl)
 
   elif request.method=="GET":
-      form = LogSearchForm()
+      form = LogSearchForm(initial={
+          'type': ['all'],
+          'state': ['all'],
+          'sort': 'startTime',
+          'sortOrder': 'desc',
+      })
   else:
       raise HttpResponse("Invalid method",status=400)
 

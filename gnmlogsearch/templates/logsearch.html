@@ -19,7 +19,7 @@
 <p class="error">{{ search_error }}</p>
 {% endif %}
 {% if search_results %}
-<a onclick="toggleSearchParams();" id="searchToggleButton">show search...</a>
+<a onclick="toggleSearchParams();" id="searchToggleButton" style="cursor: pointer;">show search...</a>
 <div class="content" id="searchparams" style="display: none;">
 {% else %}
 <div class="content" id="searchparams">
@@ -73,7 +73,7 @@
 {% if search_results %}
 <div class="content" style="overflow: scroll;" id="searchresults">
     <table class="details">
-        <tr class="header">
+<!--        <tr class="header">
             {% for k,v in search_results.0.items %}
             <td>{{ k }}</td>
             {% endfor %}
@@ -83,6 +83,44 @@
             {% for k,v in row.items %}
             <td>{{ v }}</td>
             {% endfor %}
+        </tr>
+        {% endfor %}
+-->
+        <tr class="header">
+            <td id="col_jobId">jobId</td>
+            <td id="col_status">status</td>
+            <td id="col_type">type</td>
+            <td id="col_started">started</td>
+            <td id="col_priority">priority</td>
+            <td id="col_systemJobModule">systemJobModule</td>
+            <td id="col_systemJobInfo">systemJobInfo</td>
+            <td id="col_bestEffortFilename">bestEffortFilename</td>
+            <td id="col_fileId">fileId</td>
+            <td id="col_replicatedFileIds">replicatedFileIds</td>
+            <td id="col_fileDeleted">fileDeleted</td>
+            <td id="col_fileStateOnFailure">fileStateOnFailure</td>
+            <td id="col_filePathMap">filePathMap</td>
+            <td id="col_replicatedFileInfo">replicatedFileInfo</td>
+            <td id="col_checkReplicatedFiles">checkReplicatedFiles</td>
+        </tr>
+
+        {% for row in search_results %}
+        <tr class="{% cycle odd even %}">
+            <td>{{ row.jobId }}</td>
+            <td>{{ row.status }}</td>
+            <td>{{ row.type }}</td>
+            <td>{{ row.started }}</td>
+            <td>{{ row.priority }}</td>
+            <td>{{ row.systemJobModule }}</td>
+            <td>{{ row.systemJobInfo }}</td>
+            <td>{{ row.bestEffortFilename }}</td>
+            <td>{{ row.fileId }}</td>
+            <td>{{ row.replicatedFileIds }}</td>
+            <td>{{ row.fileDeleted }}</td>
+            <td>{{ row.fileStateOnFailure }}</td>
+            <td>{{ row.filePathMap }}</td>
+            <td>{{ row.replicatedFileInfo }}</td>
+            <td>{{ row.checkReplicatedFiles }}</td>
         </tr>
         {% endfor %}
     </table>

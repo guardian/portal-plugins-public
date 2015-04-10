@@ -81,8 +81,9 @@ class LogSearchForm(Form):
             matrixparams += ";state=" + ",".join(map(lambda x: urllib.quote_plus(x,safe=""),d['state']))
         if not 'all' in d['type']:
             matrixparams += ";type=" + ",".join(map(lambda x: urllib.quote_plus(x,safe=""),d['type']))
-        matrixparams += ";sort=" + urllib.quote_plus(d['sort'],safe="")
+        matrixparams += ";sort={0}%20{1}".format(urllib.quote_plus(d['sort'],safe=""),d['sortOrder'])
         queryparams = "?metadata=true"
+
         if d['jobmetadata']:
             queryparams += "&jobmetadata=" + urllib.quote_plus(d['jobmetadata'],safe="")
 

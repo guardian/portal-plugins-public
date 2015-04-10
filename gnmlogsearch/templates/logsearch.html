@@ -15,11 +15,16 @@
     <h1>Search Vidispine Logs</h1>
 </div>
 
+{% if search_error %}
+<p class="error">{{ search_error }}</p>
+{% endif %}
+{% if search_results %}
+<a onclick="toggleSearchParams();" id="searchToggleButton">show search...</a>
+<div class="content" id="searchparams" style="display: none;">
+{% else %}
 <div class="content" id="searchparams">
+{% endif %}
     <form method="POST" action="">
-        <!--<table>
-            {{ search_form.as_table }}
-        </table>-->
         {% csrf_token %}
         <div id="searchcontrols" style="display: block; overflow: hidden">
         <div class="floatingpanel">
@@ -40,6 +45,9 @@
             {{ search_form.sort.errors }}
             <label class="fieldlabel" for="id_name">Sort By</label>
             {{ search_form.sort }}
+            <label class="fieldlabel" for="id_sortOrder"></label>
+            {{ search_form.sortOrder.errors }}
+            {{ search_form.sortOrder }}
         </div>
         <div class="floatingpanel">
             {{ search_form.fileNameContains.errors }}
@@ -59,7 +67,44 @@
     </form>
 </div>
 
+{% if search_hits %}
+<p class="info">Your search returned {{ search_hits }} result{{ search_hits|pluralize }}</p>
+{% endif %}
+{% if search_results %}
+<div class="content" style="overflow: scroll;" id="searchresults">
+    <table class="details">
+        <tr class="header">
+            {% for k,v in search_results.0.items %}
+            <td>{{ k }}</td>
+            {% endfor %}
+        </tr>
+        {% for row in search_results %}
+        <tr class="{% cycle odd even %}">
+            {% for k,v in row.items %}
+            <td>{{ v }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endif %}
+
 <script>
+    var showSearch=false;
+    function toggleSearchParams()
+    {
+        if(showSearch==false){
+            showSearch=true;
+            //$('#searchparams').removeClass('invisible');
+            $('#searchparams').fadeIn();
+            $('#searchToggleButton').html('hide search...');
+        } else {
+            showSearch=false;
+            //$('#searchparams').addClass('invisible');
+            $('#searchparams').fadeOut();
+            $('#searchToggleButton').html('show search...');
+        }
+    }
     $(document).ready(function(){
 
     });

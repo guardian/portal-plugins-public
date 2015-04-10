@@ -1,4 +1,4 @@
-from django.forms import Form,ChoiceField,CharField,TextInput,CheckboxSelectMultiple,Textarea,MultipleChoiceField,Select
+from django.forms import Form,ChoiceField,CharField,TextInput,CheckboxSelectMultiple,RadioSelect,Textarea,MultipleChoiceField,Select,ValidationError
 import urllib
 
 class LogSearchForm(Form):
@@ -6,7 +6,7 @@ class LogSearchForm(Form):
         pass
 
     #matrix parameters for call
-    type = MultipleChoiceField(choices=(('All','all'),
+    type = MultipleChoiceField(choices=(('all','All'),
                                 ('DELETE_LIBRARY','DELETE_LIBRARY'),
                                 ('UPDATE_LIBRARY_ITEM_METADATA','UPDATE_LIBRARY_ITEM_METADATA'),
                                 ('NONE','NONE'),
@@ -52,15 +52,23 @@ class LogSearchForm(Form):
                                  ('DISAPPEARED','Disappeared, lost worker')
                             ),widget=CheckboxSelectMultiple()
                         )
-    sort = ChoiceField(choices=(('None',None),
-
+    sort = ChoiceField(choices=(('startTime','Start Time'),
+                                ('priority','Priority'),
+                                ('jobId','Job ID'),
+                                ('type','Type'),
+                                ('state','State'),
+                                ('user','User'),
                             ),widget=Select(attrs={'style': 'width: 98%'})
                     )
+    sortOrder = ChoiceField(choices=(('desc','Descending'),
+                                     ('asc','Ascending'),
+                            ),widget=RadioSelect(),
+                    )
     #Query parameters for call
-    jobmetadata = CharField(max_length=32768,widget=Textarea)
+    jobmetadata = CharField(max_length=32768,widget=Textarea,required=False)
 
     #my own params which will be put into the above
-    fileNameContains = CharField(max_length=512,widget=TextInput(attrs={'style': 'width: 98%'}))
+    fileNameContains = CharField(max_length=512,widget=TextInput(attrs={'style': 'width: 98%'}),required=False)
 
     def vidispine_query_url(self,base):
         if not self.is_valid():
@@ -68,9 +76,14 @@ class LogSearchForm(Form):
 
         d = self.cleaned_data
 
-        matrixparams = ";state=" + ",".join(map(lambda x: urllib.quote_plus(x,safe=""),d['state']))
-        matrixparams += ";type=" + ",".join(map(lambda x: urllib.quote_plus(x,safe=""),d['type']))
+        matrixparams = ""
+        if not 'all' in d['state']:
+            matrixparams += ";state=" + ",".join(map(lambda x: urllib.quote_plus(x,safe=""),d['state']))
+        if not 'all' in d['type']:
+            matrixparams += ";type=" + ",".join(map(lambda x: urllib.quote_plus(x,safe=""),d['type']))
         matrixparams += ";sort=" + urllib.quote_plus(d['sort'],safe="")
-        queryparams = "?jobmetadata=" + urllib.quote_plus(d['jobmetadata'],safe="")
+        queryparams = "?metadata=true"
+        if d['jobmetadata']:
+            queryparams += "&jobmetadata=" + urllib.quote_plus(d['jobmetadata'],safe="")
 
         return base + matrixparams + queryparams

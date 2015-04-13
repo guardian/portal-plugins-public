@@ -40,8 +40,8 @@ def doJobSearch(url):
         if 'data' in row:
             for entry in row['data']:
                 row[entry['key']] = entry['value']
-                if len(entry['value']) > 76:
-                    row[entry['key']] = entry['value'][:76] + "..."
+                #if len(entry['value']) > 76:
+                #    row[entry['key']] = entry['value'][:76] + "..."
             del row['data']
     return rtndata
 

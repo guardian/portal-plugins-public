@@ -122,7 +122,7 @@
             <td>{{ row.priority }}</td>
             <td>{{ row.systemJobModule }}</td>
             <td>{{ row.systemJobInfo }}</td>
-            <td>{{ row.bestEffortFilename }}</td>
+            <td>{{ row.bestEffortFilename|filepath_formatter }}</td>
             <td>{{ row.fileId }}</td>
             <td>{{ row.replicatedFileIds }}</td>
             <td>{{ row.fileDeleted }}</td>
@@ -137,6 +137,15 @@
 {% endif %}
 
 <script>
+    function toggleFilepathDisplay(pathid)
+    {
+        if($('#'+pathid).is(':visible')){
+            $('#'+pathid).fadeOut();
+        } else {
+            $('#'+pathid).fadeIn();
+        }
+        console.log($('#'+pathid).class);
+    }
     var showSearch=false;
     function toggleSearchParams()
     {

@@ -18,6 +18,7 @@
         {{ source_form.source.errors }}
         {{ source_form.source }}
         <input type="submit" value="Go">
+        <a href="#" onclick="showAddSource();">Add Source</a>
     </form>
 </div>
 {% endif %}
@@ -33,7 +34,25 @@
         <div class="invisible" id="taglist">
 
         </div>
+
+        <div id="add_source_form_container" title="Add Source">
+            <form id="add_source_form">
+            <table>
+                {% csrf_token %}
+                {{ add_source_form.as_table }}
+            </table>
+            <input type="submit" value="Add">
+            </form>
+        </div>
 <script>
+function showAddSource()
+{
+$('#add_source_form_container').dialog({
+    minWidth: 600
+});
+return false;
+}
+
 function mouseOverTag(tagname)
 {
     /*data-tagtype="contributor" data-section="" data-url=""*/
@@ -49,9 +68,10 @@ function mouseOverTag(tagname)
 
     $('#details').html(str);
 }
-$(document).ready(function(){
 
-    $.ajax('data',{
+$(document).ready(function(){
+    $('#add_source_form_container').hide();
+    $.ajax('data' + location.search,{
         //accepts: 'text/html',
         success: function(data,textStatus,jqXHR){
             $('#taglist').html(data);
@@ -67,6 +87,24 @@ $(document).ready(function(){
             }, 'taglist');
         }
     });
+
+    $("#add_source_form").submit(function() {
+        var url = "datasource/add"; // the script where you handle the form input.
+
+        $.ajax({
+               type: "POST",
+               url: url,
+               data: $("#add_source_form").serialize(), // serializes the form's elements.
+               success: function(data)
+               {
+                   $("add_source_form_container").dialog("close");
+                   location.reload();
+               }
+             });
+
+        return false; // avoid to execute the actual submit of the form.
+    });
+
     /*
     $.getJSON('data', function(data){
         console.log(data);

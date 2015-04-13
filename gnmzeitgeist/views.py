@@ -4,12 +4,15 @@ import logging
 import contentapi
 import re
 from pprint import pprint
-
+from forms import DataSourceForm,AddSourceForm
+from models import datasource
 
 def index(request):
     from django.shortcuts import render
     #return HttpResponse(content="Hello world!",content_type="text/plain",status=200)
-    return render(request,"gnmzeitgeist.html")
+    add_source_form = AddSourceForm()
+    data_source_form = DataSourceForm()
+    return render(request,"gnmzeitgeist.html", {'source_form': data_source_form,'add_source_form': add_source_form})
 
 
 def make_vidispine_request(agent,method,urlpath,body,headers,content_type='application/xml'):
@@ -45,9 +48,15 @@ def data(request):
     if 'max' in request.GET:
         maxtags = int(request.GET['max'])
 
-    interesting_field = "gnm_master_website_keyword_ids"
-    if 'field' in request.GET:
-        interesting_field = request.GET['field']
+    if 'source' in request.GET:
+        source = datasource.objects.get(name=request.GET['source'])
+    else:
+        source = datasource.objects.all()[0]
+
+    #interesting_field = "gnm_master_website_keyword_ids"
+    #if 'field' in request.GET:
+    #    interesting_field = request.GET['field']
+
 
     xmlroot = Element("ItemSearchDocument",{'xmlns': 'http://xml.vidispine.com/schema/vidispine'})
 
@@ -59,7 +68,7 @@ def data(request):
 
     facetroot = SubElement(xmlroot,"facet", {'count': "true"})
     facetfield = SubElement(facetroot,"field")
-    facetfield.text = interesting_field
+    facetfield.text = source.vs_field
 
     xmlstring = tostring(xmlroot,encoding="UTF-8")
 
@@ -116,10 +125,10 @@ def data(request):
             rtn[f['field']][v['fieldValue']] = rtndata
             jsonrtn.append([rtndata['name'],rtndata['score']])
 
-    pprint(request.META)
+    #pprint(request.META)
     if 'HTTP_ACCEPT' in request.META:
         accept_types = request.META['HTTP_ACCEPT'].split(r', ')
-        pprint(accept_types)
+        #pprint(accept_types)
         if "application/json" in accept_types:
             return HttpResponse(json.dumps(jsonrtn),content_type='application/json',status=200)
         elif "text/html" in accept_types or "*/*" in accept_types:
@@ -128,3 +137,14 @@ def data(request):
             return HttpResponse("Invalid ACCEPT type",content_type='text/plain',status=405)
     return render(request,"tagsource.html",{'tagdata': rtn[root]})
     #return HttpResponse(json.dumps(rtn),content_type='application/json',status=200)
+
+def add_data_source(request):
+    if request.method != 'POST':
+        return HttpResponse("Invalid method",status=400)
+
+    f = AddSourceForm(request.POST)
+    #if not f.is_valid():
+    #    return HttpResponse("Form not valid",status=400)
+
+    f.save()
+    return HttpResponse("",status=204)

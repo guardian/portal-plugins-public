@@ -21,6 +21,21 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
     (headers,content) = agent.request(url,method=method,body=body,headers=headers)
     return (headers,content)
 
+def getFileInfo(fileid,agent=None):
+    import json
+    if agent is None:
+        import httplib2
+        agent = httplib2.Http()
+
+    url = "/API/storage/file/{0}".format(fileid)
+
+    (headers,content) = make_vidispine_request(agent,"GET",url,body="",headers={'Accept': 'application/json'})
+    if int(headers['status']) < 200 or int(headers['status']) > 299:
+        logging.error(content)
+        raise StandardError("Vidispine error: %s" % headers['status'])
+
+    return json.loads(content)
+
 def doJobSearch(url):
     import httplib2
     import json
@@ -42,6 +57,16 @@ def doJobSearch(url):
                 row[entry['key']] = entry['value']
                 #if len(entry['value']) > 76:
                 #    row[entry['key']] = entry['value'][:76] + "..."
+                try:
+                    if entry['key'] == 'fileId':
+                        row['sourceFile'] = getFileInfo(entry['value'],agent)
+                except:
+                    pass
+                try:
+                    if entry['key'] == 'destinationFileId':
+                        row['destFile'] = getFileInfo(entry['value'],agent)
+                except:
+                    pass
             del row['data']
     return rtndata
 

@@ -103,8 +103,9 @@
             <td id="col_priority">priority</td>
             <td id="col_systemJobModule">systemJobModule</td>
             <td id="col_systemJobInfo">systemJobInfo</td>
+            <td id="col_destinationStorageId">destinationStorageId</td>
             <td id="col_bestEffortFilename">bestEffortFilename</td>
-            <td id="col_fileId">fileId</td>
+            <td id="col_fileId">Source File</td>
             <td id="col_replicatedFileIds">replicatedFileIds</td>
             <td id="col_fileDeleted">fileDeleted</td>
             <td id="col_fileStateOnFailure">fileStateOnFailure</td>
@@ -122,8 +123,16 @@
             <td>{{ row.priority }}</td>
             <td>{{ row.systemJobModule }}</td>
             <td>{{ row.systemJobInfo }}</td>
+            <td>{{ row.destinationStorageId }}</td>
             <td>{{ row.bestEffortFilename|filepath_formatter }}</td>
-            <td>{{ row.fileId }}</td>
+            <td>{% if row.sourceFile %}
+                <b>File ID</b>: {{ row.sourceFile.id }}<br>
+                <b>Storage ID</b>: {{ row.sourceFile.storage }}<br>
+                <b>State</b>: {{ row.sourceFile.state }}<br>
+                {% else %}
+                {{ row.fileId }}
+                {% endif %}
+            </td>
             <td>{{ row.replicatedFileIds }}</td>
             <td>{{ row.fileDeleted }}</td>
             <td>{{ row.fileStateOnFailure }}</td>

@@ -93,17 +93,18 @@ def jobTypeFormatter(value):
         icon = iconpath + "transfer.png"
 
     if icon != "":
-        return mark_safe(u"<img src=\"{0}\">{1}".format(icon,value))
+        return mark_safe(u"<img style=\"height: 16px\" src=\"{0}\">{1}".format(icon,value))
     else:
         return value
 
 @register.filter("filepath_formatter")
 def filePathFormatter(value):
-    import hashlib
+    import uuid
 
     offset = 0
     n = 0
-    stringhash = hashlib.md5(value).hexdigest()
+    #stringhash = hashlib.md5(value).hexdigest()
+    stringhash = str(uuid.uuid4())
     parts = []
 
     for word in value.split('/'):
@@ -111,16 +112,16 @@ def filePathFormatter(value):
 
         parts.append(u"<span class=\"filepath\" style=\"margin-left: {offset}px\"><img style=\"height: 16px\" src=\"{icon}\">{text}</span><br>".format(
             offset=offset,
-            icon="/sitemedia/img/folder.png",
+            icon="/sitemedia/img/logsearch/folder.png",
             text=word
         ))
         offset+=0
 
-    rtn = u"<a onClick=\"toggleFilepathDisplay('{id}');\" style=\"cursor: pointer\">show path...</a><div id=\"{id}\" style=\"display: none\">".format(
+    rtn = u"<a onClick=\"toggleFilepathDisplay('{id}');\" style=\"cursor: pointer\">show path...</a><br><div id=\"{id}\" style=\"display: none\">".format(
         id=stringhash
     ) + "".join(parts[:len(parts)-1]) + u"</div>" + u"<span class=\"filepath\" style=\"margin-left: {offset}px\"><img style=\"height: 16px\" src=\"{icon}\">{text}</span><br>".format(
             offset=offset,
-            icon="/sitemedia/img/file.png",
+            icon="/sitemedia/img/logsearch/file.png",
             text=value.split('/')[-1]
         )
     return mark_safe(rtn)

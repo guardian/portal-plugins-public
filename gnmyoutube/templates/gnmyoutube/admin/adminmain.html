@@ -4,14 +4,16 @@
 {% block heading %}{% trans 'PLUTO YouTube Settings' %}{% endblock %}
 
 {% block content %}
-<div class="itemcontent">
+<div class="content">
 
 
-<form method="POST" action="">
+<form method="POST" action="" id="settings_form">
     {% csrf_token %}
     <table>
         {{ settingsform.as_table }}
     </table>
+    <a href="#" onclick="testConnection();">Test connection</a>
+    <div id="testResults"></div>
     <input type="submit" value="Save">
 </form>
 
@@ -21,6 +23,17 @@
 {% block inlinejs %}
 <script>
 /* JavaScript HERE */
+function testConnection()
+{
+    $.post('{% url gnmyoutube:testconn %}', $('#settings_form').serialize())
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            $('#testResults').html("<p class=\"error\">" + errorThrown + "</p>");
+        })
+        .success(function(data) {
+            $('#testResults').html("<p>Test succeeded.  "+data['count']+" items were found.</p>");
+        });
 
+    return false;
+}
 </script>
 {% endblock inlinejs %}

@@ -6,10 +6,14 @@ import logging
 import re
 from forms import *
 from models import *
+import json
+from youtube_interface import YoutubeInterface
+
 
 class YoutubeIndexView(View):
     def get(self,request):
         return render(request,'gnmyoutube/index.html')
+
 
 class YoutubeAdminView(View):
     def get(self,request):
@@ -30,4 +34,17 @@ class YoutubeAdminView(View):
 
 class YoutubeTestConnectionView(View):
     def post(self,request):
-        raise StandardError("Not yet implemented")
+        from pprint import pprint
+        f = SettingsForm(request.POST)
+
+        if not f.is_valid():
+            pprint(f.__dict__)
+            return HttpResponse(json.dumps({'status': 'error','error': 'Form not valid'}),status=400)
+
+        cd = f.cleaned_data
+
+        i = YoutubeInterface()
+        i.authorize_pki(cd['clientID'],cd['privateKey'])
+        c = i.list_categories()
+
+        return HttpResponse(json.dumps({'status': 'unknown','error': 'Still testing', 'data': c}),status=200)

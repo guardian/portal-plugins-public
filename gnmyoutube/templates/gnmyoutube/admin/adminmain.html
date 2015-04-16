@@ -1,0 +1,26 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress %}
+{% block title %}{% trans 'PLUTO YouTube Settings' %}{% endblock %}
+{% block heading %}{% trans 'PLUTO YouTube Settings' %}{% endblock %}
+
+{% block content %}
+<div class="itemcontent">
+
+
+<form method="POST" action="">
+    {% csrf_token %}
+    <table>
+        {{ settingsform.as_table }}
+    </table>
+    <input type="submit" value="Save">
+</form>
+
+</div><!--.itemcontent -->
+{% endblock content %}
+
+{% block inlinejs %}
+<script>
+/* JavaScript HERE */
+
+</script>
+{% endblock inlinejs %}

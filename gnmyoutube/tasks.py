@@ -5,29 +5,36 @@ import logging
 class VidispineError(StandardError):
     pass
 
+def get_extradata_node(xmlData,ns = "{http://xml.vidispine.com/schema/vidispine}"):
+    for n in xmlData.findall("{0}data/{0}key".format(ns)):
+        if n.text == "extradata":
+            parent = n.find("./..")
+            return parent.find("{0}value".format(ns))
+
+    raise ValueError("No extradata node found")
 
 def update_vidispine_field_values(fieldName,cats):
     import httplib2
-    from django.conf import settings as portal_settings
-    from xml.etree import ElementTree as ET
+    from lxml import etree as ET
     import json
     from plugin import make_vidispine_request
 
     #step one - get Vidispine's field definition
     h = httplib2.Http()
     logging.debug("Looking up field {0}".format(fieldName))
-    uri = "{0}:{1}/API/metadata-field/{2}?data=all".format(portal_settings.VIDISPINE_HOST,portal_settings.VIDISPINE_PORT,fieldName)
+    uri = "/API/metadata-field/{0}?data=all".format(fieldName)
 
-    (content,headers) = make_vidispine_request(h,"GET",uri,None,None)
+    (headers,content) = make_vidispine_request(h,"GET",uri,"",{})
 
-    if int(headers['code']) < 200 or int(headers['code']) > 299:
+    if int(headers['status']) < 200 or int(headers['status']) > 299:
         raise VidispineError(content)
 
     logging.debug("Loading data from document...")
     ns = "{http://xml.vidispine.com/schema/vidispine}"
-    xmlData = ET.parse(content)
+    xmlData = ET.fromstring(content)
     #//data/key[text()="extradata"]/../value/
-    portalDataNode = xmlData.find('{0}data/{0}key[text()="extradata"]/../{0}value'.format(ns))
+    #portalDataNode = xmlData.find('{0}data/{0}key[text()="extradata"]/../{0}value'.format(ns))
+    portalDataNode=get_extradata_node(xmlData,ns=ns)
 
     #step two - parse Portal's extradata field
     portalData = json.loads(portalDataNode.text)
@@ -44,9 +51,9 @@ def update_vidispine_field_values(fieldName,cats):
     logging.debug("New field data record: {0}".format(newFieldRecord))
 
     #step 5 - output back to Vidispine
-    (content,headers)=make_vidispine_request(h,"PUT",uri,newFieldRecord,{'Accept': 'application/xml'},content_type='application/xml')
+    (headers,content)=make_vidispine_request(h,"PUT",uri,newFieldRecord,{'Accept': 'application/xml'},content_type='application/xml')
 
-    if int(headers['code']) < 200 or int(headers['code']) > 299:
+    if int(headers['status']) < 200 or int(headers['status']) > 299:
         raise VidispineError(content)
 
 

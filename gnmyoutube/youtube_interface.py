@@ -27,4 +27,4 @@ class YoutubeInterface:
         result = self.youtube_service.videoCategories().list(part="id,snippet",regionCode=region_code).execute()
 
         pprint(result)
-        pass
+        return result

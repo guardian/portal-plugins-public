@@ -8,7 +8,8 @@ from forms import *
 from models import *
 import json
 from youtube_interface import YoutubeInterface
-
+from tasks import update_categories_list
+from traceback import format_exc
 
 class YoutubeIndexView(View):
     def get(self,request):
@@ -86,3 +87,15 @@ class YoutubeTestConnectionView(View):
             return HttpResponse(json.dumps({'status': 'error', 'error': str(e)}), status=500)
 
         return HttpResponse(json.dumps({'status': 'unknown','error': 'Still testing', 'data': c}),status=200)
+
+#perform actions, for testing
+class YoutubeTestAction(View):
+    def get(self,request,verb):
+        if verb=="update_categories":
+            try:
+                update_categories_list()
+            except Exception as e:
+                return HttpResponse("{0}: {1}\n{2}".format(e.__class__,str(e),format_exc()),content_type="text/plain",status=500)
+            return HttpResponse("Update categories succeeded",content_type="text/plain",status=200)
+        else:
+            return HttpResponse("Verb not recognised",content_type='text/plain',status=400)

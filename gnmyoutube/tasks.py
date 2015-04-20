@@ -18,7 +18,8 @@ def update_vidispine_field_values(fieldName,cats):
     logging.debug("Looking up field {0}".format(fieldName))
     uri = "{0}:{1}/API/metadata-field/{2}?data=all".format(portal_settings.VIDISPINE_HOST,portal_settings.VIDISPINE_PORT,fieldName)
 
-    (content,headers) = h.request(uri,headers={'Accept': 'application/xml'})
+    (content,headers) = make_vidispine_request(h,"GET",uri,None,None)
+
     if int(headers['code']) < 200 or int(headers['code']) > 299:
         raise VidispineError(content)
 
@@ -43,7 +44,8 @@ def update_vidispine_field_values(fieldName,cats):
     logging.debug("New field data record: {0}".format(newFieldRecord))
 
     #step 5 - output back to Vidispine
-    (content,headers)=h.request(uri,method="PUT",body=newFieldRecord,headers={'Content-Type': 'application/xml','Accept': 'application/xml'})
+    (content,headers)=make_vidispine_request(h,"PUT",uri,newFieldRecord,{'Accept': 'application/xml'},content_type='application/xml')
+
     if int(headers['code']) < 200 or int(headers['code']) > 299:
         raise VidispineError(content)
 
@@ -54,20 +56,20 @@ def update_categories_list():
 
     #if any settings are not set, then this should raise an exception that can be caught by Raven
     logging.info("Attempting to update YouTube categories list")
-    clientID = plugin_settings.objects.get(key='clientID')
-    privateKey = plugin_settings.objects.get(key='privateKey')
-    fieldName = plugin_settings.objects.get(key='categoriesField')
+    clientID = plugin_settings.objects.get(key='clientID').value
+    privateKey = plugin_settings.objects.get(key='privateKey').value
+    fieldName = plugin_settings.objects.get(key='fieldID').value
     try:
-        regionCode = plugin_settings.objects.get(key='regionCode')
-    except plugin_settings.ObjectNotFound:
+        regionCode = plugin_settings.objects.get(key='regionCode').value
+    except plugin_settings.DoesNotExist:
         regionCode = 'gb'
 
     logging.info("Connecting to YouTube with clientID {0}".format(clientID))
 
     i = YoutubeInterface()
-    i.authorize_pki(clientID,privateKey,YoutubeInterface.YOUTUBE_READ_WRITE_SCOPE)
+    i.authorize_pki(clientID,privateKey)
 
     logging.info("Requesting category list for region {0}".format(regionCode))
-    data = i.list_categories(regionCode=regionCode)
+    data = i.list_categories(region_code=regionCode)
 
     update_vidispine_field_values(fieldName,data['items'])

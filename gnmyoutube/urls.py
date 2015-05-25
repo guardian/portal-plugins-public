@@ -16,5 +16,5 @@ urlpatterns = patterns('portal.plugins.gnmyoutube.views',
     url(r'^$', YoutubeIndexView.as_view(), name='index'),
     url(r'^admin/$',YoutubeAdminView.as_view(), name='admin'),
     url(r'^admin/testconnection$',YoutubeTestConnectionView.as_view(), name='testconn'),
-    url(r'^action/([^\/]+)$',YoutubeTestAction.as_view()),
+    url(r'^action/([^\/]+)$',YoutubeTestAction.as_view(), name='actions'),
 )

@@ -26,5 +26,5 @@ class YoutubeInterface:
     def list_categories(self,region_code='gb'):
         result = self.youtube_service.videoCategories().list(part="id,snippet",regionCode=region_code).execute()
 
-        pprint(result)
+        #pprint(result)
         return result

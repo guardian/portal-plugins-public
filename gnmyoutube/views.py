@@ -10,6 +10,7 @@ import json
 from youtube_interface import YoutubeInterface
 from tasks import update_categories_list
 from traceback import format_exc
+#from djcelery.models.schedules import crontab
 
 class YoutubeIndexView(View):
     def get(self,request):
@@ -34,6 +35,7 @@ class YoutubeAdminView(View):
 
     def post(self,request):
         from pprint import pprint
+        from djcelery.models import CrontabSchedule,PeriodicTask
         f = SettingsForm(request.POST)
 
         if f.is_valid():

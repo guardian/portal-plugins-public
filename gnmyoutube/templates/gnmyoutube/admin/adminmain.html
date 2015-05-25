@@ -6,7 +6,7 @@
 {% block content %}
 <div class="content">
 
-
+<h2>Configuration</h2>
 <form method="POST" action="" id="settings_form">
     {% csrf_token %}
     <table>
@@ -17,12 +17,16 @@
     <input type="submit" value="Save">
 </form>
 
+<hr>
+<h2>Actions</h2>
+<button onclick="doUpdateCategories();">Update Categories list</button>
+<div id="actionResults"></div>
+<div id="actionInProgress"><img src="/media/img/gnm/inprogress.gif"><p id="actionInProgressDesc"></p></div>
 </div><!--.itemcontent -->
 {% endblock content %}
 
 {% block inlinejs %}
 <script>
-/* JavaScript HERE */
 function testConnection()
 {
     $.post('{% url gnmyoutube:testconn %}', $('#settings_form').serialize())
@@ -40,5 +44,31 @@ function testConnection()
 
     return false;
 }
+
+function doUpdateCategories()
+{
+    $('#actionInProgressDesc').html("Attempting to update categories...");
+    $.get('{% url gnmyoutube:actions 'update_categories' %}')
+        .fail(function(hqXHR, textStatus, errorThrown) {
+            if(jqXHR.responseText){
+                $('#actionResults').html("<p class=\"error\">Failed to update categories</p><p>"+jqXHR.responseText+"</p>");
+            } else {
+                $('#actionResults').html("<p class=\"error\">Failed to update categories</p><p>"+errorThrown+"</p>");
+            }
+            $('#actionInProgress').hide();
+            $('#actionResults').show();
+        })
+        .success(function(data) {
+            $('#actionInProgress').hide();
+            $('#actionResults').html("<p class=\"success\">Update categories succeeded</p>");
+            $('#actionResults').show();
+        });
+}
+
+$(document).ready(function(){
+    $('#actionResults').hide();
+    $('#actionInProgress').hide();
+    $('#id_updateCategoriesTime').datepicker();
+});
 </script>
 {% endblock inlinejs %}

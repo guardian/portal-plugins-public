@@ -178,7 +178,15 @@
         });
 
         d = new Date();
-        dateString = d.getDate() + "/" + (d.getMonth()+1) + "/" + (d.getYear()+1900);
+        selectedMonth = $.urlParam('selected_month');
+        selectedYear = $.urlParam('selected_year');
+
+        if(selectedMonth && selectedYear){
+            dateString = "1/" + selectedMonth + "/" + selectedYear
+        } else {
+            dateString = d.getDate() + "/" + (d.getMonth()+1) + "/" + (d.getYear()+1900);
+        }
+
         $('#details_date').val(dateString);
         details_date_changed();
 

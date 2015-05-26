@@ -97,8 +97,12 @@
 
     function query_string() {
         var results = new RegExp('\\?(.*)$').exec(window.location.href);
-        console.log("got query string " + results[1]);
-        return results[1];
+        if(results){
+		console.log("got query string " + results[1]);
+        	return results[1];
+	} else {
+		return undefined;
+	}
     }
 
     function makeChart() {

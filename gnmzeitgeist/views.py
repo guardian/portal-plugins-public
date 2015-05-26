@@ -11,7 +11,10 @@ def index(request):
     from django.shortcuts import render
     #return HttpResponse(content="Hello world!",content_type="text/plain",status=200)
     add_source_form = AddSourceForm()
-    data_source_form = DataSourceForm()
+    if 'source' in request.GET:
+        data_source_form = DataSourceForm(initial={'source': request.GET['source']})
+    else:
+        data_source_form = DataSourceForm()
     return render(request,"gnmzeitgeist.html", {'source_form': data_source_form,'add_source_form': add_source_form})
 
 

@@ -23,6 +23,12 @@
 </div>
 
 <div class="content">
+    <div id="chartcontrols">
+        <form action="" method="get">
+            {{ time_period_selector.selected_month }}&nbsp;&nbsp;{{ time_period_selector.selected_year }}
+            &nbsp;&nbsp;<input type="submit" value="Go">
+        </form>
+    </div>
     <div id="errordisplay"></div>
     <div id="chartarea"></div>
     <div style="margin-left: 5px;">
@@ -44,6 +50,18 @@
 </div>
 
 <script>
+    //with thanks to http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+    $.urlParam = function(name, url) {
+        if (!url) {
+         url = window.location.href;
+        }
+        var results = new RegExp('[\\?&]' + name + '=([^&#]*)').exec(url);
+        if (!results) {
+            return undefined;
+        }
+        return results[1] || undefined;
+    }
+
     var known_platforms = {
         {% for p in platforms %}{{ p.publicationtime_field }}: { display_name: '{{ p.name }}', display_icon: '{{ p.display_icon_url }}' },{% endfor %}
         'dummy': {}
@@ -77,9 +95,21 @@
         { type: 'bar', valueField: "gnm_master_youtubepublication_time", name: "Sent to Youtube", tag: "youtube" }
     ];
 
+    function query_string() {
+        var results = new RegExp('\\?(.*)$').exec(window.location.href);
+        if(results){
+		console.log("got query string " + results[1]);
+        	return results[1];
+	} else {
+		return undefined;
+	}
+    }
+
     function makeChart() {
         if(cachedData==null){
-            var jqxhr=$.getJSON("/gnmsyndication/stats/data/platforms_by_day",null,function(data,textStatus,jqXHR){
+            var qs = query_string();
+
+            var jqxhr=$.getJSON("/gnmsyndication/stats/data/platforms_by_day?"+qs,null,function(data,textStatus,jqXHR){
 			    cachedData=data;
 			    makeChart();
 			});
@@ -152,7 +182,15 @@
         });
 
         d = new Date();
-        dateString = d.getDate() + "/" + (d.getMonth()+1) + "/" + (d.getYear()+1900);
+        selectedMonth = $.urlParam('selected_month');
+        selectedYear = $.urlParam('selected_year');
+
+        if(selectedMonth && selectedYear){
+            dateString = "1/" + selectedMonth + "/" + selectedYear
+        } else {
+            dateString = d.getDate() + "/" + (d.getMonth()+1) + "/" + (d.getYear()+1900);
+        }
+
         $('#details_date').val(dateString);
         details_date_changed();
 

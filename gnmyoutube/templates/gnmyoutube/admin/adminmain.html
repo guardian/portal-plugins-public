@@ -1,0 +1,74 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress %}
+{% block title %}{% trans 'PLUTO YouTube Settings' %}{% endblock %}
+{% block heading %}{% trans 'PLUTO YouTube Settings' %}{% endblock %}
+
+{% block content %}
+<div class="content">
+
+<h2>Configuration</h2>
+<form method="POST" action="" id="settings_form">
+    {% csrf_token %}
+    <table>
+        {{ settingsform.as_table }}
+    </table>
+    <a href="#" onclick="testConnection();">Test connection</a>
+    <div id="testResults"></div>
+    <input type="submit" value="Save">
+</form>
+
+<hr>
+<h2>Actions</h2>
+<button onclick="doUpdateCategories();">Update Categories list</button>
+<div id="actionResults"></div>
+<div id="actionInProgress"><img src="/media/img/gnm/inprogress.gif"><p id="actionInProgressDesc"></p></div>
+</div><!--.itemcontent -->
+{% endblock content %}
+
+{% block inlinejs %}
+<script>
+function testConnection()
+{
+    $.post('{% url gnmyoutube:testconn %}', $('#settings_form').serialize())
+        .fail(function(jqXHR, textStatus, errorThrown) {
+            if(jqXHR.responseText){
+                errorData = $.parseJSON(jqXHR.responseText);
+                $('#testResults').html("<p class=\"error\"><b>Connection failed: </b> " + errorData['error'] + "</p>");
+            } else {
+                $('#testResults').html("<p class=\"error\"><b>Connection failed: </b> " + errorThrown + "</p>");
+            }
+        })
+        .success(function(data) {
+            $('#testResults').html("<p>Test succeeded.  "+data['count']+" items were found.</p>");
+        });
+
+    return false;
+}
+
+function doUpdateCategories()
+{
+    $('#actionInProgressDesc').html("Attempting to update categories...");
+    $.get('{% url gnmyoutube:actions 'update_categories' %}')
+        .fail(function(hqXHR, textStatus, errorThrown) {
+            if(jqXHR.responseText){
+                $('#actionResults').html("<p class=\"error\">Failed to update categories</p><p>"+jqXHR.responseText+"</p>");
+            } else {
+                $('#actionResults').html("<p class=\"error\">Failed to update categories</p><p>"+errorThrown+"</p>");
+            }
+            $('#actionInProgress').hide();
+            $('#actionResults').show();
+        })
+        .success(function(data) {
+            $('#actionInProgress').hide();
+            $('#actionResults').html("<p class=\"success\">Update categories succeeded</p>");
+            $('#actionResults').show();
+        });
+}
+
+$(document).ready(function(){
+    $('#actionResults').hide();
+    $('#actionInProgress').hide();
+    $('#id_updateCategoriesTime').datepicker();
+});
+</script>
+{% endblock inlinejs %}

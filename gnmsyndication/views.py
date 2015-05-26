@@ -8,7 +8,6 @@ import logging
 from django.conf import settings
 import re
 from models import platform
-
 logging.basicConfig(level=logging.DEBUG)
 
 #FIXME: need to put these into a model and make configurable
@@ -20,10 +19,26 @@ date_fields = [
 ]
 
 def index(request):
+  from forms import TimePeriodSelector
+  from datetime import datetime
   #return HttpResponse(content="Hello world!",content_type="text/plain",status=200)
   known_platforms = platform.objects.all()
 
-  return render(request,"syndicationstats.html", {'platforms': known_platforms })
+  current_date = datetime.now()
+  m = current_date.month
+  y = current_date.year
+
+  try:
+      if 'selected_month' in request.GET:
+          m = int(request.GET['selected_month'])
+      if 'selected_year' in request.GET:
+          y = int(request.GET['selected_year'])
+  except ValueError as e:
+      logging.error(str(e))
+
+  selectorform = TimePeriodSelector(initial={'selected_month': m,'selected_year': y})
+
+  return render(request,"syndicationstats.html", {'platforms': known_platforms,'time_period_selector': selectorform })
 
 def make_facet_xml(fieldname,start_time=None,number=30,intervalTime=datetime.timedelta(days=1)):
     if start_time is None:
@@ -98,6 +113,15 @@ def platforms_by_day(request):
     else:
         raise StandardError("Units must be either seconds, minutes, hours, days or weeks")
 
+    try:
+        if 'selected_month' in request.GET and 'selected_year' in request.GET:
+            start_time = datetime.datetime(int(request.GET['selected_year']),int(request.GET['selected_month'])+1,1) - number * intervalTime
+        elif 'selected_month' in request.GET:
+            temp = datetime.datetime.now()
+            start_time = datetime.datetime(temp.year,int(request.GET['selected_month'])+1,1) - number * intervalTime
+    except ValueError as e:
+        logging.error(str(e))
+
     if start_time is None:
         start_time = datetime.datetime.now().replace(hour=0,minute=0,second=0,microsecond=0) - number * intervalTime
 
@@ -106,7 +130,7 @@ def platforms_by_day(request):
     requeststring = "<ItemSearchDocument xmlns=\"http://xml.vidispine.com/schema/vidispine\">"
 
     for fieldname in date_fields:
-        requeststring += make_facet_xml(fieldname)
+        requeststring += make_facet_xml(fieldname,start_time=start_time)
     requeststring += "</ItemSearchDocument>"
 
     logging.debug(requeststring)

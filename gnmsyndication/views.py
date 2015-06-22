@@ -175,7 +175,7 @@ def platforms_by_day(request):
     #rtn = sorted(rtn,key=lambda x: x['timestamp'])
     return HttpResponse(json.dumps(rtn),content_type="application/json",status=200)
 
-def assets_by_day(request,date):
+def asset_list_by_day(request,date):
     from xml.etree.ElementTree import Element, SubElement, Comment, tostring
     import httplib2
     import json
@@ -193,9 +193,13 @@ def assets_by_day(request,date):
         'gnm_master_generic_intendeduploadplatforms',
         'gnm_commission_title',
         'gnm_project_headline',
-        'gnm_master_pacdata_status'
+        'gnm_master_pacdata_status',
+        'gnm_master_website_keyword_ids'
     ]
-    dt = datetime.datetime.strptime(date,"%d/%m/%Y")
+    if isinstance(date,datetime.datetime):
+        dt = date
+    else:
+        dt = datetime.datetime.strptime(date,"%d/%m/%Y")
 
     start_time = dt.replace(hour=0,minute=0,second=0,microsecond=0)
     end_time = dt.replace(hour=23,minute=59,second=59,microsecond=999)
@@ -226,7 +230,7 @@ def assets_by_day(request,date):
     agent = httplib2.Http()
 
     fields = ",".join(interesting_fields)
-    limit = 20
+    limit = 50
     if 'limit' in request.GET:
         limit=int(request.GET['limit'])
 
@@ -257,5 +261,80 @@ def assets_by_day(request,date):
                     pass
         assets.append(ref)
 
+#date is string, dd/mm/yyyy
+def assets_by_day(request,date):
+    assets = asset_list_by_day(request,date)
     #return HttpResponse(json.dumps(assets),content_type='application/json',status=200)
     return render(request,"syndication_filedetails.html",{"items": assets})
+
+def csv_report(request):
+    from StringIO import StringIO
+    from datetime import datetime, timedelta
+    from pprint import  pprint
+    import csv
+
+    if not 'start_date' in request.GET or not 'end_date' in request.GET:
+        pprint(request.GET)
+        raise ValueError("You need to pass start_date and end_date as a get value")
+    # try:
+    #     month = int(request['selected_month'])
+    # except ValueError as e:
+    #     raise ValueError("selected_month must be an integer")
+
+    interval = timedelta(days=1)
+    try:
+        start_date = datetime.strptime(request.GET['start_date'],"%d/%m/%Y")
+    except ValueError as e:
+        raise ValueError("start_date should be in the format dd/mm/YYYY")
+    try:
+        end_date = datetime.strptime(request.GET['end_date'],"%d/%m/%Y")
+    except ValueError as e:
+        raise ValueError("end_date should be in the format dd/mm/YYYY")
+
+    fout = StringIO()
+    csvout = csv.writer(fout)
+    have_header = False
+    # interesting_fields = [
+    #     'title',
+    #     'gnm_master_headline',
+    #     'gnm_master_website_uploadstatus',
+    #     'gnm_master_mainstreamsyndication_uploadstatus',
+    #     'gnm_master_dailymotion_uploadstatus',
+    #     'gnm_master_youtube_uploadstatus',
+    #     'gnm_master_publication_time',
+    #     'gnm_master_mainstreamsyndication_publication_time',
+    #     'gnm_master_dailymotion_publication_time',
+    #     'gnm_master_generic_intendeduploadplatforms',
+    #     'gnm_commission_title',
+    #     'gnm_project_headline',
+    #     'gnm_master_pacdata_status',
+    #     'gnm_master_website_keyword_ids'
+    # ]
+    current_date = start_date
+    while current_date < end_date:
+        try:
+            asset_list = asset_list_by_day(request,current_date)
+        except StandardError as e:
+            return HttpResponse(str(e),status=500,content_type='text/plain')
+
+        if not have_header:
+            csvout.writerow(['Headline','URL','Commission','Project','Published to website','Published to Mainstream','Published to Daily Motion','Keywords'])
+            have_header = True
+
+        if asset_list:
+            for row in asset_list:
+                csvout.writerow(row['gnm_master_headline'],
+                                row['url'],
+                                row['gnm_commission_title'],
+                                row['gnm_project_headline'],
+                                row['gnm_master_publication_time'],
+                                row['gnm_master_mainstreamsyndication_publication_time'],
+                                row['gnm_master_dailymotion_publication_time'],
+                                row['gnm_master_website_keyword_ids'])
+        current_date += interval
+
+    rtn = fout.getvalue()
+    #csvout.close()
+    fout.close()
+
+    return HttpResponse(rtn,status=200,content_type='text/csv')

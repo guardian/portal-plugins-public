@@ -2,13 +2,26 @@
 
 {% block head %}
 <script type="text/javascript" src="/sitemedia/js/jquery.tagcanvas.min.js"></script>
+<script type="text/javascript" src="/sitemedia/js/wordcloud2.js"></script>
 {% endblock %}
 
 {% block body %}
 
 <div class="header">
-    <h1>Hello world!</h1>
+    <h1>Tag Cloud</h1>
 </div>
+
+{% if source_form %}
+<div id="sourcecontainer">
+    <h3>Data Source</h3>
+    <form method="GET" action="">
+        {{ source_form.source.errors }}
+        {{ source_form.source }}
+        <input type="submit" value="Go">
+        <a href="#" onclick="showAddSource();">Add Source</a>
+    </form>
+</div>
+{% endif %}
 
 <div id="detailscontainer" style="float: left; width: 28%; margin-left: 3px; margin-top: 3px">
     <h3>Details</h3>
@@ -21,7 +34,25 @@
         <div class="invisible" id="taglist">
 
         </div>
+
+        <div id="add_source_form_container" title="Add Source">
+            <form id="add_source_form">
+            <table>
+                {% csrf_token %}
+                {{ add_source_form.as_table }}
+            </table>
+            <input type="submit" value="Add">
+            </form>
+        </div>
 <script>
+function showAddSource()
+{
+$('#add_source_form_container').dialog({
+    minWidth: 600
+});
+return false;
+}
+
 function mouseOverTag(tagname)
 {
     /*data-tagtype="contributor" data-section="" data-url=""*/
@@ -37,13 +68,15 @@ function mouseOverTag(tagname)
 
     $('#details').html(str);
 }
+
 $(document).ready(function(){
-    $.ajax('data',{
+    $('#add_source_form_container').hide();
+    $.ajax('data' + location.search,{
         //accepts: 'text/html',
         success: function(data,textStatus,jqXHR){
             $('#taglist').html(data);
             rtn = $('#tagarea').tagcanvas({
-                 textColour : '#1F4385', /* "guardian blue" */
+                 textColour : '#1F4385', // "guardian blue"
                  weightGradient: { 0: '#586885', 1: '#1F4385' },
                  outlineThickness : 0,
                  maxSpeed : 0.03,
@@ -54,6 +87,39 @@ $(document).ready(function(){
             }, 'taglist');
         }
     });
+
+    $("#add_source_form").submit(function() {
+        var url = "datasource/add"; // the script where you handle the form input.
+
+        $.ajax({
+               type: "POST",
+               url: url,
+               data: $("#add_source_form").serialize(), // serializes the form's elements.
+               success: function(data)
+               {
+                   $("add_source_form_container").dialog("close");
+                   location.reload();
+               }
+             });
+
+        return false; // avoid to execute the actual submit of the form.
+    });
+
+    /*
+    $.getJSON('data', function(data){
+        console.log(data);
+        WordCloud(document.getElementById('tagarea'),{
+            list: data,
+            fontFamily: "Sans",
+            fontWeight: "normal",
+            color: '#1F4385',
+            minSize: 2,
+            weightFactor: 1,
+            clearCanvas: true,
+            minRotation: 0,
+            maxRotation: 1.57
+        });
+    });*/
 });
 </script>
 {% endblock %}

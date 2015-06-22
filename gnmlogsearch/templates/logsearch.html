@@ -124,7 +124,7 @@
             <td>{{ row.systemJobModule }}</td>
             <td>{{ row.systemJobInfo }}</td>
             <td>{{ row.destinationStorageId }}</td>
-            <td>{{ row.bestEffortFilename|filepath_formatter }}</td>
+            <td>{{ row.bestEffortFilename }}</td>
             <td>{% if row.sourceFile %}
                 <b>File ID</b>: {{ row.sourceFile.id }}<br>
                 <b>Storage ID</b>: {{ row.sourceFile.storage }}<br>

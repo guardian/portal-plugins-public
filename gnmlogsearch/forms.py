@@ -4,6 +4,7 @@ import urllib
 class LogSearchForm(Form):
     class FormNotValid(StandardError):
         pass
+    import logging
 
     #matrix parameters for call
     type = MultipleChoiceField(choices=(('all','All'),
@@ -62,18 +63,19 @@ class LogSearchForm(Form):
                     )
     sortOrder = ChoiceField(choices=(('desc','Descending'),
                                      ('asc','Ascending'),
-                            ),widget=RadioSelect(),
+                            ), widget=RadioSelect(),
                     )
     #Query parameters for call
     jobmetadata = CharField(max_length=32768,widget=Textarea,required=False)
 
     #my own params which will be put into the above
-    fileNameContains = CharField(max_length=512,widget=TextInput(attrs={'style': 'width: 98%'}),required=False)
+    fileNameContains = CharField(max_length=512,widget=TextInput(attrs={'style': 'width: 98%; visibility: hidden'}),required=False)
 
     def vidispine_query_url(self,base):
         if not self.is_valid():
             raise self.FormNotValid()
 
+        #logger=self.logging.getLogger("LogSearchForm::vidispine_query_url")
         d = self.cleaned_data
 
         matrixparams = ""
@@ -84,7 +86,11 @@ class LogSearchForm(Form):
         matrixparams += ";sort={0}%20{1}".format(urllib.quote_plus(d['sort'],safe=""),d['sortOrder'])
         queryparams = "?metadata=true"
 
+        if d['fileNameContains']:
+            queryparams += "&jobmetadata=" + urllib.quote_plus("bestEffortFilename=*{0}*".format(d['fileNameContains']),safe="")
+
         if d['jobmetadata']:
             queryparams += "&jobmetadata=" + urllib.quote_plus(d['jobmetadata'],safe="")
 
+        print "debug: vidispine_query_url is {0}".format(base + matrixparams + queryparams)
         return base + matrixparams + queryparams

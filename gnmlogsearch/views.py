@@ -71,42 +71,46 @@ def doJobSearch(url):
     return rtndata
 
 def index(request):
-  from pprint import pprint
+    from pprint import pprint
 
-  search_results = None
-  search_error = None
-  if request.method=="POST":
-      form = LogSearchForm(request.POST)
-      vsurl=""
-      try:
+    search_results = None
+    search_error = None
+    page_size=100
+    page=1
+
+    if request.method=="POST":
+        form = LogSearchForm(request.POST)
+
+        vsurl=""
+        try:
           vsurl = form.vidispine_query_url("/API/job")
           search_results = doJobSearch(vsurl)
-      except LogSearchForm.FormNotValid as e:
+        except LogSearchForm.FormNotValid as e:
           logging.warning(e)
-      except ValueError as e:
+        except ValueError as e:
           search_error = "Unable to understand reply from Vidispine: {0}".format(e)
-      except StandardError as e:
+        except StandardError as e:
           search_error = str(e) + " contacting {0}".format(vsurl)
 
-  elif request.method=="GET":
-      form = LogSearchForm(initial={
+    elif request.method=="GET":
+        form = LogSearchForm(initial={
           'type': ['all'],
           'state': ['all'],
           'sort': 'startTime',
           'sortOrder': 'desc',
-      })
-  else:
+        })
+    else:
       raise HttpResponse("Invalid method",status=400)
 
-  pprint(search_results)
+    pprint(search_results)
 
-  results = None
-  if search_results is not None and 'job' in search_results:
+    results = None
+    if search_results is not None and 'job' in search_results:
       results = search_results['job']
 
-  hits = None
-  if search_results is not None and 'hits' in search_results:
+    hits = None
+    if search_results is not None and 'hits' in search_results:
       hits = search_results['hits']
 
-  return render(request,"logsearch.html", {'search_form': form,'search_results': results,'search_error': search_error, 'search_hits': hits })
+    return render(request,"logsearch.html", {'search_form': form,'search_results': results,'search_error': search_error, 'search_hits': hits })
 

@@ -72,6 +72,7 @@ def doJobSearch(url):
 
 def index(request):
     from pprint import pprint
+    from datetime import datetime,timedelta,date,time
 
     search_results = None
     search_error = None
@@ -87,6 +88,7 @@ def index(request):
           search_results = doJobSearch(vsurl)
         except LogSearchForm.FormNotValid as e:
           logging.warning(e)
+          print e
         except ValueError as e:
           search_error = "Unable to understand reply from Vidispine: {0}".format(e)
         except StandardError as e:
@@ -98,6 +100,10 @@ def index(request):
           'state': ['all'],
           'sort': 'startTime',
           'sortOrder': 'desc',
+          'fromDate': datetime.now().date() - timedelta(days=1),
+          'fromTime': time(hour=0,minute=0,second=0),
+          'toDate': datetime.now().date(),
+          'toTime': datetime.now().time(),
         })
     else:
       raise HttpResponse("Invalid method",status=400)

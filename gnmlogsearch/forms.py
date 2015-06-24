@@ -1,4 +1,4 @@
-from django.forms import Form,ChoiceField,CharField,TextInput,CheckboxSelectMultiple,RadioSelect,Textarea,MultipleChoiceField,Select,ValidationError
+from django.forms import Form,ChoiceField,CharField,DateField,TimeField,TextInput,CheckboxSelectMultiple,RadioSelect,Textarea,MultipleChoiceField,Select,ValidationError
 import urllib
 
 class LogSearchForm(Form):
@@ -65,6 +65,12 @@ class LogSearchForm(Form):
                                      ('asc','Ascending'),
                             ), widget=RadioSelect(),
                     )
+    fromDate = DateField(label="Starting from",widget=TextInput(attrs={'style': 'width: 60%'}))
+    fromTime = TimeField(label="Starting from",widget=TextInput(attrs={'style': 'width: 60%'}))
+
+    toDate = DateField(label="Ending at",widget=TextInput(attrs={'style': 'width: 60%'}))
+    toTime = TimeField(label="Ending at",widget=TextInput(attrs={'style': 'width: 60%'}))
+
     #Query parameters for call
     jobmetadata = CharField(max_length=32768,widget=Textarea,required=False)
 
@@ -72,6 +78,8 @@ class LogSearchForm(Form):
     fileNameContains = CharField(max_length=512,widget=TextInput(attrs={'style': 'width: 98%; visibility: hidden'}),required=False)
 
     def vidispine_query_url(self,base):
+        from datetime import datetime
+
         if not self.is_valid():
             raise self.FormNotValid()
 
@@ -91,6 +99,11 @@ class LogSearchForm(Form):
 
         if d['jobmetadata']:
             queryparams += "&jobmetadata=" + urllib.quote_plus(d['jobmetadata'],safe="")
+
+        fromTime = datetime.combine(d['fromDate'],d['fromTime'])
+        toTime = datetime.combine(d['toDate'],d['toTime'])
+        queryparams += "&starttime-from=" + urllib.quote_plus(fromTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),safe="")
+        queryparams += "&starttime-to=" + urllib.quote_plus(toTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),safe="")
 
         print "debug: vidispine_query_url is {0}".format(base + matrixparams + queryparams)
         return base + matrixparams + queryparams

@@ -260,6 +260,7 @@ def asset_list_by_day(request,date):
                 except:
                     pass
         assets.append(ref)
+    return assets
 
 #date is string, dd/mm/yyyy
 def assets_by_day(request,date):

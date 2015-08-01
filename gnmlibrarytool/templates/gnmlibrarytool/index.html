@@ -1,1 +1,34 @@
-<h1>hello Gnmlibrarytool</h1>
+{% themeextends "base.html" %}
+
+{% block title %}Vidispine Library Management{% endblock %}
+
+{% block head %}
+<style>
+    div.container { margin-left: 8px; overflow: hidden;  }
+</style>
+{% endblock %}
+
+{% block body %}
+<h1>Vidispine Library Management</h1>
+
+<div class="container" style="height: 30%; width=100%; " id="top_row">
+    <div style="width: 15%; overflow: hidden; float: left" id="search_form_container">
+        <ul>
+        {{ search_form.as_ul }}
+        </ul>
+        <button onclick="update_library_selector();">Update</button>
+    </div>
+    <div style="width:73%; overflow: hidden; float: right" id="graph_container">
+        <pre>graph area</pre>
+    </div>
+</div>
+
+<div class="container" style="height: 70%; width=100%;" id="bottom_row">
+    <div style="width: 15%; overflow: hidden; float: left" id="library_selector_container">
+        <pre>library selector</pre>
+    </div>
+    <div style="width:73%; overflow: hidden; float: right" id="config_form_container">
+        <pre>configuration form area</pre>
+    </div>
+</div>
+{% endblock %}

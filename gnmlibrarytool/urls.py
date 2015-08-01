@@ -2,8 +2,9 @@
 
 """
 import logging
-
-from django.conf.urls.defaults import *
+from .views import MainAppView
+#from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns, url
 
 # This new app handles the request to the URL by responding with the view which is loaded 
 # from portal.plugins.gnmlibrarytool.views.py. Inside that file is a class which responsedxs to the 
@@ -11,5 +12,5 @@ from django.conf.urls.defaults import *
 # name is shortcut name for the urls.
 
 urlpatterns = patterns('portal.plugins.gnmlibrarytool.views',
-    url(r'^$', 'GenericAppView', kwargs={'template': 'gnmlibrarytool/index.html'}, name='index'),
+    url(r'^$', MainAppView.as_view(), name='index'),
 )

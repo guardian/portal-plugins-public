@@ -34,7 +34,7 @@ class ConfigurationForm(Form):
             initial['search_definition'] = minidom.parseString(ET.tostring(lib.query,encoding="UTF-8")).toprettyxml()
             initial['storage_rule_definition'] = None
             try:
-                initial['storage_rule_definition'] = ET.tostring(lib.storagerule)
+                initial['storage_rule_definition'] = minidom.parseString(ET.tostring(lib.storagerule,encoding="UTF-8")).toprettyxml()
             except StandardError as e:
                 logging.warning(e)
 

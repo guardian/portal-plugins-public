@@ -30,7 +30,7 @@ function update_graph()
 {
 if(! graph_data || graph_data.length==0) return;
 
-console.log(graph_data);
+//console.log(graph_data);
 $('#libraries_graph').dxChart({
     size: {
         height: 250
@@ -58,6 +58,12 @@ $('#libraries_graph').dxChart({
 $('#graph_loading_indicator').hide();
 }
 
+function update_graph_failed(msg)
+{
+$('#graph_loading_indicator').hide();
+$('#libraries_graph').html('<p class="error">'+msg+'</p>');
+
+}
 function list_selector_click(vsid)
 {
 var uri = "/gnmlibrarytool/" + vsid;
@@ -99,19 +105,26 @@ $.getJSON("endpoint/list?"+listArgs)
         $('#library_selector_container').html("<p class=\"error\">" + errorThrown + ": " + textStatus + "</p>");
         selector_page = 0;
         $('#library_selector_loading_indicator').hide();
+        update_graph_failed("Unable to load data");
     });
 }
 
 $(document).ready(function() {
     populate_library_selector();
-    var search_def_editor = CodeMirror.fromTextArea(document.getElementById('id_search_definition'), {
-        lineNumbers: true,
-        lineWrapping: true
-    });
-    var storage_rule_editor = CodeMirror.fromTextArea(document.getElementById('id_storage_rule_definition'), {
-        lineNumbers: true,
-        lineWrapping: true
-    });
+    id_search_definition = document.getElementById('id_search_definition');
+    if(id_search_definition){
+        var search_def_editor = CodeMirror.fromTextArea(id_search_definition, {
+            lineNumbers: true,
+            lineWrapping: true
+        });
+    }
+    id_storage_rule_definition = document.getElementById('id_storage_rule_definition');
+    if(id_storage_rule_definition){
+        var storage_rule_editor = CodeMirror.fromTextArea(id_storage_rule_definition, {
+            lineNumbers: true,
+            lineWrapping: true
+        });
+    }
 });
 </script>
 {% endblock %}

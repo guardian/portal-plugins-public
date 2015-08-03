@@ -15,7 +15,7 @@ class HttpError(StandardError):
         return self.code
 
 class VSApi(object):
-    def __init__(self,host="localhost",port=8080,username="admin",password="",protocol="http",url=None):
+    def __init__(self,host="localhost",port=8080,username="admin",password="",protocol="http",url=None,cache=None):
         import re
 
         if protocol != "http" and protocol != "https":
@@ -36,6 +36,8 @@ class VSApi(object):
         self.password = password
         self.protocol = protocol
         self._xmlns = "{http://xml.vidispine.com/schema/vidispine}"
+        self._cache = cache
+        self.cache_timeout = 30 #in seconds
 
     def _validate_params(self):
         import re
@@ -69,7 +71,7 @@ class VSApi(object):
 
 
 class VSLibraryCollection(VSApi):
-    def __init__(self, host="localhost", port=8080, username="admin", password="", protocol="http", url=None):
+    def __init__(self, host="localhost", port=8080, username="admin", password="", protocol="http", url=None, cache=None):
         """
         Create a new connection to Vidispine to get library information
         :param host: Host for Vidispine. Defaults to localhost.
@@ -79,7 +81,7 @@ class VSLibraryCollection(VSApi):
         :param protocol: http (default) or https, to talk to Vidispine
         :return: None
         """
-        super(VSLibraryCollection,self).__init__(host,port,username,password,protocol,url)
+        super(VSLibraryCollection,self).__init__(host,port,username,password,protocol,url,cache)
         self.page_size = 10
         self.count = 0
 
@@ -103,9 +105,14 @@ class VSLibraryCollection(VSApi):
             else:
                 uri += ";autoRefresh=false"
 
-        doc = self.request(uri,method="GET")
-
         logging.info("request uri is %s" % uri)
+        doc = None
+        if self._cache is not None:
+            doc = self._cache.get("gnmlibrarytool:{0}".format(uri))
+        if doc is None:
+            doc = self.request(uri,method="GET")
+            self._cache.set("gnmlibrarytool:{0}".format(uri),doc,self.cache_timeout)
+
         try:
             node = doc.find("{0}hits".format(self._xmlns))
             self.count = int(node.text)
@@ -126,7 +133,7 @@ class VSLibrary(VSApi):
     This class represents a Vidispine library, handling all requisite XML parsing via ElementTree
     """
 
-    def __init__(self, host="localhost", port=8080, username="admin", password="", protocol="http", url=None):
+    def __init__(self, host="localhost", port=8080, username="admin", password="", protocol="http", url=None, cache=None):
         """
         Create a new connection to Vidispine to get library information
         :param host: Host for Vidispine. Defaults to localhost.
@@ -136,7 +143,7 @@ class VSLibrary(VSApi):
         :param protocol: http (default) or https, to talk to Vidispine
         :return: None
         """
-        super(VSLibrary,self).__init__(host,port,username,password,protocol,url)
+        super(VSLibrary,self).__init__(host,port,username,password,protocol,url,cache)
 
         self._document = None
         self._settings = None
@@ -153,7 +160,12 @@ class VSLibrary(VSApi):
         if not re.match(r'^\w{2}\*\d+$',vsid):
             raise ValueError("{0} is not a valid Vidispine library ID".format(vsid))
 
-        self._document = self.request("library/{0};number=0".format(vsid))
+        if self._cache is not None:
+            self._document = self._cache.get("gnmlibrarytool:{0}:document".format(vsid))
+        if self._document is None:
+            self._document = self.request("library/{0};number=0".format(vsid))
+            if self._cache is not None: self._cache.set("gnmlibrarytool:{0}:document".format(vsid),self._document,self.cache_timeout)
+
         return self.hits
 
     def populate(self, vsid):
@@ -166,10 +178,21 @@ class VSLibrary(VSApi):
         if not re.match(r'^\w{2}\*\d+$',vsid):
             raise ValueError("{0} is not a valid Vidispine library ID".format(vsid))
 
-        self._document = self.request("library/{0}".format(vsid))
-        self._settings = self.request("library/{0}/settings".format(vsid))
+        if self._cache is not None:
+            self._document = self._cache.get("gnmlibrarytool:{0}:document".format(vsid))
+            self._settings = self._cache.get("gnmlibrarytool:{0}:settings".format(vsid))
+            self._storagerule = self._cache.get("gnmlibrarytool:{0}:storagerule".format(vsid))
+
+        if self._document is None:
+            self._document = self.request("library/{0}".format(vsid))
+            if self._cache is not None: self._cache.set("gnmlibrarytool:{0}:document".format(vsid),self._document,self.cache_timeout)
+        if self._settings is None:
+            self._settings = self.request("library/{0}/settings".format(vsid))
+            if self._cache is not None: self._cache.set("gnmlibrarytool:{0}:settings".format(vsid),self._settings,self.cache_timeout)
         try:
-            self._storagerule = self.request("library/{0}/storage-rule".format(vsid))
+            if self._storagerule is None:
+                self._storagerule = self.request("library/{0}/storage-rule".format(vsid))
+                if self._cache is not None: self._cache.set("gnmlibrarytool:{0}:storagerule".format(vsid),self._storagerule,self.cache_timeout)
         except HttpError as e:
             if e.response.code != 404:
                 raise e

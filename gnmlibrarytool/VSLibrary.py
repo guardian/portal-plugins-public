@@ -238,7 +238,9 @@ class VSLibrary(VSApi):
     def autoRefresh(self):
         elem = self._settings.find("{0}autoRefresh".format(self._xmlns))
         if elem is not None:
-            return elem.text
+            if elem.text == "true":
+                return True
+            return False
         return None
 
     @autoRefresh.setter

@@ -1,5 +1,5 @@
 {% themeextends "base.html" %}
-
+{% load static from staticfiles %}
 {% block title %}Vidispine Library Management{% endblock %}
 
 {% block head %}
@@ -10,6 +10,10 @@
     span.library_info { font-size: 0.7em; font-weight: normal }
     p.error { color: red; };
 </style>
+<link rel="stylesheet" href='{% static "codemirror/lib/codemirror.css" %}'>
+<script src='{% static "codemirror/lib/codemirror.js" %}'></script>
+<script src='{% static "codemirror/mode/xml/xml.js" %}'></script>
+
 <script language="JavaScript">
 var selector_page_size=15;
 var selector_page=0;
@@ -51,6 +55,14 @@ $.getJSON("endpoint/list?"+listArgs)
 
 $(document).ready(function() {
     populate_library_selector();
+    var search_def_editor = CodeMirror.fromTextArea(document.getElementById('id_search_definition'), {
+        lineNumbers: true,
+        lineWrapping: true
+    });
+    var storage_rule_editor = CodeMirror.fromTextArea(document.getElementById('id_storage_rule_definition'), {
+        lineNumbers: true,
+        lineWrapping: true
+    });
 });
 </script>
 {% endblock %}

@@ -10,6 +10,7 @@ class ShowSearchForm(Form):
 class ConfigurationForm(Form):
     library_id = CharField(max_length=32)
     library_owner = CharField(max_length=255)
+    auto_refresh = BooleanField()
     update_mode = ChoiceField(choices=[
         ('REPLACE','REPLACE'),
         ('MERGE','MERGE'),
@@ -21,13 +22,16 @@ class ConfigurationForm(Form):
     def __init__(self, lib, *args, **kwargs):
         from .VSLibrary import VSLibrary
         import xml.etree.ElementTree as ET
+        from xml.dom import minidom
+
         import logging
         initial = {}
         if isinstance(lib,VSLibrary):
             initial['library_id'] = lib.vsid
             initial['library_owner'] = lib.owner
+            initial['auto_refresh'] = lib.autoRefresh
             initial['update_mode'] = lib.updateMode
-            initial['search_definition'] = ET.tostring(lib.query,encoding="UTF-8")
+            initial['search_definition'] = minidom.parseString(ET.tostring(lib.query,encoding="UTF-8")).toprettyxml()
             initial['storage_rule_definition'] = None
             try:
                 initial['storage_rule_definition'] = ET.tostring(lib.storagerule)

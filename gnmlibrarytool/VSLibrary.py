@@ -4,8 +4,15 @@ class HttpError(StandardError):
         self.content=content
 
     def __unicode__(self):
-        return u"HTTP {0} error".format(self.response.code)
+        return u"HTTP {0} error: {1}".format(self.response['status'],self.content)
 
+    @property
+    def code(self):
+        return int(self.response['status'])
+
+    @property
+    def status(self):
+        return self.code
 
 class VSApi(object):
     def __init__(self,host="localhost",port=8080,username="admin",password="",protocol="http",url=None):
@@ -73,14 +80,23 @@ class VSLibraryCollection(VSApi):
         :return: None
         """
         super(VSLibraryCollection,self).__init__(host,port,username,password,protocol,url)
+        self.page_size = 10
+        self.count = 0
 
-    def scan(self,autoRefresh=None):
+    def scan(self,autoRefresh=None,page=0):
         """
         Scans for libraries in Vidispine as a generator, yielding the library name
         :param autoRefresh: Can be None, True or False.  If True or False then only look for libraries that are (or are not) auto-refreshing.
         """
-        #from xml.etree.ElementTree import *
-        uri = "library"
+        import logging
+
+        if not isinstance(page,int):
+            raise ValueError("page must be an integer")
+        if not isinstance(self.page_size,int):
+            raise ValueError("page_size must be an integer")
+
+        uri = "library;number={0};first={1}".format(self.page_size, (self.page_size * page)+1)
+
         if autoRefresh is not None:
             if autoRefresh:
                 uri += ";autoRefresh=true"
@@ -88,9 +104,22 @@ class VSLibraryCollection(VSApi):
                 uri += ";autoRefresh=false"
 
         doc = self.request(uri,method="GET")
+
+        logging.info("request uri is %s" % uri)
+        try:
+            node = doc.find("{0}hits".format(self._xmlns))
+            self.count = int(node.text)
+        except StandardError:
+            pass
+
         for node in doc.findall("{0}uri".format(self._xmlns)):
             yield node.text
 
+    @property
+    def page_count(self):
+        if self.page_size < 1:
+            return ValueError("Page size is zero")
+        return self.count/self.page_size
 
 class VSLibrary(VSApi):
     """

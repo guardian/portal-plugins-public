@@ -12,6 +12,6 @@ from django.conf.urls.defaults import patterns, url
 
 urlpatterns = patterns('portal.plugins.gnmlibrarytool.views',
     url(r'^$', MainAppView.as_view(), name='index'),
-    url(r'^(?P<lib>\w{2}[\-\*]\d+)$', MainAppView.as_view(), name='editor'),
-    url(r'^endpoint/list$', LibraryListView.as_view(), name='list_api'),
+    url(r'^(?P<lib>\w{2}[\-\*]\d+)$', MainAppView.as_view(), name='libtool_editor'),
+    url(r'^endpoint/list$', LibraryListView.as_view(), name='libtool_list_api'),
 )

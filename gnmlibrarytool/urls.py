@@ -2,8 +2,7 @@
 
 """
 import logging
-from .views import MainAppView
-#from django.conf.urls.defaults import *
+from .views import MainAppView, LibraryListView
 from django.conf.urls.defaults import patterns, url
 
 # This new app handles the request to the URL by responding with the view which is loaded 
@@ -13,4 +12,5 @@ from django.conf.urls.defaults import patterns, url
 
 urlpatterns = patterns('portal.plugins.gnmlibrarytool.views',
     url(r'^$', MainAppView.as_view(), name='index'),
+    url(r'^endpoint/list$', LibraryListView.as_view(), name='list_api'),
 )

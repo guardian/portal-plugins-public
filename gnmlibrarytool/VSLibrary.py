@@ -8,9 +8,16 @@ class HttpError(StandardError):
 
 
 class VSApi(object):
-    def __init__(self,host="localhost",port=8080,username="admin",password="",protocol="http"):
+    def __init__(self,host="localhost",port=8080,username="admin",password="",protocol="http",url=None):
+        import re
+
         if protocol != "http" and protocol != "https":
             raise ValueError("protocol is not valid")
+
+        if url is not None:
+            parts = re.match(r'([^:]+)://(.*)$',url)
+            protocol = parts.group(1)
+            host = parts.group(2)
 
         self.host = host
         try:
@@ -21,7 +28,7 @@ class VSApi(object):
         self.username = username
         self.password = password
         self.protocol = protocol
-        self._xmlns = "http://xml.vidispine.com/schema/vidispine"
+        self._xmlns = "{http://xml.vidispine.com/schema/vidispine}"
 
     def _validate_params(self):
         import re
@@ -44,18 +51,18 @@ class VSApi(object):
         uri = "{0}://{1}:{2}/API/{3}".format(self.protocol,self.host,self.port,path)
 
         if body is None:
-            (response,content) = h.request(uri, method=method, headers={'Accept: application/xml'})
+            (response,content) = h.request(uri, method=method, headers={'Accept': 'application/xml'})
         else:
-            (response,content) = h.request(uri, method=method, body=body, headers={'Accept: application/xml'})
+            (response,content) = h.request(uri, method=method, body=body, headers={'Accept': 'application/xml'})
 
-        if int(response.code) < 200 or int(response.code) > 299:
+        if int(response['status']) < 200 or int(response['status']) > 299:
             raise HttpError(response, content)
 
-        return ET.parse(content)
+        return ET.fromstring(content)
 
 
 class VSLibraryCollection(VSApi):
-    def __init__(self, host="localhost", port=8080, username="admin", password="", protocol="http"):
+    def __init__(self, host="localhost", port=8080, username="admin", password="", protocol="http", url=None):
         """
         Create a new connection to Vidispine to get library information
         :param host: Host for Vidispine. Defaults to localhost.
@@ -65,7 +72,7 @@ class VSLibraryCollection(VSApi):
         :param protocol: http (default) or https, to talk to Vidispine
         :return: None
         """
-        super(VSLibraryCollection,self).__init__(host,port,username,password,protocol)
+        super(VSLibraryCollection,self).__init__(host,port,username,password,protocol,url)
 
     def scan(self,autoRefresh=None):
         """
@@ -84,12 +91,13 @@ class VSLibraryCollection(VSApi):
         for node in doc.findall("{0}uri".format(self._xmlns)):
             yield node.text
 
+
 class VSLibrary(VSApi):
     """
     This class represents a Vidispine library, handling all requisite XML parsing via ElementTree
     """
 
-    def __init__(self, host="localhost", port=8080, username="admin", password="", protocol="http"):
+    def __init__(self, host="localhost", port=8080, username="admin", password="", protocol="http", url=None):
         """
         Create a new connection to Vidispine to get library information
         :param host: Host for Vidispine. Defaults to localhost.
@@ -99,11 +107,25 @@ class VSLibrary(VSApi):
         :param protocol: http (default) or https, to talk to Vidispine
         :return: None
         """
-        super(VSLibrary,self).__init__(host,port,username,password,protocol)
+        super(VSLibrary,self).__init__(host,port,username,password,protocol,url)
 
         self._document = None
         self._settings = None
         self._storagerule = None
+
+    def get_hits(self, vsid):
+        """
+        Loads enough of the library definition to get the total number of hits
+        :param vsid: ID of the vidispine library.  Raises ValueError if this is not in {site}-{number} format.
+        :return: Integer representing number of items referenced by library.  This is a convenience, the same result
+        can be obtained by reading the VSlibrary.hits property after calling this method
+        """
+        import re
+        if not re.match(r'^\w{2}\*\d+$',vsid):
+            raise ValueError("{0} is not a valid Vidispine library ID".format(vsid))
+
+        self._document = self.request("library/{0};number=0".format(vsid))
+        return self.hits
 
     def populate(self, vsid):
         """
@@ -137,8 +159,15 @@ class VSLibrary(VSApi):
         )
 
     @property
+    def hits(self):
+        elem = self._document.find("{0}hits".format(self._xmlns))
+        if elem is not None:
+            return int(elem.text)
+        return None
+
+    @property
     def vsid(self):
-        elem = self._settings.getroot.find("{0}id".format(self._xmlns))
+        elem = self._settings.find("{0}id".format(self._xmlns))
         if elem is not None:
             return elem.text
         return None
@@ -148,29 +177,29 @@ class VSLibrary(VSApi):
         import re
         if not re.match(r'^\w{2}\*\d+$',value):
             raise ValueError("{0} is not a valid Vidispine library ID".format(value))
-        elem = self._settings.getroot.find("{0}id".format(self._xmlns))
+        elem = self._settings.find("{0}id".format(self._xmlns))
         if elem is not None:
             elem.text = value
         else:
             raise KeyError("No settings document or it does not contain <id>")
 
     @property
-    def username(self):
-        elem = self._settings.getroot.find("{0}username".format(self._xmlns))
+    def owner(self):
+        elem = self._settings.find("{0}username".format(self._xmlns))
         if elem is not None:
             return elem.text
         return None
 
     @property
     def updateMode(self):
-        elem = self._settings.getroot.find("{0}updateMode".format(self._xmlns))
+        elem = self._settings.find("{0}updateMode".format(self._xmlns))
         if elem is not None:
             return elem.text
         return None
 
     @updateMode.setter
     def updateMode(self,value):
-        elem = self._settings.getroot.find("{0}updateMode".format(self._xmlns))
+        elem = self._settings.find("{0}updateMode".format(self._xmlns))
         if elem is not None:
             elem.text = value
         else:
@@ -178,7 +207,7 @@ class VSLibrary(VSApi):
 
     @property
     def autoRefresh(self):
-        elem = self._settings.getroot.find("{0}autoRefresh".format(self._xmlns))
+        elem = self._settings.find("{0}autoRefresh".format(self._xmlns))
         if elem is not None:
             return elem.text
         return None
@@ -188,7 +217,7 @@ class VSLibrary(VSApi):
         if not isinstance(value,bool):
             raise ValueError()
 
-        elem = self._settings.getroot.find("{0}autoRefresh".format(self._xmlns))
+        elem = self._settings.find("{0}autoRefresh".format(self._xmlns))
         if elem is not None:
             if value:
                 elem.text = "true"
@@ -203,7 +232,7 @@ class VSLibrary(VSApi):
         Get the query section of the library definition
         :return: ElementTree document representing the library's query
         """
-        elem = self._settings.getroot.find("{0}query".format(self._xmlns))
+        elem = self._settings.find("{0}query".format(self._xmlns))
         if elem is not None:
             return elem.text
         return None

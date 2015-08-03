@@ -6,3 +6,33 @@ class ShowSearchForm(Form):
     only_with_storage_rules = BooleanField(required=False)
     only_auto_refreshing = BooleanField(required=False)
 
+
+class ConfigurationForm(Form):
+    library_id = CharField(max_length=32)
+    library_owner = CharField(max_length=255)
+    update_mode = ChoiceField(choices=[
+        ('REPLACE','REPLACE'),
+        ('MERGE','MERGE'),
+        ('TRANSIENT','TRANSIENT'),
+    ])
+    search_definition = CharField(max_length=65536,widget=Textarea())
+    storage_rule_definition = CharField(max_length=65536, widget=Textarea())
+
+    def __init__(self, lib, *args, **kwargs):
+        from .VSLibrary import VSLibrary
+        import xml.etree.ElementTree as ET
+        import logging
+        initial = {}
+        if isinstance(lib,VSLibrary):
+            initial['library_id'] = lib.vsid
+            initial['library_owner'] = lib.owner
+            initial['update_mode'] = lib.updateMode
+            initial['search_definition'] = ET.tostring(lib.query,encoding="UTF-8")
+            initial['storage_rule_definition'] = None
+            try:
+                initial['storage_rule_definition'] = ET.tostring(lib.storagerule)
+            except StandardError as e:
+                logging.warning(e)
+
+        super(ConfigurationForm,self).__init__(*args,initial=initial,**kwargs)
+

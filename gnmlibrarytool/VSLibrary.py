@@ -263,5 +263,9 @@ class VSLibrary(VSApi):
         """
         elem = self._settings.find("{0}query".format(self._xmlns))
         if elem is not None:
-            return elem.text
+            return elem
         return None
+
+    @property
+    def storagerule(self):
+        return self._storagerule

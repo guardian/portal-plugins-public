@@ -57,7 +57,7 @@ $(document).ready(function() {
 
 {% block body %}
 <h1>Vidispine Library Management</h1>
-
+<p class="debug">{{ debug_notes }}</p>
 <div class="container" style="height: 30%; width=100%; margin-bottom: 20px;" id="top_row">
     <div style="width: 15%; overflow: hidden; float: left" id="search_form_container">
         <ul>
@@ -77,7 +77,13 @@ $(document).ready(function() {
     <div style="width: 15%; overflow: hidden; float: left" id="library_selector_container">
     </div>
     <div style="width:73%; overflow: hidden; float: right" id="config_form_container">
-        <pre>configuration form area</pre>
+        {% if configuration_form_error %}
+        <p class="error">{{ configuration_form_error }}</p>
+        {% else %}
+        <table>
+        {{ configuration_form.as_table }}
+        </table>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

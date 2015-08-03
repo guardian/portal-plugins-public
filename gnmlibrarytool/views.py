@@ -5,8 +5,21 @@ class MainAppView(TemplateView):
     template_name = "gnmlibrarytool/index.html"
 
     def get_context_data(self, **kwargs):
+        from .VSLibrary import VSLibrary, HttpError
+        from .forms import ConfigurationForm
+        from django.conf import settings
+
         context = super(MainAppView, self).get_context_data(**kwargs)
         context['search_form'] = self.ShowSearchForm()
+        #context['debug_notes'] = kwargs
+        l = VSLibrary(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
+                      username=settings.VIDISPINE_USERNAME, password=settings.VIDISPINE_PASSWORD)
+        try:
+            l.populate(kwargs['lib'])
+            context['configuration_form'] = ConfigurationForm(l)
+        except HttpError as e:
+            context['configuration_form_error'] = e.__unicode__()
+
         #context['latest_articles'] = Article.objects.all()[:5]
         return context
 

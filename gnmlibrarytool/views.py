@@ -27,6 +27,61 @@ class MainAppView(TemplateView):
         #context['latest_articles'] = Article.objects.all()[:5]
         return context
 
+    def post(self, request, *args, **kwargs):
+        from .forms import ConfigurationForm
+        from .VSLibrary import VSLibrary, HttpError
+        from django.conf import settings
+        #from xml.etree.ElementTree import ParseError
+        import memcache
+        from django.shortcuts import render
+
+        mc = memcache.Client([settings.CACHE_LOCATION])
+
+        f = ConfigurationForm(None, request.POST)
+        if f.is_valid():
+            l = VSLibrary(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
+                      username=settings.VIDISPINE_USERNAME, password=settings.VIDISPINE_PASSWORD, cache=mc)
+            l.cache_timeout = 3600
+            cd = f.cleaned_data
+            context = {'search_form': self.ShowSearchForm() }
+
+            try:
+                l.populate(kwargs['lib'])
+                l.autoRefresh=cd['auto_refresh']
+                l.updateMode=cd['update_mode']
+                l.query=cd['search_definition']
+                l.saveSettings()
+                context['configuration_form_error'] = "Your update has been saved successfully"
+            except HttpError as e:
+                context['configuration_form_error'] = "Error saving to vidispine: %s" % e
+            #except ParseError as e:
+            #    context['configuration_form_error'] = "Query is not valid XML: %s" % e
+            return render(request, self.template_name, context)
+
+        else:
+            print "form not valid"
+            return render(request,self.template_name,self.get_context_data(**kwargs))
+
+
+class CreateLibraryView(View):
+    def put(self,request):
+        from .VSLibrary import VSLibrary,VSLibraryCollection,HttpError
+        from django.conf import settings
+        from django.http import HttpResponseRedirect
+        from django.core.urlresolvers import reverse
+        import memcache
+
+        l = VSLibrary(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
+                    username=settings.VIDISPINE_USERNAME,password=settings.VIDISPINE_PASSWORD)
+        l.create_new()
+
+        mc = memcache.Client([settings.CACHE_LOCATION])
+        libraries = VSLibraryCollection(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
+                                        username=settings.VIDISPINE_USERNAME,password=settings.VIDISPINE_PASSWORD,
+                                        cache=mc)
+        libraries.cache_invalidate()
+
+        return HttpResponseRedirect(reverse('libtool_editor',kwargs={'lib': l.vsid}))
 
 class LibraryListView(View):
 
@@ -63,7 +118,7 @@ class LibraryListView(View):
                 try:
                     l = VSLibrary(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
                                 username=settings.VIDISPINE_USERNAME,password=settings.VIDISPINE_PASSWORD,cache=mc)
-
+                    l.cache_timeout = 3600  #cache library definitions for 1hr
                     rtn.append({'id': libname, 'hits': l.get_hits(libname)})
                 except HttpError as e:
                     if e.status!=404:

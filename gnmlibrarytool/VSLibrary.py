@@ -67,6 +67,9 @@ class VSApi(object):
         if int(response['status']) < 200 or int(response['status']) > 299:
             raise HttpError(response, content)
 
+        #register default namespace as vidispine, http://stackoverflow.com/questions/8983041/saving-xml-files-using-elementtree
+        #ET.register_namespace('', "http://xml.vidispine.com/schema/vidispine")
+        #ET._namespace_map['']="http://xml.vidispine.com/schema/vidispine"
         return ET.fromstring(content)
 
 
@@ -84,6 +87,12 @@ class VSLibraryCollection(VSApi):
         super(VSLibraryCollection,self).__init__(host,port,username,password,protocol,url,cache)
         self.page_size = 10
         self.count = 0
+
+    def cache_invalidate(self):
+        uri = "library;number={0};first={1}".format(self.page_size, (self.page_size * 0)+1)
+        self._cache.delete("gnmlibrarytool:{0}".format(uri))
+        self._cache.delete("gnmlibrarytool:{0};autoRefresh=true".format(uri))
+        self._cache.delete("gnmlibrarytool:{0};autoRefresh=false".format(uri))
 
     def scan(self,autoRefresh=None,page=0):
         """
@@ -168,6 +177,40 @@ class VSLibrary(VSApi):
 
         return self.hits
 
+    def cache_invalidate(self):
+        if self._cache:
+            self._cache.delete("gnmlibrarytool:{0}:document".format(self.vsid))
+            self._cache.delete("gnmlibrarytool:{0}:settings".format(self.vsid))
+            self._cache.delete("gnmlibrarytool:{0}:storagerule".format(self.vsid))
+
+    @staticmethod
+    def _basicSearchDoc():
+        from xml.etree.ElementTree import Element, SubElement
+        root = Element("ItemSearchDocument",attrib={'xmlns': 'http://xml.vidispine.com/schema/vidispine'})
+        fieldNode = SubElement(root,"field")
+        nameNode = SubElement(fieldNode,"name")
+        nameNode.text = "gnm_asset_category"
+        valueNode = SubElement(fieldNode,"value")
+        valueNode.text = "replace_me"
+        return root
+
+    def create_new(self):
+        """
+        Creates a new, blank library with a default search
+        :return: None
+        """
+        import xml.etree.ElementTree as ET
+
+        self.cache_invalidate()
+        doc = self._basicSearchDoc()
+
+        resultdoc = self.request("/item?result=library",method="PUT",body=ET.tostring(doc,encoding="UTF-8"))
+
+        libNode = resultdoc.find('{0}library'.format(self._xmlns))
+        if libNode is None:
+            raise StandardError("Invalid response from Vidispine, no <library> node")
+        self.populate(libNode.text)
+
     def populate(self, vsid):
         """
         Load a library definition from Vidispine
@@ -206,9 +249,10 @@ class VSLibrary(VSApi):
         if self._settings is None:
             raise ValueError("No settings loaded")
 
-        self.request("library/{0}/settings".format(self.vsid),method="PUT",
-                     body=ET.tostring(self._settings.getroot(),encoding="UTF-8")
-        )
+        #self.request("library/{0}/settings".format(self.vsid),method="PUT",
+        #             body=ET.tostring(self._settings.getroot(),encoding="UTF-8")
+        #)
+        print "XML to set: %s" % ET.tostring(self._settings,encoding="UTF-8")
 
     @property
     def hits(self):
@@ -290,6 +334,31 @@ class VSLibrary(VSApi):
         if elem is not None:
             return elem
         return None
+
+    @query.setter
+    def query(self,value):
+        """
+        Set the query definition XML.  Expects either a string or an ElementTree
+        :return: None
+        """
+        import xml.etree.ElementTree as ET
+        to_set = None
+        if isinstance(value,basestring):
+            #register default namespace as vidispine, http://stackoverflow.com/questions/8983041/saving-xml-files-using-elementtree
+            #ET.register_namespace('',"http://xml.vidispine.com/schema/vidispine")
+            #ET._namespace_map['']="http://xml.vidispine.com/schema/vidispine"
+            to_set = ET.fromstring(value)
+        elif isinstance(value,ET.Element):
+            to_set = value
+        else:
+            raise ValueError("You need to pass a string or an ElementTree element")
+
+        elem = self._settings.find("{0}query".format(self._xmlns))
+        if elem is None:
+            raise ValueError("No query element present! This object has not been initialised properly")
+        self._settings.remove(elem)
+        self._settings.append(to_set)
+        self.cache_invalidate()
 
     @property
     def storagerule(self):

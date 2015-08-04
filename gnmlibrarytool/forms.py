@@ -10,7 +10,7 @@ class ShowSearchForm(Form):
 class ConfigurationForm(Form):
     library_id = CharField(max_length=32)
     library_owner = CharField(max_length=255)
-    auto_refresh = BooleanField()
+    auto_refresh = BooleanField(required=False)
     update_mode = ChoiceField(choices=[
         ('REPLACE','REPLACE'),
         ('MERGE','MERGE'),

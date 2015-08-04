@@ -162,9 +162,13 @@ $(document).ready(function() {
         {% if configuration_form_error %}
         <p class="error">{{ configuration_form_error }}</p>
         {% else %}
-        <table>
-        {{ configuration_form.as_table }}
-        </table>
+        <form method="POST" action="">
+            {% csrf_token %}
+            <table>
+            {{ configuration_form.as_table }}
+            </table>
+            <input type="submit" value="Save definition">
+        </form>
         {% endif %}
     </div>
 </div>

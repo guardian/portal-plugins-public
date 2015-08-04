@@ -2,7 +2,7 @@
 
 """
 import logging
-from .views import MainAppView, LibraryListView
+from .views import MainAppView, LibraryListView, CreateLibraryView
 from django.conf.urls.defaults import patterns, url
 
 # This new app handles the request to the URL by responding with the view which is loaded 
@@ -13,5 +13,6 @@ from django.conf.urls.defaults import patterns, url
 urlpatterns = patterns('portal.plugins.gnmlibrarytool.views',
     url(r'^$', MainAppView.as_view(), name='index'),
     url(r'^(?P<lib>\w{2}[\-\*]\d+)$', MainAppView.as_view(), name='libtool_editor'),
+    url(r'^new$', CreateLibraryView.as_view(), name='libtool_new'),
     url(r'^endpoint/list$', LibraryListView.as_view(), name='libtool_list_api'),
 )

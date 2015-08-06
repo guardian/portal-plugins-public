@@ -49,7 +49,7 @@ class VSApi(object):
         if self.protocol != "http" and self.protocol != "https":
             raise ValueError("protocol is not valid")
 
-    def request(self,path,method="GET",body=None):
+    def request(self,path,method="GET",body=None,content_type=None):
         from httplib2 import Http
         import xml.etree.ElementTree as ET
         h = Http()
@@ -59,10 +59,14 @@ class VSApi(object):
         self._validate_params()
         uri = "{0}://{1}:{2}/API/{3}".format(self.protocol,self.host,self.port,path)
 
+        headers = {'Accept': 'application/xml'}
+        if content_type is not None:
+            headers['Content-Type']=content_type
+
         if body is None:
-            (response,content) = h.request(uri, method=method, headers={'Accept': 'application/xml'})
+            (response,content) = h.request(uri, method=method, headers=headers)
         else:
-            (response,content) = h.request(uri, method=method, body=body, headers={'Accept': 'application/xml'})
+            (response,content) = h.request(uri, method=method, body=body, headers=headers)
 
         if int(response['status']) < 200 or int(response['status']) > 299:
             raise HttpError(response, content)
@@ -204,7 +208,8 @@ class VSLibrary(VSApi):
         self.cache_invalidate()
         doc = self._basicSearchDoc()
 
-        resultdoc = self.request("/item?result=library",method="PUT",body=ET.tostring(doc,encoding="UTF-8"))
+
+        resultdoc = self.request("item?result=library",method="PUT",body=ET.tostring(doc,encoding="UTF-8"),content_type='application/xml')
 
         libNode = resultdoc.find('{0}library'.format(self._xmlns))
         if libNode is None:
@@ -249,10 +254,12 @@ class VSLibrary(VSApi):
         if self._settings is None:
             raise ValueError("No settings loaded")
 
-        #self.request("library/{0}/settings".format(self.vsid),method="PUT",
-        #             body=ET.tostring(self._settings.getroot(),encoding="UTF-8")
-        #)
         print "XML to set: %s" % ET.tostring(self._settings,encoding="UTF-8")
+
+        self.request("library/{0}/settings".format(self.vsid),method="PUT",
+                     body=ET.tostring(self._settings,encoding="UTF-8"),content_type='application/xml'
+        )
+
 
     @property
     def hits(self):

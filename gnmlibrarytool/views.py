@@ -53,7 +53,7 @@ class MainAppView(TemplateView):
                 l.saveSettings()
                 context['configuration_form_error'] = "Your update has been saved successfully"
             except HttpError as e:
-                context['configuration_form_error'] = "Error saving to vidispine: %s" % e
+                context['configuration_form_error'] = "Error saving to vidispine: %s" % e.__unicode__()
             #except ParseError as e:
             #    context['configuration_form_error'] = "Query is not valid XML: %s" % e
             return render(request, self.template_name, context)
@@ -62,18 +62,24 @@ class MainAppView(TemplateView):
             print "form not valid"
             return render(request,self.template_name,self.get_context_data(**kwargs))
 
-
+from django.views.decorators.csrf import csrf_exempt
 class CreateLibraryView(View):
     def put(self,request):
         from .VSLibrary import VSLibrary,VSLibraryCollection,HttpError
         from django.conf import settings
-        from django.http import HttpResponseRedirect
+        from django.http import HttpResponseRedirect,HttpResponse
         from django.core.urlresolvers import reverse
         import memcache
+        import traceback
+        import json
 
         l = VSLibrary(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
                     username=settings.VIDISPINE_USERNAME,password=settings.VIDISPINE_PASSWORD)
-        l.create_new()
+        try:
+            l.create_new()
+        except HttpError as e:
+            print e.__unicode__()
+            return HttpResponse(content='Unable to create library: {0}\n{1}'.format(e.__unicode__(),traceback.format_exc()),content_type='text/plain',status=500)
 
         mc = memcache.Client([settings.CACHE_LOCATION])
         libraries = VSLibraryCollection(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
@@ -81,7 +87,10 @@ class CreateLibraryView(View):
                                         cache=mc)
         libraries.cache_invalidate()
 
-        return HttpResponseRedirect(reverse('libtool_editor',kwargs={'lib': l.vsid}))
+        return HttpResponse(content=json.dumps({'status': 'success', 'action': 'created', 'vsid': l.vsid}),
+                            content_type='application/json',status=200)
+
+        #return HttpResponseRedirect(reverse('libtool_editor',kwargs={'lib': l.vsid}))
 
 class LibraryListView(View):
 

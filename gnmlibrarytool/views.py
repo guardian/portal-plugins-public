@@ -31,6 +31,7 @@ class MainAppView(TemplateView):
         from .forms import ConfigurationForm
         from .VSLibrary import VSLibrary, HttpError
         from django.conf import settings
+        from xml.parsers.expat import ExpatError
         #from xml.etree.ElementTree import ParseError
         import memcache
         from django.shortcuts import render
@@ -54,15 +55,55 @@ class MainAppView(TemplateView):
                 context['configuration_form_error'] = "Your update has been saved successfully"
             except HttpError as e:
                 context['configuration_form_error'] = "Error saving to vidispine: %s" % e.__unicode__()
-            #except ParseError as e:
-            #    context['configuration_form_error'] = "Query is not valid XML: %s" % e
+            except ExpatError as e:
+                 context['configuration_form_error'] = "Query is not valid XML: %s" % e
             return render(request, self.template_name, context)
 
         else:
             print "form not valid"
             return render(request,self.template_name,self.get_context_data(**kwargs))
 
-from django.views.decorators.csrf import csrf_exempt
+
+class DeleteLibraryView(View):
+    def post(self, request, *args, **kwargs):
+        from .forms import ConfigurationForm
+        from .VSLibrary import VSLibrary, HttpError, VSLibraryCollection
+        from django.http import HttpResponse
+        from django.conf import settings
+        from xml.parsers.expat import ExpatError
+        #from xml.etree.ElementTree import ParseError
+        import memcache
+        import json
+        from django.shortcuts import render
+
+        mc = memcache.Client([settings.CACHE_LOCATION])
+
+        f = ConfigurationForm(None, request.POST)
+        if f.is_valid():
+            l = VSLibrary(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
+                      username=settings.VIDISPINE_USERNAME, password=settings.VIDISPINE_PASSWORD, cache=mc)
+            l.cache_timeout = 3600
+            cd = f.cleaned_data
+
+            try:
+                l.populate(cd['library_id'])
+                print "attempting to delete %s" % cd['library_id']
+                l.delete()
+                #now it's deleted, invalidate the cache for the library collection list so it stops showing up
+                libraries = VSLibraryCollection(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
+                                username=settings.VIDISPINE_USERNAME,password=settings.VIDISPINE_PASSWORD,
+                                cache=mc)
+                libraries.cache_invalidate()
+
+                return HttpResponse(content=json.dumps({'status': 'success', 'action': 'deleted', 'vsid': l.vsid}),
+                                    content_type='application/json', status=200)
+            except HttpError as e:
+                return HttpResponse(content=json.dumps({'status': 'error', 'message': "Error deleting from vidispine: %s" % e.__unicode__()}),
+                                    content_type='application/json', status=500)
+            except ValueError as e:
+                return HttpResponse(content=json.dumps({'status': 'error', 'message': "Invalid parameters: %s" % e.__unicode__()}),
+                                    content_type='application/json', status=500)
+
 class CreateLibraryView(View):
     def put(self,request):
         from .VSLibrary import VSLibrary,VSLibraryCollection,HttpError

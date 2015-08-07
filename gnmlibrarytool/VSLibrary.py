@@ -52,6 +52,7 @@ class VSApi(object):
     def request(self,path,method="GET",body=None,content_type=None):
         from httplib2 import Http
         import xml.etree.ElementTree as ET
+        from xml.parsers.expat import ExpatError
         h = Http()
 
         h.add_credentials(self.username,self.password)
@@ -74,8 +75,10 @@ class VSApi(object):
         #register default namespace as vidispine, http://stackoverflow.com/questions/8983041/saving-xml-files-using-elementtree
         #ET.register_namespace('', "http://xml.vidispine.com/schema/vidispine")
         #ET._namespace_map['']="http://xml.vidispine.com/schema/vidispine"
-        return ET.fromstring(content)
-
+        try:
+            return ET.fromstring(content)
+        except ExpatError:
+            return content
 
 class VSLibraryCollection(VSApi):
     def __init__(self, host="localhost", port=8080, username="admin", password="", protocol="http", url=None, cache=None):
@@ -181,6 +184,13 @@ class VSLibrary(VSApi):
 
         return self.hits
 
+    def delete(self):
+        import re
+        if self.vsid is None or not re.match(r'^\w{2}\*\d+$',self.vsid):
+            raise ValueError("{0} is not a valid Vidispine library ID".format(self.vsid))
+        self.request('library/{0}'.format(self.vsid),method="DELETE")
+        self.cache_invalidate()
+
     def cache_invalidate(self):
         if self._cache:
             self._cache.delete("gnmlibrarytool:{0}:document".format(self.vsid))
@@ -270,7 +280,10 @@ class VSLibrary(VSApi):
 
     @property
     def vsid(self):
-        elem = self._settings.find("{0}id".format(self._xmlns))
+        try:
+            elem = self._settings.find("{0}id".format(self._xmlns))
+        except AttributeError as e:
+            elem = self._document.find("{0}id".format(self._xmlns))
         if elem is not None:
             return elem.text
         return None

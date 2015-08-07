@@ -8,8 +8,8 @@ class ShowSearchForm(Form):
 
 
 class ConfigurationForm(Form):
-    library_id = CharField(max_length=32)
-    library_owner = CharField(max_length=255)
+    library_id = CharField(max_length=32,widget=TextInput(attrs={'readonly': True, 'style': 'color: grey'}))
+    library_owner = CharField(max_length=255,widget=TextInput(attrs={'readonly': True, 'style': 'color: grey'}))
     auto_refresh = BooleanField(required=False)
     update_mode = ChoiceField(choices=[
         ('REPLACE','REPLACE'),
@@ -31,7 +31,7 @@ class ConfigurationForm(Form):
             initial['library_owner'] = lib.owner
             initial['auto_refresh'] = lib.autoRefresh
             initial['update_mode'] = lib.updateMode
-            initial['search_definition'] = minidom.parseString(ET.tostring(lib.query,encoding="UTF-8")).toprettyxml()
+            initial['search_definition'] = ET.tostring(lib.query,encoding="UTF-8") #minidom.parseString(ET.tostring(lib.query,encoding="UTF-8")).toprettyxml()
             initial['storage_rule_definition'] = None
             try:
                 initial['storage_rule_definition'] = minidom.parseString(ET.tostring(lib.storagerule,encoding="UTF-8")).toprettyxml()

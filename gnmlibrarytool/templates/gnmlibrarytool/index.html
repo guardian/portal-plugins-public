@@ -140,6 +140,32 @@ function create_new_library()
     });
 }
 
+function delete_library()
+{
+    var form = $('#configuration_form');
+    var csrftoken = $.cookie('csrftoken');
+    $('#delete_button').hide();
+
+    $.ajax('/gnmlibrarytool/endpoint/delete',{
+        headers: {
+            'X-CSRFToken': csrftoken
+        },
+        data: form.serialize(),
+        method: "POST"
+    })
+    .success(function(data){
+        window.location.href="/gnmlibrarytool/";
+    })
+    .fail(function(jqXHR, textStatus, errorThrown){
+        $('#delete_button').show();
+        if(jqXHR.responseJSON){
+            $('#configuration_form_error').html(jqXHR.responseJSON['message']);
+        } else {
+            $('#configuration_form_error').html(textStatus + ': ' + errorThrown);
+        }
+        $('#configuration_form_error').show();
+    });
+}
 $(document).ready(function() {
     $('#newlibrary_throbber').hide();
     $('#newlibrary_result').hide();
@@ -167,6 +193,12 @@ $(document).ready(function() {
 <p class="debug">{{ debug_notes }}</p>
 <div class="container" style="height: 30%; width=100%; margin-bottom: 20px;" id="top_row">
     <div style="width: 15%; overflow: hidden; float: left" id="search_form_container">
+        <span id="newlibrarycontrols">
+            <button id="newlibrary_button" onclick="create_new_library();">New</button>
+            <img id="newlibrary_throbber" src="/sitemedia/img/gnm/loading.gif" alt="waiting..." style="visible: false">
+        </span>
+        <p id="newlibrary_result"></p>
+        <hr>
         <ul>
         {{ search_form.as_ul }}
         </ul>
@@ -174,12 +206,6 @@ $(document).ready(function() {
         <div id="library_selector_loading_indicator" style="display: hidden;">
             <p><img src="/sitemedia/img/gnm/loading.gif" alt="loading...">Refreshing libraries...</p>
         </div>
-        <hr>
-        <span id="newlibrarycontrols">
-            <button id="newlibrary_button" onclick="create_new_library();">New</button>
-            <img id="newlibrary_throbber" src="/sitemedia/img/gnm/loading.gif" alt="waiting..." style="visible: false">
-        </span>
-        <p id="newlibrary_result"></p>
     </div>
     <div style="width:73%; overflow: hidden; float: right" id="graph_container">
         <div id="graph_loading_indicator" style="display: hidden;">
@@ -195,19 +221,66 @@ $(document).ready(function() {
     <div style="width: 15%; overflow: hidden; float: left" id="library_selector_container">
     </div>
     <div style="width:73%; overflow: hidden; float: right" id="config_form_container">
+        <p class="error" id="configuration_form_error" style="display: none;"></p>
         {% if not configuration_form %}
         <p>Select a library definition from the list on the left to see and edit details</p>
-        {% endif %}
-        {% if configuration_form_error %}
-        <p class="error">{{ configuration_form_error }}</p>
         {% else %}
-        <form method="POST" action="">
-            {% csrf_token %}
-            <table>
-            {{ configuration_form.as_table }}
-            </table>
-            <input type="submit" value="Save definition">
-        </form>
+            {% if configuration_form_error %}
+            <p class="error">{{ configuration_form_error }}</p>
+            {% else %}
+            <form id="configuration_form" method="POST" action="">
+                <span id="definition_controls">
+                    <input type="submit" value="Save definition">
+                    <button type="button" id="delete_button" onclick="delete_library();">Delete library</button>
+                </span>
+                {% csrf_token %}
+                <!--<table>
+                {{ configuration_form.as_table }}
+                </table> -->
+                <table>
+                    <tr><td>
+                    {{ configuration_form.library_id.errors }}
+                    <label for="id_library_id">Library ID</label>
+                    </td><td>
+                    {{ configuration_form.library_id }}
+                    </td></tr>
+                    <tr><td>
+                    {{ configuration_form.library_owner.errors }}
+                    <label for="id_library_owner">Owner</label>
+                    </td><td>
+                    {{ configuration_form.library_owner }}
+                    </td></tr>
+                    <tr><td>
+                    {{ configuration_form.auto_refresh.errors }}
+                    <label for="id_auto_refresh">Auto-refreshing</label>
+                        </td><td>
+                    {{ configuration_form.auto_refresh }}
+                    </td></tr>
+                    <tr><td>
+                    {{ configuration_form.update_mode.errors }}
+                    <label for="id_update_mode">Update mode</label>
+                    </td><td>
+                    {{ configuration_form.update_mode }}
+                    </td></tr>
+
+                    <tr><td>
+                    {{ configuration_form.search_definition.errors }}
+                    <label for="id_search_definition">Search definition</label>
+                    <button type="button" onclick="test_search();">Test search</button>
+                        </td><td>
+                    {{ configuration_form.search_definition }}
+                    </td></tr>
+                <tr><td><hr></td><td><hr></td></tr>
+                <tr><td>
+                    {{ configuration_form.storage_rule_definition.errors }}
+                    <label for="id_storage_rule_definition">Storage rule definition</label>
+                    <button type="button" onclick="delete_storage_rule();">Delete storage rule</button>
+                    </td><td>
+                    {{ configuration_form.storage_rule_definition }}
+                </td></tr>
+                </table>
+            </form>
+            {% endif %}
         {% endif %}
     </div>
 </div>

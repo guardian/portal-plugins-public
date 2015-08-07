@@ -87,7 +87,10 @@ $('#library_selector_loading_indicator').show();
 
 var listArgs = "s="+selector_page_size + "&p="+selector_page;
 if($('#id_only_auto_refreshing').is(':checked')){
-    listArgs += ";autoRefresh=true";
+    listArgs += "&autoRefresh=true";
+}
+if($('#id_only_named').is(':checked')){
+    listArgs += "&onlyNamed=true";
 }
 
 $.getJSON("endpoint/list?"+listArgs)
@@ -95,7 +98,11 @@ $.getJSON("endpoint/list?"+listArgs)
         str = "<div class=\"list_selector_static\">Total: " + data['total'] + "</div>";
         $.each(data['results'], function(idx,ptr){
             str += "<div class=\"list_selector_item\" onMouseOver=\"list_selector_mouseover(this);\" onclick=\"list_selector_click('"+ptr['id']+"');\">";
-            str += "<span class=\"headline\">"+ptr['id']+"</span><br>";
+            if(ptr['nickname'] != ""){
+                str += "<span class=\"headline\">" + ptr['nickname'] + "</span>&nbsp;<span style=\"font-size:0.8em\">(" + ptr['id'] + ")</span><br>";
+            } else {
+                str += "<span class=\"headline\">"+ptr['id']+"</span><br>";
+            }
             str += "<span class=\"library_info\">Containing "+ptr['hits']+" items</span><br>";
             str += "</div>";
             graph_data.push(ptr);
@@ -313,6 +320,12 @@ $(document).ready(function() {
                     <label for="id_library_owner">Owner</label>
                     </td><td>
                     {{ configuration_form.library_owner }}
+                    </td></tr>
+                    <tr><td>
+                    {{ configuration_form.nickname.errors }}
+                    <label for="id_nickname">Nickname</label>
+                    </td><td>
+                    {{ configuration_form.nickname }}
                     </td></tr>
                     <tr><td>
                     {{ configuration_form.auto_refresh.errors }}

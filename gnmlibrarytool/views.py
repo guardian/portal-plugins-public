@@ -30,6 +30,7 @@ class MainAppView(TemplateView):
     def post(self, request, *args, **kwargs):
         from .forms import ConfigurationForm
         from .VSLibrary import VSLibrary, HttpError
+        from .models import LibraryNickname
         from django.conf import settings
         from xml.parsers.expat import ExpatError
         #from xml.etree.ElementTree import ParseError
@@ -47,6 +48,15 @@ class MainAppView(TemplateView):
             context = {'search_form': self.ShowSearchForm() }
 
             try:
+                #update the internal nickname
+                try:
+                    n = LibraryNickname.objects.get(library_id=kwargs['lib'])
+                except LibraryNickname.DoesNotExist:
+                    n = LibraryNickname()
+                    n.library_id = kwargs['lib']
+                n.nickname = cd['nickname']
+                n.save()
+
                 l.populate(kwargs['lib'])
                 l.autoRefresh=cd['auto_refresh']
                 l.updateMode=cd['update_mode']
@@ -62,6 +72,7 @@ class MainAppView(TemplateView):
         else:
             print "form not valid"
             return render(request,self.template_name,self.get_context_data(**kwargs))
+
 
 class ConfigurationFormProcessorView(View):
     def __init__(self,*args,**kwargs):
@@ -81,7 +92,6 @@ class ConfigurationFormProcessorView(View):
         from django.http import HttpResponse
         from django.conf import settings
         import json
-        from django.shortcuts import render
 
         f = ConfigurationForm(None, request.POST)
         if f.is_valid():
@@ -104,6 +114,7 @@ class DeleteLibraryView(ConfigurationFormProcessorView):
         from .VSLibrary import VSLibrary,VSLibraryCollection
         from django.conf import settings
         from django.http import HttpResponse
+        from .models import LibraryNickname
         import json
 
         l = VSLibrary(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
@@ -118,6 +129,12 @@ class DeleteLibraryView(ConfigurationFormProcessorView):
                         username=settings.VIDISPINE_USERNAME,password=settings.VIDISPINE_PASSWORD,
                         cache=self._mc)
         libraries.cache_invalidate()
+
+        try:
+            n=LibraryNickname.objects.get(library_id=cleaned_data['library_id'])
+            n.delete()
+        except LibraryNickname.DoesNotExist:
+            pass
 
         return HttpResponse(content=json.dumps({'status': 'success', 'action': 'deleted', 'vsid': l.vsid}),
                             content_type='application/json', status=200)
@@ -201,6 +218,7 @@ class LibraryListView(View):
         import logging
         import memcache
         from django.conf import settings
+        from .models import LibraryNickname
 
         onlyAutoRefresh = None
         if 'autoRefresh' in request.GET:
@@ -208,6 +226,13 @@ class LibraryListView(View):
                 onlyAutoRefresh = True
             else:
                 onlyAutoRefresh = False
+
+        onlyNamed = None
+        if 'onlyNamed' in request.GET:
+            if request.GET['onlyNamed'].lower() == "true":
+                onlyNamed = True
+            else:
+                onlyNamed = False
 
         mc = memcache.Client([settings.CACHE_LOCATION])
 
@@ -224,11 +249,24 @@ class LibraryListView(View):
         rtn = []
         try:
             for libname in libraries.scan(page=page, autoRefresh=onlyAutoRefresh):
+                nickname = ""
+                try:
+                    n = LibraryNickname.objects.get(library_id=libname)
+                    nickname = n.nickname
+                except LibraryNickname.DoesNotExist:
+                    pass
+
                 try:
                     l = VSLibrary(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
                                 username=settings.VIDISPINE_USERNAME,password=settings.VIDISPINE_PASSWORD,cache=mc)
                     l.cache_timeout = 3600  #cache library definitions for 1hr
-                    rtn.append({'id': libname, 'hits': l.get_hits(libname)})
+                    if onlyNamed is None:
+                        rtn.append({'id': libname, 'hits': l.get_hits(libname), 'nickname': nickname})
+                    elif onlyNamed:
+                        if nickname != "": rtn.append({'id': libname, 'hits': l.get_hits(libname), 'nickname': nickname})
+                    else:
+                        if nickname == "": rtn.append({'id': libname, 'hits': l.get_hits(libname), 'nickname': nickname})
+
                 except HttpError as e:
                     if e.status!=404:
                         raise e #re-raise exception to outer loop, we don't know what happened

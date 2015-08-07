@@ -109,6 +109,7 @@ class ConfigurationFormProcessorView(View):
             return HttpResponse(content=json.dumps({'status': 'error', 'message': "Form not valid", 'details': f.errors}),
                                 content_type='application/json', status=400)
 
+
 class DeleteLibraryView(ConfigurationFormProcessorView):
     def handle_action(self,request,cleaned_data,*args,**kwargs):
         from .VSLibrary import VSLibrary,VSLibraryCollection

@@ -45,7 +45,7 @@ $('#libraries_graph').dxChart({
         valueField: 'hits'
     },
     commonSeriesSettings: {
-        argumentField: 'id',
+        argumentField: 'label',
         label: {
             visible: true,
             format: 'fixedPoint',
@@ -100,8 +100,10 @@ $.getJSON("endpoint/list?"+listArgs)
             str += "<div class=\"list_selector_item\" onMouseOver=\"list_selector_mouseover(this);\" onclick=\"list_selector_click('"+ptr['id']+"');\">";
             if(ptr['nickname'] != ""){
                 str += "<span class=\"headline\">" + ptr['nickname'] + "</span>&nbsp;<span style=\"font-size:0.8em\">(" + ptr['id'] + ")</span><br>";
+                ptr['label'] = ptr['nickname'];
             } else {
                 str += "<span class=\"headline\">"+ptr['id']+"</span><br>";
+                ptr['label'] = ptr['id'];
             }
             str += "<span class=\"library_info\">Containing "+ptr['hits']+" items</span><br>";
             str += "</div>";

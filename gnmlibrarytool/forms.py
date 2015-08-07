@@ -22,7 +22,7 @@ class ConfigurationForm(Form):
 
     def __init__(self, lib, *args, **kwargs):
         from .VSLibrary import VSLibrary
-        from portal.plugins.rulesengine import DistributionMetadataRule
+        from portal.plugins.rulesengine.models import DistributionMetadataRule
         from .models import LibraryNickname
         import xml.etree.ElementTree as ET
         from xml.dom import minidom

@@ -22,6 +22,7 @@ class ConfigurationForm(Form):
 
     def __init__(self, lib, *args, **kwargs):
         from .VSLibrary import VSLibrary
+        from portal.plugins.rulesengine import DistributionMetadataRule
         from .models import LibraryNickname
         import xml.etree.ElementTree as ET
         from xml.dom import minidom
@@ -31,6 +32,11 @@ class ConfigurationForm(Form):
         if isinstance(lib,VSLibrary):
             initial['library_id'] = lib.vsid
             initial['library_owner'] = lib.owner
+            try:
+                n = DistributionMetadataRule.objects.get(vs_id=lib.vsid)
+                initial['nickname'] = n.name
+            except DistributionMetadataRule.DoesNotExist:
+                pass
             try:
                 n = LibraryNickname.objects.get(library_id=lib.vsid)
                 initial['nickname'] = n.nickname

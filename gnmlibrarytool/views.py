@@ -214,6 +214,7 @@ class CreateLibraryView(View):
 class LibraryListView(View):
     def get(self,request):
         from .VSLibrary import VSLibrary, VSLibraryCollection, HttpError
+        from portal.plugins.rulesengine.models import DistributionMetadataRule
         from django.http import HttpResponse
         import json
         import logging
@@ -251,6 +252,13 @@ class LibraryListView(View):
         try:
             for libname in libraries.scan(page=page, autoRefresh=onlyAutoRefresh):
                 nickname = ""
+                #is it a Portal rule?
+                try:
+                    n = DistributionMetadataRule.objects.get(vs_id=libname)
+                    nickname = n.name
+                except DistributionMetadataRule.DoesNotExist:
+                    pass
+                #do we know about it?
                 try:
                     n = LibraryNickname.objects.get(library_id=libname)
                     nickname = n.nickname

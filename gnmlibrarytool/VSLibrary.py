@@ -270,6 +270,41 @@ class VSLibrary(VSApi):
                      body=ET.tostring(self._settings,encoding="UTF-8"),content_type='application/xml'
         )
 
+    def saveStorageRule(self):
+        """
+        Saves the current state of the storage rules back into Vidispine. Errors are reported as HttpExceptions
+        :return: None
+        """
+        import xml.etree.ElementTree as ET
+        if self._storagerule is None:
+            raise ValueError("No storage rule loaded")
+
+        #here is where it gets annoying.  We get a StorageRulesDocument, detailing EVERY storage rule,
+        #but we have to set them invididually as a StorageRuleDocument (note singular)
+        print "storage rule to set:"
+        print ET.tostring(self._storagerule,encoding="UTF-8")
+        for rule_tag in self._storagerule.findall("{0}tag".format(self._xmlns)):
+            tagname = rule_tag.attrib["id"]
+            doc = ET.Element("StorageRuleDocument",attrib={'xmlns': 'http://xml.vidispine.com/schema/vidispine'})
+            for node in rule_tag:
+                doc.append(node)
+            print "XML to set for %s: %s" % (tagname,ET.tostring(doc,encoding="UTF-8"))
+            self.request('library/{0}/storage-rule/{1}'.format(self.vsid,tagname),
+                         body=ET.tostring(doc,encoding="UTF-8"),method="PUT",content_type="application/xml")
+
+    def deleteStorageRule(self, tagname=None):
+        """
+        Deletes the current storage rule definition associated with the library.
+        :param tagname: Delete the storage rule for this tag.  If this is None (the default), delete all storage rules
+        :return: None
+        """
+
+        if tagname is None:
+            self.request('library/{0}/storage-rule'.format(self.vsid), method="DELETE")
+        else:
+            self.request('library/{0}/storage-rule/{1}'.format(self.vsid,tagname), method="DELETE")
+
+        self.cache_invalidate()
 
     @property
     def hits(self):
@@ -383,3 +418,23 @@ class VSLibrary(VSApi):
     @property
     def storagerule(self):
         return self._storagerule
+
+    @storagerule.setter
+    def storagerule(self,value):
+        """
+        Set the storage rule XML. Expects either a string or an ElementTree
+        :param value: String or ElementTree to set
+        :return: None
+        """
+        import xml.etree.ElementTree as ET
+        if isinstance(value, basestring):
+            ET._namespace_map[''] = "http://xml.vidispine.com/schema/vidispine"
+            to_set = ET.fromstring(value)
+        #elif isinstance(value, ET.Element):
+        else:
+            to_set = value
+        #else:
+        #    raise ValueError("You need to pass a string or an ElementTree element")
+
+        self._storagerule = to_set
+        self.cache_invalidate()

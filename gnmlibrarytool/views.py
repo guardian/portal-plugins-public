@@ -63,46 +63,105 @@ class MainAppView(TemplateView):
             print "form not valid"
             return render(request,self.template_name,self.get_context_data(**kwargs))
 
+class ConfigurationFormProcessorView(View):
+    def __init__(self,*args,**kwargs):
+        import memcache
+        from django.conf import settings
+        super(ConfigurationFormProcessorView, self).__init__(*args,**kwargs)
+        self._mc = memcache.Client([settings.CACHE_LOCATION])
 
-class DeleteLibraryView(View):
+    def handle_action(self,request,cleaned_data,*args,**kwargs):
+        from django.http import HttpResponse
+
+        return HttpResponse(content='not implemented',status=500,content_type='text/plain')
+
     def post(self, request, *args, **kwargs):
         from .forms import ConfigurationForm
         from .VSLibrary import VSLibrary, HttpError, VSLibraryCollection
         from django.http import HttpResponse
         from django.conf import settings
-        from xml.parsers.expat import ExpatError
-        #from xml.etree.ElementTree import ParseError
-        import memcache
         import json
         from django.shortcuts import render
 
-        mc = memcache.Client([settings.CACHE_LOCATION])
-
         f = ConfigurationForm(None, request.POST)
         if f.is_valid():
-            l = VSLibrary(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
-                      username=settings.VIDISPINE_USERNAME, password=settings.VIDISPINE_PASSWORD, cache=mc)
-            l.cache_timeout = 3600
             cd = f.cleaned_data
-
             try:
-                l.populate(cd['library_id'])
-                print "attempting to delete %s" % cd['library_id']
-                l.delete()
-                #now it's deleted, invalidate the cache for the library collection list so it stops showing up
-                libraries = VSLibraryCollection(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
-                                username=settings.VIDISPINE_USERNAME,password=settings.VIDISPINE_PASSWORD,
-                                cache=mc)
-                libraries.cache_invalidate()
+                return self.handle_action(request,cd,*args,**kwargs)
 
-                return HttpResponse(content=json.dumps({'status': 'success', 'action': 'deleted', 'vsid': l.vsid}),
-                                    content_type='application/json', status=200)
             except HttpError as e:
-                return HttpResponse(content=json.dumps({'status': 'error', 'message': "Error deleting from vidispine: %s" % e.__unicode__()}),
+                return HttpResponse(content=json.dumps({'status': 'error', 'message': "Error updating vidispine: %s" % e.__unicode__()}),
                                     content_type='application/json', status=500)
             except ValueError as e:
                 return HttpResponse(content=json.dumps({'status': 'error', 'message': "Invalid parameters: %s" % e.__unicode__()}),
-                                    content_type='application/json', status=500)
+                                    content_type='application/json', status=400)
+        else:
+            return HttpResponse(content=json.dumps({'status': 'error', 'message': "Form not valid", 'details': f.errors}),
+                                content_type='application/json', status=400)
+
+class DeleteLibraryView(ConfigurationFormProcessorView):
+    def handle_action(self,request,cleaned_data,*args,**kwargs):
+        from .VSLibrary import VSLibrary,VSLibraryCollection
+        from django.conf import settings
+        from django.http import HttpResponse
+        import json
+
+        l = VSLibrary(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
+        username=settings.VIDISPINE_USERNAME, password=settings.VIDISPINE_PASSWORD, cache=self._mc)
+        l.cache_timeout = 3600
+
+        l.populate(cleaned_data['library_id'])
+        print "attempting to delete %s" % cleaned_data['library_id']
+        l.delete()
+        #now it's deleted, invalidate the cache for the library collection list so it stops showing up
+        libraries = VSLibraryCollection(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
+                        username=settings.VIDISPINE_USERNAME,password=settings.VIDISPINE_PASSWORD,
+                        cache=self._mc)
+        libraries.cache_invalidate()
+
+        return HttpResponse(content=json.dumps({'status': 'success', 'action': 'deleted', 'vsid': l.vsid}),
+                            content_type='application/json', status=200)
+
+
+class SaveStorageRuleView(ConfigurationFormProcessorView):
+    def handle_action(self, request, cleaned_data, *args, **kwargs):
+        from .VSLibrary import VSLibrary,VSLibraryCollection
+        from django.conf import settings
+        from django.http import HttpResponse
+        import xml.etree.ElementTree as ET
+        from xml.parsers.expat import ExpatError
+        import json
+
+        l = VSLibrary(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
+        username=settings.VIDISPINE_USERNAME, password=settings.VIDISPINE_PASSWORD, cache=self._mc)
+        l.cache_timeout = 3600
+
+        l.populate(cleaned_data['library_id'])
+        try:
+            doc = ET.fromstring(cleaned_data['storage_rule_definition'])
+            print "storage rule to set: %s" % ET.tostring(doc,"UTF-8")
+
+            l.storagerule = doc
+            l.saveStorageRule() #HttpErrors are caught by the superclass. This call performs cache invalidation on the object.
+        except ExpatError as e:
+            return HttpResponse(content=json.dumps({'status': 'error', 'vsid': l.vsid, 'message': "Storage rule is not valid XML",
+                                                    'detail': e.__unicode__()}),
+                                content_type='application/json', status=400)
+
+        return HttpResponse(content=json.dumps({'status': 'success', 'action': 'updated', 'vsid': l.vsid}),
+                            content_type='application/json', status=200)
+
+class DeleteStorageRuleView(ConfigurationFormProcessorView):
+    def handle_action(self,request,cleaned_data,*args,**kwargs):
+        from .VSLibrary import VSLibrary,VSLibraryCollection
+        from django.conf import settings
+
+        l = VSLibrary(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
+        username=settings.VIDISPINE_USERNAME, password=settings.VIDISPINE_PASSWORD, cache=self._mc)
+        l.cache_timeout = 3600
+
+        l.populate(cleaned_data['library_id'])
+        l.deleteStorageRule()
 
 class CreateLibraryView(View):
     def put(self,request):
@@ -133,8 +192,8 @@ class CreateLibraryView(View):
 
         #return HttpResponseRedirect(reverse('libtool_editor',kwargs={'lib': l.vsid}))
 
-class LibraryListView(View):
 
+class LibraryListView(View):
     def get(self,request):
         from .VSLibrary import VSLibrary, VSLibraryCollection, HttpError
         from django.http import HttpResponse

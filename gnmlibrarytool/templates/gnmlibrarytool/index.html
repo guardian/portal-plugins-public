@@ -26,6 +26,9 @@ var selector_page=0;
 
 var graph_data = [];
 
+var search_def_editor;
+var storage_rule_editor;
+
 /*updates the barchart based on data downloaded from populate_library_selector*/
 function update_graph()
 {
@@ -166,20 +169,81 @@ function delete_library()
         $('#configuration_form_error').show();
     });
 }
+
+function save_storage_rule()
+{
+    var form = $('#configuration_form');
+    var csrftoken = $.cookie('csrftoken');
+
+    //ensure that the form gets the current value from Codemirror
+    $('#id_storage_rule_definition').val(storage_rule_editor.getValue());
+
+    console.log(form.serialize());
+    $.ajax('/gnmlibrarytool/endpoint/savestorage',{
+        headers: {
+            'X-CSRFToken': csrftoken
+        },
+        data: form.serialize(),
+        method: "POST"
+    })
+    .success(function(data){
+        $('#configuration_form_error').html("Successfully saved storage rules");
+        $('#configuration_form_error').show();
+    })
+    .fail(function(jqXHR, textStatus, errorThrown){
+        $('#delete_button').show();
+        if(jqXHR.responseJSON){
+            $('#configuration_form_error').html(jqXHR.responseJSON['message']);
+        } else {
+            $('#configuration_form_error').html(textStatus + ': ' + errorThrown);
+        }
+        $('#configuration_form_error').show();
+    });
+}
+
+function delete_storage_rule()
+{
+    var form = $('#configuration_form');
+    var csrftoken = $.cookie('csrftoken');
+
+    //ensure that the form gets the current value from Codemirror
+    $('#id_storage_rule_definition').val(storage_rule_editor.getValue());
+
+    console.log(form.serialize());
+    $.ajax('/gnmlibrarytool/endpoint/deletestorage',{
+        headers: {
+            'X-CSRFToken': csrftoken
+        },
+        data: form.serialize(),
+        method: "POST"
+    })
+    .success(function(data){
+        window.location.href="/gnmlibrarytool/";
+    })
+    .fail(function(jqXHR, textStatus, errorThrown){
+        $('#delete_button').show();
+        if(jqXHR.responseJSON){
+            $('#configuration_form_error').html(jqXHR.responseJSON['message']);
+        } else {
+            $('#configuration_form_error').html(textStatus + ': ' + errorThrown);
+        }
+        $('#configuration_form_error').show();
+    });
+}
 $(document).ready(function() {
     $('#newlibrary_throbber').hide();
     $('#newlibrary_result').hide();
     populate_library_selector();
     id_search_definition = document.getElementById('id_search_definition');
     if(id_search_definition){
-        var search_def_editor = CodeMirror.fromTextArea(id_search_definition, {
+        search_def_editor = CodeMirror.fromTextArea(id_search_definition, {
             lineNumbers: true,
             lineWrapping: true
         });
     }
     id_storage_rule_definition = document.getElementById('id_storage_rule_definition');
     if(id_storage_rule_definition){
-        var storage_rule_editor = CodeMirror.fromTextArea(id_storage_rule_definition, {
+         storage_rule_editor = CodeMirror.fromTextArea(id_storage_rule_definition, {
             lineNumbers: true,
             lineWrapping: true
         });
@@ -274,6 +338,7 @@ $(document).ready(function() {
                 <tr><td>
                     {{ configuration_form.storage_rule_definition.errors }}
                     <label for="id_storage_rule_definition">Storage rule definition</label>
+                    <button type="button" onclick="save_storage_rule();">Save storage rule</button>
                     <button type="button" onclick="delete_storage_rule();">Delete storage rule</button>
                     </td><td>
                     {{ configuration_form.storage_rule_definition }}

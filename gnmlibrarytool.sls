@@ -19,15 +19,15 @@
     - group: {{ owner_gid }}
     - file_mode: {{ module_perm }}
 
-{{ cantemo_media }}/img/gnmlibrarytool:
-  file.recurse:
-    - source: salt://gnmplugins/files/gnmlibrarytool/static
-    - exclude_pat: 'E@(\.git)'
-    - include_empty: true
-    - makedirs: true
-    - user: {{ owner_uid }}
-    - group: {{ owner_gid }}
-    - file_mode: {{ media_perm }}
+#{{ cantemo_media }}/img/gnmlibrarytool:
+#  file.recurse:
+#    - source: salt://gnmplugins/files/gnmlibrarytool/static
+#    - exclude_pat: 'E@(\.git)'
+#    - include_empty: true
+#    - makedirs: true
+#    - user: {{ owner_uid }}
+#    - group: {{ owner_gid }}
+#    - file_mode: {{ media_perm }}
 
 gnmlibrarytool_sync:
   cmd.run:

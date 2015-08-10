@@ -5,7 +5,11 @@
 {% block head %}
 <style>
     div.container { margin-left: 8px; overflow: hidden;  }
-    div.list_selector_item { display: inline; overflow: hidden; margin-bottom: 4px; }
+    div.list_selector_item { display: block; overflow: hidden; padding-left: 3px; padding-bottom: 4px; padding-top: 4px; border-bottom: 1px solid black; }
+    div.list_selector_expander { display: block; overflow: hidden; padding-left: 3px; margin-bottom: 4px; margin-top: 2px; }
+    div.list_selector_expander_disabled { color: #777777; }
+
+    div.list_selector_hover { border-left: 4px solid blue; color: blue; cursor: pointer; cursor: hand; }
 
     span.headline { font-size: 1em; font-weight: bold; }
     span.library_info { font-size: 0.7em; font-weight: normal }
@@ -23,6 +27,7 @@
 <script language="JavaScript">
 var selector_page_size=15;
 var selector_page=0;
+var total_libs=9999999999;
 
 var graph_data = [];
 
@@ -66,8 +71,8 @@ function update_graph_failed(msg)
 {
 $('#graph_loading_indicator').hide();
 $('#libraries_graph').html('<p class="error">'+msg+'</p>');
-
 }
+
 function list_selector_click(vsid)
 {
 var uri = "/gnmlibrarytool/" + vsid;
@@ -77,8 +82,37 @@ window.location.href = uri;
 function empty_library_selector()
 {
 $('#library_selector_container').html("");
+$('#library_selector_expander').removeClass('list_selector_expander_disabled');
 graph_data = [];
 selector_page=0;
+}
+
+function list_selector_expander_mouseover(element)
+{
+if(! $(element).hasClass('list_selector_expander_disabled'))
+    list_selector_mouseover(element);
+}
+
+function list_selector_mouseover(element)
+{
+$(element).addClass("list_selector_hover");
+}
+
+function list_selector_mouseout(element)
+{
+$(element).removeClass("list_selector_hover");
+}
+
+function disable_library_expander()
+{
+$('#library_selector_expander').addClass('list_selector_expander_disabled');
+}
+
+function expand_library_selector()
+{
+selector_page += 1;
+if(selector_page*selector_page_size<total_libs)
+    populate_library_selector();
 }
 
 function populate_library_selector()
@@ -86,6 +120,8 @@ function populate_library_selector()
 $('#library_selector_loading_indicator').show();
 
 var listArgs = "s="+selector_page_size + "&p="+selector_page;
+var shown = selector_page_size * (selector_page+1);
+
 if($('#id_only_auto_refreshing').is(':checked')){
     listArgs += "&autoRefresh=true";
 }
@@ -95,9 +131,14 @@ if($('#id_only_named').is(':checked')){
 
 $.getJSON("endpoint/list?"+listArgs)
     .success(function(data){
-        str = "<div class=\"list_selector_static\">Total: " + data['total'] + "</div>";
+        if(shown>data['total']){
+            shown=data['total'];
+            disable_library_expander();
+        }
+        str = "<div class=\"list_selector_item\">Showing " + shown + " from total of: " + data['total'] + " results</div>";
+        total_libs = data['total'];
         $.each(data['results'], function(idx,ptr){
-            str += "<div class=\"list_selector_item\" onMouseOver=\"list_selector_mouseover(this);\" onclick=\"list_selector_click('"+ptr['id']+"');\">";
+            str += "<div class=\"list_selector_item\" onMouseOver=\"list_selector_mouseover(this);\" onMouseOut=\"list_selector_mouseout(this);\" onclick=\"list_selector_click('"+ptr['id']+"');\">";
             if(ptr['nickname'] != ""){
                 str += "<span class=\"headline\">" + ptr['nickname'] + "</span>&nbsp;<span style=\"font-size:0.8em\">(" + ptr['id'] + ")</span><br>";
                 ptr['label'] = ptr['nickname'];
@@ -105,12 +146,13 @@ $.getJSON("endpoint/list?"+listArgs)
                 str += "<span class=\"headline\">"+ptr['id']+"</span><br>";
                 ptr['label'] = ptr['id'];
             }
-            str += "<span class=\"library_info\">Containing "+ptr['hits']+" items</span><br>";
+            str += "<span class=\"library_info\">Containing "+ptr['hits']+" items</span>";
             str += "</div>";
+
             graph_data.push(ptr);
         });
-        existing_content = $('#library_selector_container').html();
-        $('#library_selector_container').html(existing_content+str);
+        existing_content = $('#library_selector_list').html();
+        $('#library_selector_list').html(existing_content+str);
         update_graph();
         $('#library_selector_loading_indicator').hide();
     })
@@ -292,7 +334,16 @@ $(document).ready(function() {
 
 <div class="container" style="height: 70%; width=100%;" id="bottom_row">
     <div style="width: 15%; overflow: hidden; float: left" id="library_selector_container">
+        <div id="library_selector_list">
+
+        </div>
+        <div id="library_selector_expander" class="list_selector_expander" onClick="expand_library_selector();"
+             onmouseover="list_selector_expander_mouseover(this);" onmouseout="list_selector_mouseout(this);">
+            <img src="/sitemedia/img/icon-plus-circle-frame.png" style="padding-right: 6px;">
+            <span style="vertical-align: top;">More...</span>
+        </div>
     </div>
+
     <div style="width:73%; overflow: hidden; float: right" id="config_form_container">
         <p class="error" id="configuration_form_error" style="display: none;"></p>
         {% if not configuration_form %}

@@ -419,6 +419,15 @@ class VSLibrary(VSApi):
     def storagerule(self):
         return self._storagerule
 
+    def _stripwhitespace(self,node):
+        for x in node:
+            #if x.nodeType == Node.TEXT_NODE:
+            if x.text is not None:
+               x.text = x.text.strip()
+            #elif x.nodeType == Node.ELEMENT_NODE:
+            self._stripwhitespace(x)
+        return node
+
     @storagerule.setter
     def storagerule(self,value):
         """
@@ -435,6 +444,6 @@ class VSLibrary(VSApi):
             to_set = value
         #else:
         #    raise ValueError("You need to pass a string or an ElementTree element")
-
-        self._storagerule = to_set
+        
+        self._storagerule = self._stripwhitespace(to_set)
         self.cache_invalidate()

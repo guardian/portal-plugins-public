@@ -1,10 +1,15 @@
 from django.views.generic import View, TemplateView
 
+
 class MainAppView(TemplateView):
     from .forms import ShowSearchForm
     template_name = "gnmlibrarytool/index.html"
 
-    def get_context_data(self, **kwargs):
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(request.GET, **kwargs)
+        return self.render_to_response(context)
+
+    def get_context_data(self, getargs, **kwargs):
         import memcache
         from .VSLibrary import VSLibrary, HttpError
         from .forms import ConfigurationForm
@@ -12,7 +17,20 @@ class MainAppView(TemplateView):
 
         mc = memcache.Client([settings.CACHE_LOCATION])
         context = super(MainAppView, self).get_context_data(**kwargs)
-        context['search_form'] = self.ShowSearchForm()
+
+        initial_search_form = {}
+        if 'only_named' in getargs:
+            if getargs['only_named']=="1" or getargs['only_named']=="true":
+                initial_search_form['only_named'] = True
+        if 'only_with_storage_rules' in getargs:
+            if getargs['only_with_storage_rules']=="1" or getargs['only_with_storage_rules']=="true":
+                initial_search_form['only_with_storage_rules'] = True
+        if 'only_auto_refreshing' in getargs:
+            if getargs['only_auto_refreshing']=="1" or getargs['only_auto_refreshing']=="true":
+                initial_search_form['only_auto_refreshing'] = True
+
+        context['search_form'] = self.ShowSearchForm(initial=initial_search_form)
+
         #context['debug_notes'] = kwargs
         l = VSLibrary(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
                       username=settings.VIDISPINE_USERNAME, password=settings.VIDISPINE_PASSWORD,cache=mc)

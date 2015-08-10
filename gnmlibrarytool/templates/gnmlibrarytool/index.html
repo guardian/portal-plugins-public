@@ -135,7 +135,9 @@ $.getJSON("endpoint/list?"+listArgs)
             shown=data['total'];
             disable_library_expander();
         }
-        str = "<div class=\"list_selector_item\">Showing " + shown + " from total of: " + data['total'] + " results</div>";
+        str = "";
+        //str = "<div class=\"list_selector_item\">Showing " + shown + " from total of: " + data['total'] + " results</div>";
+        $('#library_selector_header').html("<p>Showing " + shown + " from total of: " + data['total'] + " results</p>");
         total_libs = data['total'];
         $.each(data['results'], function(idx,ptr){
             str += "<div class=\"list_selector_item\" onMouseOver=\"list_selector_mouseover(this);\" onMouseOut=\"list_selector_mouseout(this);\" onclick=\"list_selector_click('"+ptr['id']+"');\">";
@@ -334,6 +336,9 @@ $(document).ready(function() {
 
 <div class="container" style="height: 70%; width=100%;" id="bottom_row">
     <div style="width: 15%; overflow: hidden; float: left" id="library_selector_container">
+        <div id="library_selector_header" class="list_selector_item">
+
+        </div>
         <div id="library_selector_list">
 
         </div>

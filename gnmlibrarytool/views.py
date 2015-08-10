@@ -310,7 +310,7 @@ class LibraryListView(View):
         try:
             n = 0
             while len(rtn) < libraries.page_size:
-                rtn += self.scan_page(libraries,page,onlyNamed=onlyNamed,onlyAutoRefresh=onlyAutoRefresh,cache=mc)
+                rtn += self.scan_page(libraries,page+n,onlyNamed=onlyNamed,onlyAutoRefresh=onlyAutoRefresh,cache=mc)
                 n+=1
                 if n > libraries.page_count: break
 

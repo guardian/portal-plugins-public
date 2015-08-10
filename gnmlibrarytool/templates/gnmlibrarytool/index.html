@@ -73,9 +73,30 @@ $('#graph_loading_indicator').hide();
 $('#libraries_graph').html('<p class="error">'+msg+'</p>');
 }
 
+function get_query_params()
+{
+var set=false;
+var settings=[];
+
+if($('#id_only_named').is(':checked')){
+    settings.push('only_named=1');
+}
+if($('#id_only_with_storage_rules').is(':checked')){
+    settings.push('only_with_storage_rules=1');
+}
+if($('#id_only_auto_refreshing').is(':checked')){
+    settings.push('only_auto_refreshing=1');
+}
+if(settings.length > 0){
+    console.log("get_query_params: result is ?" +  settings.join("&"));
+    return "?" + settings.join("&");
+}
+return "";
+
+}
 function list_selector_click(vsid)
 {
-var uri = "/gnmlibrarytool/" + vsid;
+var uri = "/gnmlibrarytool/" + vsid + get_query_params();
 window.location.href = uri;
 }
 

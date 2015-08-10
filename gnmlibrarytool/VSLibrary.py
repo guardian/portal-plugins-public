@@ -335,6 +335,24 @@ class VSLibrary(VSApi):
             raise KeyError("No settings document or it does not contain <id>")
 
     @property
+    def updateFrequency(self):
+        elem = self._settings.find("{0}updateFrequency".format(self._xmlns))
+        if elem is not None:
+            return int(elem.text)
+        return None
+
+    @updateFrequency.setter
+    def updateFrequency(self,value):
+        if not isinstance(value,int):
+            raise ValueError
+
+        import xml.etree.ElementTree as ET
+        elem = self._settings.find("{0}updateFrequency".format(self._xmlns))
+        if elem is None:
+            elem = ET.SubElement(self._settings,"{0}updateFrequency".format(self._xmlns))
+        elem.text = str(value)
+
+    @property
     def owner(self):
         elem = self._settings.find("{0}username".format(self._xmlns))
         if elem is not None:

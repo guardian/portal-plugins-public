@@ -42,4 +42,3 @@ gnmsyndication_sync:
 portal_restart:
   cmd.run:
     - name: "supervisorctl restart all"
-

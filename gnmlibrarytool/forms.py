@@ -12,6 +12,7 @@ class ConfigurationForm(Form):
     library_owner = CharField(max_length=255,widget=TextInput(attrs={'readonly': True, 'style': 'color: grey'}))
     nickname = CharField(max_length=255, required=False)
     auto_refresh = BooleanField(required=False)
+    update_frequency = IntegerField(required=False)
     update_mode = ChoiceField(choices=[
         ('REPLACE','REPLACE'),
         ('MERGE','MERGE'),
@@ -43,6 +44,8 @@ class ConfigurationForm(Form):
             except LibraryNickname.DoesNotExist:
                 pass
             initial['auto_refresh'] = lib.autoRefresh
+            if lib.updateFrequency is not None:
+                initial['update_frequency'] = lib.updateFrequency
             initial['update_mode'] = lib.updateMode
             initial['search_definition'] = ET.tostring(lib.query,encoding="UTF-8") #minidom.parseString(ET.tostring(lib.query,encoding="UTF-8")).toprettyxml()
             initial['storage_rule_definition'] = None

@@ -42,7 +42,7 @@ if(! graph_data || graph_data.length==0) return;
 //console.log(graph_data);
 $('#libraries_graph').dxChart({
     size: {
-        height: 250
+        height: 500 
     },
     dataSource: graph_data,
     series: {
@@ -81,7 +81,7 @@ window.location.href = uri;
 
 function empty_library_selector()
 {
-$('#library_selector_container').html("");
+$('#library_selector_list').html("");
 $('#library_selector_expander').removeClass('list_selector_expander_disabled');
 graph_data = [];
 selector_page=0;

@@ -230,9 +230,49 @@ class CreateLibraryView(View):
 
 
 class LibraryListView(View):
+    def scan_page(self,libraries,page,onlyNamed=None,onlyAutoRefresh=None,cache=None):
+        from portal.plugins.rulesengine.models import DistributionMetadataRule
+        import logging
+        from .VSLibrary import VSLibrary,HttpError
+        from django.conf import settings
+        from .models import LibraryNickname
+
+        rtn = []
+
+        for libname in libraries.scan(page=page, autoRefresh=onlyAutoRefresh):
+            nickname = ""
+            #is it a Portal rule?
+            try:
+                n = DistributionMetadataRule.objects.get(vs_id=libname)
+                nickname = n.name
+            except DistributionMetadataRule.DoesNotExist:
+                pass
+            #do we know about it?
+            try:
+                n = LibraryNickname.objects.get(library_id=libname)
+                nickname = n.nickname
+            except LibraryNickname.DoesNotExist:
+                pass
+
+            try:
+                l = VSLibrary(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
+                            username=settings.VIDISPINE_USERNAME,password=settings.VIDISPINE_PASSWORD,cache=cache)
+                l.cache_timeout = 3600  #cache library definitions for 1hr
+                if onlyNamed is None:
+                    rtn.append({'id': libname, 'hits': l.get_hits(libname), 'nickname': nickname})
+                elif onlyNamed:
+                    if nickname != "": rtn.append({'id': libname, 'hits': l.get_hits(libname), 'nickname': nickname})
+                else:
+                    if nickname == "": rtn.append({'id': libname, 'hits': l.get_hits(libname), 'nickname': nickname})
+
+            except HttpError as e:
+                if e.status!=404:
+                    raise e #re-raise exception to outer loop, we don't know what happened
+                logging.warning(e.__unicode__())
+        return rtn
+
     def get(self,request):
         from .VSLibrary import VSLibrary, VSLibraryCollection, HttpError
-        from portal.plugins.rulesengine.models import DistributionMetadataRule
         from django.http import HttpResponse
         import json
         import logging
@@ -268,36 +308,11 @@ class LibraryListView(View):
 
         rtn = []
         try:
-            for libname in libraries.scan(page=page, autoRefresh=onlyAutoRefresh):
-                nickname = ""
-                #is it a Portal rule?
-                try:
-                    n = DistributionMetadataRule.objects.get(vs_id=libname)
-                    nickname = n.name
-                except DistributionMetadataRule.DoesNotExist:
-                    pass
-                #do we know about it?
-                try:
-                    n = LibraryNickname.objects.get(library_id=libname)
-                    nickname = n.nickname
-                except LibraryNickname.DoesNotExist:
-                    pass
-
-                try:
-                    l = VSLibrary(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
-                                username=settings.VIDISPINE_USERNAME,password=settings.VIDISPINE_PASSWORD,cache=mc)
-                    l.cache_timeout = 3600  #cache library definitions for 1hr
-                    if onlyNamed is None:
-                        rtn.append({'id': libname, 'hits': l.get_hits(libname), 'nickname': nickname})
-                    elif onlyNamed:
-                        if nickname != "": rtn.append({'id': libname, 'hits': l.get_hits(libname), 'nickname': nickname})
-                    else:
-                        if nickname == "": rtn.append({'id': libname, 'hits': l.get_hits(libname), 'nickname': nickname})
-
-                except HttpError as e:
-                    if e.status!=404:
-                        raise e #re-raise exception to outer loop, we don't know what happened
-                    logging.warning(e.__unicode__())
+            n = 0
+            while len(rtn) < libraries.page_size:
+                rtn += self.scan_page(libraries,page,onlyNamed=onlyNamed,onlyAutoRefresh=onlyAutoRefresh,cache=mc)
+                n+=1
+                if n > libraries.page_count: break
 
             return HttpResponse(content=json.dumps({'status': 'ok','total': libraries.count, 'pages': libraries.page_count,
                                                     'results': rtn}),content_type='application/json', status=200)

@@ -324,7 +324,7 @@ def csv_report(request):
 
         if asset_list:
             for row in asset_list:
-                csvout.writerow(row['gnm_master_headline'],
+                csvout.writerow(row['gnm_master_website_headline'],
                                 row['url'],
                                 row['gnm_commission_title'],
                                 row['gnm_project_headline'],

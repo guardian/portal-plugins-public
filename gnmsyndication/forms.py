@@ -1,4 +1,4 @@
-from django.forms import Form,ChoiceField,Select
+from django.forms import Form,ChoiceField,Select,DateField
 
 class TimePeriodSelector(Form):
     from datetime import date,datetime
@@ -26,3 +26,8 @@ class TimePeriodSelector(Form):
 
         self.fields['selected_month'] = ChoiceField(choices=self.month_list(),widget=Select(attrs={'style': 'width:100px'}))
         self.fields['selected_year'] = ChoiceField(choices=self.year_list(),widget=Select(attrs={'style': 'width:100px'}))
+
+
+class DownloadReportForm(Form):
+    start_date = DateField()
+    end_date = DateField()

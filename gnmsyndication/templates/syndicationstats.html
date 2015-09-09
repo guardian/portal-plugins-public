@@ -49,6 +49,19 @@
     </div>
 </div>
 
+<div id="download_report_dialog" title="Download report">
+<p style="font-size: 0.8em;">Use this function to download a report of all videos uploaded within a given timeframe,
+in the CSV format.</p>
+<p style="font-size: 0.8em;">This can then be imported into Excel, OpenOffice, Numbers and other spreadsheet programs</p>
+<p style="font-size: 0.8em;">Please be aware that it can take several minutes to prepare the report, please do not
+navigate away from this page in that time.  When the report is ready you will be asked where to save it.</p>
+<form method="GET" action='{% url "gnmsyndication_csv_report" %}'>
+<table>
+    {{ downloadform.as_table }}
+</table>
+<input type="submit" value="Download">
+</form>
+</div>
 <script>
     //with thanks to http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
     $.urlParam = function(name, url) {

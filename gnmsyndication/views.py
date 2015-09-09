@@ -1,4 +1,3 @@
-from portal.generic.baseviews import ClassView
 from django.http import HttpResponse
 from django.shortcuts import render
 import xml.etree.ElementTree as ET
@@ -19,7 +18,7 @@ date_fields = [
 ]
 
 def index(request):
-  from forms import TimePeriodSelector
+  from forms import TimePeriodSelector,DownloadReportForm
   from datetime import datetime
   #return HttpResponse(content="Hello world!",content_type="text/plain",status=200)
   known_platforms = platform.objects.all()
@@ -37,8 +36,12 @@ def index(request):
       logging.error(str(e))
 
   selectorform = TimePeriodSelector(initial={'selected_month': m,'selected_year': y})
+  start = current_date
+  start.day = 1
+  downloadform = DownloadReportForm(initial={'start_time': start, 'end_time': current_date})
 
-  return render(request,"syndicationstats.html", {'platforms': known_platforms,'time_period_selector': selectorform })
+  return render(request,"syndicationstats.html", {'platforms': known_platforms,'time_period_selector': selectorform,
+  'downloadform': downloadform})
 
 def make_facet_xml(fieldname,start_time=None,number=30,intervalTime=datetime.timedelta(days=1)):
     if start_time is None:
@@ -256,7 +259,7 @@ def asset_list_by_day(request,date):
             'itemId': itemdata['id'],
         }
         for f in interesting_fields:
-            ref[f]="-"
+            ref[f] = ""
         for field in itemdata['metadata']['timespan'][0]['field']:
             if 'value' in field:
                 ref[field['name']] = []
@@ -329,7 +332,7 @@ def csv_report(request):
             return HttpResponse(str(e),status=500,content_type='text/plain')
 
         if not have_header:
-            csvout.writerow(['Headline','URL','Keywords (Mainstream)','Keywords (Youtube)', 'Source', 'Commission',
+            csvout.writerow(['Headline','URL','Keywords (Mainstream)', 'Source', 'Commission',
                              'Project', 'Wholly owned?', 'UK Only', 'Explicit content', 'No mobile rights',
                              'Published to website','Published to Mainstream',
                              'Published to Daily Motion','Keyword IDs'])
@@ -340,7 +343,6 @@ def csv_report(request):
                 csvout.writerow([row['gnm_master_website_headline'],
                                 row['url'],
                                 row['gnm_master_mainstreamsyndication_keywords'],
-                                row['gnm_master_youtube_keywords'],
                                 row['gnm_master_generic_source'],
                                 row['gnm_commission_title'],
                                 row['gnm_project_headline'],

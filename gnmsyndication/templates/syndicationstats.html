@@ -28,6 +28,8 @@
             {{ time_period_selector.selected_month }}&nbsp;&nbsp;{{ time_period_selector.selected_year }}
             &nbsp;&nbsp;<input type="submit" value="Go">
         </form>
+	<button onClick="show_report_download();">Download report</button>
+
     </div>
     <div id="errordisplay"></div>
     <div id="chartarea"></div>
@@ -55,7 +57,7 @@ in the CSV format.</p>
 <p style="font-size: 0.8em;">This can then be imported into Excel, OpenOffice, Numbers and other spreadsheet programs</p>
 <p style="font-size: 0.8em;">Please be aware that it can take several minutes to prepare the report, please do not
 navigate away from this page in that time.  When the report is ready you will be asked where to save it.</p>
-<form method="GET" action='{% url "gnmsyndication_csv_report" %}'>
+<form method="GET" action='report/csv'>
 <table>
     {{ downloadform.as_table }}
 </table>
@@ -189,8 +191,24 @@ navigate away from this page in that time.  When the report is ready you will be
         $('#totalsarea').html(str);
     }
 
+    function show_report_download()
+    {
+	$('#download_report_dialog').dialog('open');
+    }
+
     $(document).ready(function(){
-        $('#details_date').datepicker({
+        $('#download_report_dialog').dialog({
+	autoOpen: false,
+	title: "Download report",
+	width:700
+	});
+	$('#id_start_date').datepicker({
+	dateFormat: "dd/mm/yy"
+	});
+	$('#id_end_date').datepicker({
+	dateFormat: "dd/mm/yy"
+	});
+	$('#details_date').datepicker({
         dateFormat: "dd/mm/yy"
         });
 

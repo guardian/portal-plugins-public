@@ -37,7 +37,7 @@ def index(request):
 
   selectorform = TimePeriodSelector(initial={'selected_month': m,'selected_year': y})
   start = current_date
-  start.day = 1
+  start.replace(day=1)
   downloadform = DownloadReportForm(initial={'start_time': start, 'end_time': current_date})
 
   return render(request,"syndicationstats.html", {'platforms': known_platforms,'time_period_selector': selectorform,

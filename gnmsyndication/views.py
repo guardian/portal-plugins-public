@@ -182,7 +182,7 @@ def asset_list_by_day(request,date):
 
     interesting_fields = [
         'title',
-        'gnm_master_headline',
+        'gnm_master_website_headline',
         'gnm_master_website_uploadstatus',
         'gnm_master_mainstreamsyndication_uploadstatus',
         'gnm_master_dailymotion_uploadstatus',
@@ -247,11 +247,13 @@ def asset_list_by_day(request,date):
             'url': '/master/{0}'.format(itemdata['id']),
             'itemId': itemdata['id'],
         }
+        for f in interesting_fields:
+            ref[f]="-"
         for field in itemdata['metadata']['timespan'][0]['field']:
             if 'value' in field:
                 ref[field['name']] = []
                 for v in field['value']:
-                    ref[field['name']].append(v['value'])
+                    ref[field['name']].append(v['value'].encode('UTF-8'))
                 if len(ref[field['name']]) == 1:
                     ref[field['name']] = ref[field['name']][0]
                 try:
@@ -324,14 +326,14 @@ def csv_report(request):
 
         if asset_list:
             for row in asset_list:
-                csvout.writerow(row['gnm_master_website_headline'],
+                csvout.writerow([row['gnm_master_website_headline'],
                                 row['url'],
                                 row['gnm_commission_title'],
                                 row['gnm_project_headline'],
                                 row['gnm_master_publication_time'],
                                 row['gnm_master_mainstreamsyndication_publication_time'],
                                 row['gnm_master_dailymotion_publication_time'],
-                                row['gnm_master_website_keyword_ids'])
+                                row['gnm_master_website_keyword_ids']])
         current_date += interval
 
     rtn = fout.getvalue()

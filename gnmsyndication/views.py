@@ -185,6 +185,7 @@ def asset_list_by_day(request,date):
 
     interesting_fields = [
         'title',
+        'durationSeconds',
         'gnm_master_website_headline',
         'gnm_master_website_uploadstatus',
         'gnm_master_mainstreamsyndication_uploadstatus',
@@ -281,6 +282,12 @@ def assets_by_day(request,date):
     #return HttpResponse(json.dumps(assets),content_type='application/json',status=200)
     return render(request,"syndication_filedetails.html",{"items": assets})
 
+def seconds_to_duration(nsec):
+    m, s = divmod(nsec, 60)
+    h, m = divmod(m, 60)
+    #print "%d:%02d:%02d" % (h, m, s)
+    return u"%02d:%02d:%02d" % (h,m,s)
+
 def csv_report(request):
     from StringIO import StringIO
     from datetime import datetime, timedelta
@@ -332,7 +339,7 @@ def csv_report(request):
             return HttpResponse(str(e),status=500,content_type='text/plain')
 
         if not have_header:
-            csvout.writerow(['Headline','URL','Keywords (Mainstream)', 'Source', 'Commission',
+            csvout.writerow(['Headline','URL','Duration','Keywords (Mainstream)', 'Source', 'Commission',
                              'Project', 'Wholly owned?', 'UK Only', 'Explicit content', 'No mobile rights',
                              'Published to website','Published to Mainstream',
                              'Published to Daily Motion','Keyword IDs'])
@@ -342,6 +349,7 @@ def csv_report(request):
             for row in asset_list:
                 csvout.writerow([row['gnm_master_website_headline'],
                                 row['url'],
+                                seconds_to_duration(row['durationSeconds']),
                                 row['gnm_master_mainstreamsyndication_keywords'],
                                 row['gnm_master_generic_source'],
                                 row['gnm_commission_title'],

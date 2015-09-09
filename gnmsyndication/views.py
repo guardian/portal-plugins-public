@@ -283,7 +283,7 @@ def assets_by_day(request,date):
     return render(request,"syndication_filedetails.html",{"items": assets})
 
 def seconds_to_duration(nsec):
-    m, s = divmod(nsec, 60)
+    m, s = divmod(float(nsec), 60)
     h, m = divmod(m, 60)
     #print "%d:%02d:%02d" % (h, m, s)
     return u"%02d:%02d:%02d" % (h,m,s)

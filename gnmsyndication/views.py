@@ -194,7 +194,15 @@ def asset_list_by_day(request,date):
         'gnm_commission_title',
         'gnm_project_headline',
         'gnm_master_pacdata_status',
-        'gnm_master_website_keyword_ids'
+        'gnm_master_website_keyword_ids',
+        #===========
+        'gnm_master_generic_whollyowned',
+        'gnm_master_generic_ukonly',
+        'gnm_master_generic_containsadultcontent',
+        'gnm_master_generic_preventmobileupload',
+        'gnm_master_generic_source',
+        'gnm_master_mainstreamsyndication_keywords',
+        'gnm_master_youtube_keywords'
     ]
     if isinstance(date,datetime.datetime):
         dt = date
@@ -321,15 +329,25 @@ def csv_report(request):
             return HttpResponse(str(e),status=500,content_type='text/plain')
 
         if not have_header:
-            csvout.writerow(['Headline','URL','Commission','Project','Published to website','Published to Mainstream','Published to Daily Motion','Keywords'])
+            csvout.writerow(['Headline','URL','Keywords (Mainstream)','Keywords (Youtube)', 'Source', 'Commission',
+                             'Project', 'Wholly owned?', 'UK Only', 'Explicit content', 'No mobile rights',
+                             'Published to website','Published to Mainstream',
+                             'Published to Daily Motion','Keyword IDs'])
             have_header = True
 
         if asset_list:
             for row in asset_list:
                 csvout.writerow([row['gnm_master_website_headline'],
                                 row['url'],
+                                row['gnm_master_mainstreamsyndication_keywords'],
+                                row['gnm_master_youtube_keywords'],
+                                row['gnm_master_generic_source'],
                                 row['gnm_commission_title'],
                                 row['gnm_project_headline'],
+                                row['gnm_master_generic_whollyowned'],
+                                row['gnm_master_generic_ukonly'],
+                                row['gnm_master_generic_containsadultcontent'],
+                                row['gnm_master_generic_preventmobileupload'],
                                 row['gnm_master_publication_time'],
                                 row['gnm_master_mainstreamsyndication_publication_time'],
                                 row['gnm_master_dailymotion_publication_time'],

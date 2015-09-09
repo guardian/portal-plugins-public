@@ -26,9 +26,9 @@
     <div id="chartcontrols">
         <form action="" method="get">
             {{ time_period_selector.selected_month }}&nbsp;&nbsp;{{ time_period_selector.selected_year }}
-            &nbsp;&nbsp;<input type="submit" value="Go">
+            &nbsp;&nbsp;<input type="submit" value="Go">&nbsp;&nbsp;<button onClick="show_report_download();">Download report</button>
         </form>
-	<button onClick="show_report_download();">Download report</button>
+
 
     </div>
     <div id="errordisplay"></div>
@@ -52,10 +52,10 @@
 </div>
 
 <div id="download_report_dialog" title="Download report">
-<p style="font-size: 0.8em;">Use this function to download a report of all videos uploaded within a given timeframe,
+<p style="">Use this function to download a report of all videos uploaded within a given timeframe,
 in the CSV format.</p>
-<p style="font-size: 0.8em;">This can then be imported into Excel, OpenOffice, Numbers and other spreadsheet programs</p>
-<p style="font-size: 0.8em;">Please be aware that it can take several minutes to prepare the report, please do not
+<p style="">This can then be imported into Excel, OpenOffice, Numbers and other spreadsheet programs</p>
+<p style="">Please be aware that <b>it can take several minutes</b> to prepare the report, please do not
 navigate away from this page in that time.  When the report is ready you will be asked where to save it.</p>
 <form method="GET" action='report/csv'>
 <table>
@@ -64,6 +64,7 @@ navigate away from this page in that time.  When the report is ready you will be
 <input type="submit" value="Download">
 </form>
 </div>
+
 <script>
     //with thanks to http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
     $.urlParam = function(name, url) {

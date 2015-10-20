@@ -53,16 +53,15 @@ class GnmlibrarytoolRegister(Plugin):
     def __init__(self):
         self.name = "Gnmlibrarytool Registration App"
         self.plugin_guid = 'a2b756a9-1562-4775-94c7-b1309e00ccbc'
-        log.debug('Register the App')
 
     def __call__(self):
         from __init__ import __version__ as versionnumber
         _app_dict = {
                 'name': 'Gnmlibrarytool',
-                'version': '0.0.1',
+                'version': '1.0.0',
                 'author': '',
                 'author_url': '',
-                'notes': 'Add your Copyright notice here.'}
+                'notes': '(c) by and for Guardian News and Media'}
         return _app_dict
 
 gnmlibrarytoolplugin = GnmlibrarytoolRegister()

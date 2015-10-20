@@ -271,7 +271,7 @@ def assets_by_day(request,date):
 def csv_report(request):
     from StringIO import StringIO
     from datetime import datetime, timedelta
-    from pprint import  pprint
+    from pprint import pprint
     import csv
 
     if not 'start_date' in request.GET or not 'end_date' in request.GET:

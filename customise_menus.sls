@@ -15,3 +15,4 @@ patch_menu:
     - marker_end: "{{ '{%' }} permissionrequired _collection_read {{ '%}' }}"
     - content: |
         <li><a href="/gnmsyndication/stats/" title="{{ '{%' }} trans "Multimedia Publication Dashboard" {{ '%}' }}">{{ '{%' }} trans "Multimedia Publication Dashboard" {{ '%}' }}</a></li>
+

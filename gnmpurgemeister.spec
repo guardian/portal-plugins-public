@@ -3,6 +3,11 @@
 %define unmangled_version 1.0
 %define release 1
 
+%signature gpg
+%_gpg_name Andy Gallagher <andy.gallagher@theguardian.com>
+%_gpgpath /usr
+%_gpgbin /usr/bin/gpg
+
 Summary: An autopurger plugin for Cantemo Portal
 Name: %{name}
 Version: %{version}
@@ -39,3 +44,4 @@ rm -rf $RPM_BUILD_ROOT
 %post
 /opt/cantemo/portal/manage.py collectstatic --noinput
 /opt/cantemo/portal/manage.py migrate gnmpurgemeister --noinput
+/opt/cantemo/portal/manage.py install_purgemeister

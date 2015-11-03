@@ -3,10 +3,10 @@
 %define unmangled_version 1.0
 %define release 1
 
-%signature gpg
-%_gpg_name Andy Gallagher <andy.gallagher@theguardian.com>
-%_gpgpath /usr
-%_gpgbin /usr/bin/gpg
+#%signature gpg
+#%_gpg_name Andy Gallagher <andy.gallagher@theguardian.com>
+#%_gpgpath /usr
+#%_gpgbin /usr/bin/gpg
 
 Summary: An autopurger plugin for Cantemo Portal
 Name: %{name}
@@ -14,7 +14,7 @@ Version: %{version}
 Release: %{release}
 License: UNKNOWN
 Source0: gnmpurgemeister.tar.gz
-Group: Development/Libraries
+Group: Applications/Productivity
 #BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 BuildRoot: %{_tmppath}/gnmpurgemeister
 Prefix: %{_prefix}

@@ -12,7 +12,7 @@ Summary: An autopurger plugin for Cantemo Portal
 Name: %{name}
 Version: %{version}
 Release: %{release}
-License: UNKNOWN
+License: Internal GNM software
 Source0: gnmpurgemeister.tar.gz
 Group: Applications/Productivity
 #BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
@@ -23,7 +23,8 @@ Vendor: Andy Gallagher <andy.gallagher@theguardian.com>
 Requires: Portal
 
 %description
-UNKNOWN
+Plugin for Cantemo Portal that allows files older than a certain age, and matching certain metadata specifications,
+to be removed from the system and deleted from disk.
 
 %prep
 #%setup -n %{name}-%{unmangled_version} -n %{name}-%{unmangled_version}

@@ -15,6 +15,8 @@ date_fields = [
     'gnm_master_mainstreamsyndication_publication_time',
     'gnm_master_dailymotion_publication_time',
     #'gnm_master_youtube_publication_time',
+    'gnm_master_facebook_publication_time',
+    'gnm_master_spotify_publication_time',
 ]
 
 def index(request):
@@ -191,9 +193,13 @@ def asset_list_by_day(request,date):
         'gnm_master_mainstreamsyndication_uploadstatus',
         'gnm_master_dailymotion_uploadstatus',
         'gnm_master_youtube_uploadstatus',
+        'gnm_master_facebook_uploadstatus',
+        'gnm_master_spotify_uploadstatus',
         'gnm_master_publication_time',
         'gnm_master_mainstreamsyndication_publication_time',
         'gnm_master_dailymotion_publication_time',
+        'gnm_master_facebook_publication_time',
+        'gnm_master_spotify_publication_time',
         'gnm_master_generic_intendeduploadplatforms',
         'gnm_commission_title',
         'gnm_project_headline',

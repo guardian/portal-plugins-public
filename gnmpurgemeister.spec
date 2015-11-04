@@ -46,3 +46,6 @@ rm -rf $RPM_BUILD_ROOT
 /opt/cantemo/portal/manage.py collectstatic --noinput
 /opt/cantemo/portal/manage.py migrate gnmpurgemeister --noinput
 /opt/cantemo/portal/manage.py install_purgemeister
+
+%preun
+/opt/cantemo/portal/manage.py uninstall_purgemeister

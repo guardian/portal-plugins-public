@@ -14,9 +14,9 @@ date_fields = [
     'gnm_master_publication_time',
     'gnm_master_mainstreamsyndication_publication_time',
     'gnm_master_dailymotion_publication_time',
-    #'gnm_master_youtube_publication_time',
-    'gnm_master_facebook_publication_time',
-    'gnm_master_spotify_publication_time',
+  #  'gnm_master_youtube_publication_time',
+  #  'gnm_master_facebook_publication_time',
+  #  'gnm_master_spotify_publication_time',
 ]
 
 def index(request):

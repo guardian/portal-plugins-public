@@ -9,15 +9,19 @@ import re
 from models import platform
 logging.basicConfig(level=logging.DEBUG)
 
-#FIXME: need to put these into a model and make configurable
-date_fields = [
-    'gnm_master_publication_time',
-    'gnm_master_mainstreamsyndication_publication_time',
-    'gnm_master_dailymotion_publication_time',
-  #  'gnm_master_youtube_publication_time',
-  #  'gnm_master_facebook_publication_time',
-  #  'gnm_master_spotify_publication_time',
-]
+
+def date_fields():
+    """
+    Returns an array of fields known to be date/time fields for the platforms we're interested in.
+    NOTE - it does NOT validate that they are, in fact, real Vidispine fields.  If they're not, then Vidispine returns
+    40x codes and then the data display breaks. You have been warned.
+    :return: list of datetime field names (not validated)
+    """
+    from models import platform
+    from pprint import pprint
+
+    return map(lambda x: x.publicationtime_field, platform.objects.all())
+
 
 def index(request):
   from forms import TimePeriodSelector,DownloadReportForm
@@ -78,8 +82,8 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
     if not re.match(r'^/',urlpath):
         urlpath = '/' + urlpath
 
-    #zurl = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
-    url = "http://dc1-mmmw-05.dc1.gnm.int:8080{0}".format(urlpath)
+    url = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
+    #url = "http://dc1-mmmw-05.dc1.gnm.int:8080{0}".format(urlpath)
     logging.debug("URL is %s" % url)
     (headers,content) = agent.request(url,method=method,body=body,headers=headers)
     return (headers,content)
@@ -138,7 +142,7 @@ def platforms_by_day(request):
 
     requeststring = "<ItemSearchDocument xmlns=\"http://xml.vidispine.com/schema/vidispine\">"
 
-    for fieldname in date_fields:
+    for fieldname in date_fields():
         requeststring += make_facet_xml(fieldname,start_time=start_time)
     requeststring += "</ItemSearchDocument>"
 
@@ -229,7 +233,7 @@ def asset_list_by_day(request,date):
 
     requestroot = Element("ItemSearchDocument", {"xmlns": "http://xml.vidispine.com/schema/vidispine"})
 
-    for f in date_fields:
+    for f in date_fields():
         sortterm = SubElement(requestroot,"sort")
         sortfield = SubElement(sortterm,"field")
         sortfield.text=f

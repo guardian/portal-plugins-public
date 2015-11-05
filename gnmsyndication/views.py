@@ -67,6 +67,7 @@ def make_facet_xml(fieldname,start_time=None,number=30,intervalTime=datetime.tim
 
     return rtn
 
+
 def make_vidispine_request(agent,method,urlpath,body,headers,content_type='application/xml'):
     import base64
     auth = base64.encodestring('%s:%s' % (settings.VIDISPINE_USERNAME, settings.VIDISPINE_PASSWORD)).replace('\n', '')
@@ -77,15 +78,18 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
     if not re.match(r'^/',urlpath):
         urlpath = '/' + urlpath
 
-    url = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
+    #zurl = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
+    url = "http://dc1-mmmw-05.dc1.gnm.int:8080{0}".format(urlpath)
     logging.debug("URL is %s" % url)
     (headers,content) = agent.request(url,method=method,body=body,headers=headers)
     return (headers,content)
+
 
 def mktimestamp(timestring):
     import time
     dt = datetime.datetime.strptime(timestring,"%Y-%m-%dT%H:%M:%SZ")
     return time.mktime(dt.timetuple())
+
 
 def platforms_by_day(request):
     import httplib2
@@ -198,8 +202,9 @@ def asset_list_by_day(request,date):
         'gnm_master_publication_time',
         'gnm_master_mainstreamsyndication_publication_time',
         'gnm_master_dailymotion_publication_time',
-        'gnm_master_facebook_publication_time',
-        'gnm_master_spotify_publication_time',
+        'gnm_masterfacebook_publication_date_and_time',
+        'gnm_masterspotify_publication_date_and_time',
+        'gnm_masteryoutube_publication_date_and_time',
         'gnm_master_generic_intendeduploadplatforms',
         'gnm_commission_title',
         'gnm_project_headline',

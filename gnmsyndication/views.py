@@ -356,8 +356,8 @@ def csv_report(request):
         if not have_header:
             csvout.writerow(['Headline','URL','Duration','Keywords (Mainstream)', 'Source', 'Commission',
                              'Project', 'Wholly owned?', 'UK Only', 'Explicit content', 'No mobile rights',
-                             'Published to website','Published to Mainstream',
-                             'Published to Daily Motion','Keyword IDs'])
+                             'Published to website','Published to Mainstream','Published to YouTube',
+                             'Published to Daily Motion','Published to Facebook','Published to Spotify','Keyword IDs'])
             have_header = True
 
         if asset_list:
@@ -375,7 +375,10 @@ def csv_report(request):
                                 row['gnm_master_generic_preventmobileupload'],
                                 row['gnm_master_publication_time'],
                                 row['gnm_master_mainstreamsyndication_publication_time'],
+                                row['gnm_masteryoutube_publication_date_and_time'],
                                 row['gnm_master_dailymotion_publication_time'],
+                                row['gnm_masterfacebook_publication_date_and_time'],
+                                row['gnm_masterspotify_publication_date_and_time'],
                                 row['gnm_master_website_keyword_ids']])
         current_date += interval
 

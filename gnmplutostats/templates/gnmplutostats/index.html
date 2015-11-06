@@ -1,0 +1,100 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress staticfiles  %}
+{% block title %}{% trans 'PLUTO Object Statistics' %}{% endblock %}
+{% block heading %}{% trans 'PLUTO Object Statistics' %}{% endblock %}
+
+{% block head %}
+<style>
+    div.nonfloat_container {
+        overflow: hidden;
+        display: block;
+    }
+    div.chartarea {
+        float: left;
+        width: 400px;
+    }
+</style>
+{% endblock %}
+
+{% block extra_script %}
+<script src="{% static '/sitemedia/js/chartjs/Lib/js/jquery-1.10.2.js' %}"></script>
+<script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+<script type="text/javascript" src="{% static '/sitemedia/js/chartjs/Lib/js/globalize.min.js' %}"></script>
+<script type="text/javascript" src="{% static '/sitemedia/js/chartjs/Lib/js/dx.chartjs.js' %}"></script>
+
+<script language="JavaScript">
+
+function make_chart(jqid, vs_class)
+{
+    url = "{% url gnmplutostats_get_stats 'classparam'%}".replace('classparam', vs_class);
+
+    $.getJSON(url)
+        .done(function(response, textStatus, jqXHR){
+            console.log(response);
+            for (var key in response['data']) {
+                break;
+            }
+
+            $(jqid).dxPieChart({
+                dataSource: response['data'][key],
+                series: {
+                    argumentField: 'category',  //the "x-axis" fieldname in the data returned
+                    valueField: 'value',
+                    label: {
+                        visible: true,
+                        connector: {
+                            visible: true
+                        }
+                    }
+                },
+                tooltip: {
+                    enabled: true,
+                    percentPrecision: 1,
+                    customizeTooltip: function(value) {
+                        return {
+                            text: value.percentText
+                        };
+                    }
+		        },
+                title: {
+                    text: key,
+                    font: {
+                        size: '20'
+                    }
+                },
+                legend: {
+                    horizontalAlignment: 'right',
+                    verticalAlignment: 'center'
+                }
+            });
+        }).fail(function( jqXHR, textStatus, errorThrown ){
+                console.log(jqXHR.responseText);
+        });
+}
+
+$(document).ready(function () {
+    make_chart('#commissions_chart','commission');
+    make_chart('#projects_chart', 'project');
+    make_chart('#masters_chart', 'master');
+});
+
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="body_area" class="nonfloat_container">
+    <div class="chartarea">
+        <div id="commissions_chart">
+
+        </div>
+    </div>
+
+    <div class="chartarea" id="projects_chart">
+
+    </div>
+
+    <div class="chartarea" id="masters_chart">
+
+    </div>
+</div>
+{% endblock %}

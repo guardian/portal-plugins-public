@@ -100,3 +100,78 @@ def pacformIndicator(value):
         text = 'Failed'
 
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
+
+@register.filter("msinfo")
+def pacformIndicator(value):
+    iconpath = '/sitemedia/img/gnm/'
+    icon_url = iconpath + 'severity_1.png'
+    text = "n/a"
+
+    if '"mainstreamsyndication": "allow"' in value:
+        icon_url = iconpath + 'severity_0.png'
+        text = 'Allow'
+    elif '"mainstreamsyndication": "forbid"' in value:
+        icon_url = iconpath + 'severity_3.png'
+        text = 'Forbid'
+
+    return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
+
+@register.filter("dminfo")
+def pacformIndicator(value):
+    iconpath = '/sitemedia/img/gnm/'
+    icon_url = iconpath + 'severity_1.png'
+    text = "n/a"
+
+    if '"dailymotion": "allow"' in value:
+        icon_url = iconpath + 'severity_0.png'
+        text = 'Allow'
+    elif '"dailymotion": "forbid"' in value:
+        icon_url = iconpath + 'severity_3.png'
+        text = 'Forbid'
+
+    return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
+
+@register.filter("ytinfo")
+def pacformIndicator(value):
+    iconpath = '/sitemedia/img/gnm/'
+    iicon_url = iconpath + 'severity_1.png'
+    text = "n/a"
+
+    if '"youtube": "allow"' in value:
+        icon_url = iconpath + 'severity_0.png'
+        text = 'Allow'
+    elif '"youtube": "forbid"' in value:
+        icon_url = iconpath + 'severity_3.png'
+        text = 'Forbid'
+
+    return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
+
+@register.filter("fbinfo")
+def pacformIndicator(value):
+    iconpath = '/sitemedia/img/gnm/'
+    icon_url = iconpath + 'severity_1.png'
+    text = "n/a"
+
+    if '"facebook": "allow"' in value:
+        icon_url = iconpath + 'severity_0.png'
+        text = 'Allow'
+    elif '"facebook": "forbid"' in value:
+        icon_url = iconpath + 'severity_3.png'
+        text = 'Forbid'
+
+    return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
+
+@register.filter("sinfo")
+def pacformIndicator(value):
+    iconpath = '/sitemedia/img/gnm/'
+    icon_url = iconpath + 'severity_1.png'
+    text = "n/a"
+
+    if '"spotify": "allow"' in value:
+        icon_url = iconpath + 'severity_0.png'
+        text = 'Allow'
+    elif '"spotify": "forbid"' in value:
+        icon_url = iconpath + 'severity_3.png'
+        text = 'Forbid'
+
+    return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))

@@ -28,6 +28,7 @@
                       $(function() {
                         $( "#dialog{{ item.itemId }}" ).dialog({
                           autoOpen: false,
+                          width:580,
                           show: {
                             //effect: "blind",
                             //duration: 1000
@@ -45,7 +46,27 @@
                     </script>
                     <a id="opener{{ item.itemId }}">Automation: {{ item.gnm_mastergeneric_syndication_rule_applied|automationindicator }}</a>
                     <div id="dialog{{ item.itemId }}" title="Syndication Automation Status for {{ item.itemId }}">
-                        Test info.
+                        {{ item.title }}
+                        <br />
+                        <br />
+                        Status: {{ item.gnm_mastergeneric_syndication_rule_applied|automationindicator }}
+                        <br />
+                        <br />
+                        Mainstream Syndication: {{ item.gnm_mastergeneric_syndication_rule_applied|msinfo }}
+                        <br />
+                        <br />
+                        YouTube: {{ item.gnm_mastergeneric_syndication_rule_applied|ytinfo }}
+                        <br />
+                        <br />
+                        Dailymotion: {{ item.gnm_mastergeneric_syndication_rule_applied|dminfo }}
+                        <br />
+                        <br />
+                        Facebook: {{ item.gnm_mastergeneric_syndication_rule_applied|fbinfo }}
+                        <br />
+                        <br />
+                        Spotify: {{ item.gnm_mastergeneric_syndication_rule_applied|sinfo }}
+                        <br />
+                        <br />
                     </div>
                 </span>
             </td>

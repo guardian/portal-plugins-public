@@ -80,3 +80,23 @@ def pacformIndicator(value):
         icon_url = iconpath + 'severity_2.png'
 
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,value))
+
+@register.filter("automationindicator")
+def pacformIndicator(value):
+    iconpath = '/sitemedia/img/gnm/'
+
+    icon_url = ""
+
+    text = "default"
+
+    if '"status": "ok"' in value:
+        icon_url = iconpath + 'severity_0.png'
+        text = 'Okay'
+    elif value=="":
+        icon_url = iconpath + 'severity_2.png'
+        text = 'Not&nbsp;set'
+    else:
+        icon_url = iconpath + 'severity_3.png'
+        text = 'Failed'
+
+    return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))

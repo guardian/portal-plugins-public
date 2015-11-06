@@ -49,6 +49,7 @@ def index(request):
   return render(request,"syndicationstats.html", {'platforms': known_platforms,'time_period_selector': selectorform,
   'downloadform': downloadform})
 
+
 def make_facet_xml(fieldname,start_time=None,number=30,intervalTime=datetime.timedelta(days=1)):
     if start_time is None:
         startTime = datetime.datetime.now().replace(hour=0,minute=0,second=0,microsecond=0) - number * intervalTime
@@ -82,8 +83,8 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
     if not re.match(r'^/',urlpath):
         urlpath = '/' + urlpath
 
-    url = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
-    #url = "http://dc1-mmmw-05.dc1.gnm.int:8080{0}".format(urlpath)
+    #url = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
+    url = "http://dc1-mmmw-05.dc1.gnm.int:8080{0}".format(urlpath)
     logging.debug("URL is %s" % url)
     (headers,content) = agent.request(url,method=method,body=body,headers=headers)
     return (headers,content)
@@ -214,6 +215,8 @@ def asset_list_by_day(request,date):
         'gnm_project_headline',
         'gnm_master_pacdata_status',
         'gnm_master_website_keyword_ids',
+        'gnm_mastergeneric_syndication_rule_applied',
+        'gnm_mastergeneric_syndication_rules',
         #===========
         'gnm_master_generic_whollyowned',
         'gnm_master_generic_ukonly',

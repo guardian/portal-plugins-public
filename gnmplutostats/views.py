@@ -59,9 +59,6 @@ class GetStatsView(VSMixin, APIView):
     }
     interesting_fields = []
 
-    #temporary for debug
-    vidispine_url = "http://pluto-dev.gnm.int"
-
     from rest_framework.parsers import JSONParser
     from rest_framework.renderers import JSONRenderer
 

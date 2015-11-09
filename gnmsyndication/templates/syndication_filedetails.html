@@ -28,7 +28,7 @@
                       $(function() {
                         $( "#dialog{{ item.itemId }}" ).dialog({
                           autoOpen: false,
-                          width:580,
+                          width:680,
                           show: {
                             //effect: "blind",
                             //duration: 1000
@@ -67,7 +67,11 @@
                         Spotify: {{ item.gnm_mastergeneric_syndication_rule_applied|sinfo }}
                         <br />
                         <br />
+                        Rule: {{ item.gnm_mastergeneric_syndication_rule_applied|ruleinfo }}
+                        <br />
+                        <br />
                         Errors: {{ item.gnm_mastergeneric_syndication_rule_applied|automationerrors }}
+                        <br />
                         <br />
                     </div>
                 </span>

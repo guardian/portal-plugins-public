@@ -193,3 +193,14 @@ def pacformIndicator(value):
         text = 'Unknown'
 
     return mark_safe(text)
+
+@register.filter("ruleinfo")
+def pacformIndicator(value):
+
+    import json
+
+    jdata = json.loads(value)
+
+    jdata2 = jdata['matched']
+
+    return jdata2['rule']

@@ -134,7 +134,7 @@ def pacformIndicator(value):
 @register.filter("ytinfo")
 def pacformIndicator(value):
     iconpath = '/sitemedia/img/gnm/'
-    iicon_url = iconpath + 'severity_1.png'
+    icon_url = iconpath + 'severity_1.png'
     text = "n/a"
 
     if '"youtube": "allow"' in value:
@@ -175,3 +175,21 @@ def pacformIndicator(value):
         text = 'Forbid'
 
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
+
+@register.filter("automationerrors")
+def pacformIndicator(value):
+
+    text = ""
+
+    if '"status": "ok"' in value:
+        text = 'None'
+    elif "Matching rule was invalid for response" in value:
+        text = 'Matching rule was invalid for response'
+    elif "Invalid master" in value:
+        text = 'Invalid master'
+    elif value=="":
+        text = 'Unknown'
+    else:
+        text = 'Unknown'
+
+    return mark_safe(text)

@@ -23,8 +23,8 @@
                     <span style="vertical-align: top;">Upload intentions:</span> {{ item.gnm_master_generic_intendeduploadplatforms|platformindicator }}
                 </span>
                 <span class="small" style="vertical-align: top;"><a href="/pacman/{{ item.itemId }}">PAC form status: {{ item.gnm_master_pacdata_status|pacformindicator }}</a></span>
-                <span style="vertical-align: top;font-size: 80%;padding-left: 20px;">
-                    <script>
+               <span style="vertical-align: top;font-size: 80%;padding-left: 20px;">
+                   <script>
                       $(function() {
                         $( "#dialog{{ item.itemId }}" ).dialog({
                           autoOpen: false,
@@ -66,6 +66,8 @@
                         <br />
                         Spotify: {{ item.gnm_mastergeneric_syndication_rule_applied|sinfo }}
                         <br />
+                        <br />
+                        Errors: {{ item.gnm_mastergeneric_syndication_rule_applied|automationerrors }}
                         <br />
                     </div>
                 </span>

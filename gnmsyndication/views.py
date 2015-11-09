@@ -277,10 +277,13 @@ def asset_list_by_day(request,date):
             'url': 'http://pluto.gnm.int/master/{0}'.format(itemdata['id']),
             'itemId': itemdata['id'],
         }
+
         for f in interesting_fields:
             ref[f] = ""
         for field in itemdata['metadata']['timespan'][0]['field']:
             if 'value' in field:
+                if 'gnm_mastergeneric_syndication_rule_applied' in field['name']:
+                    ref['matched_time'] = field['timestamp']
                 ref[field['name']] = []
                 for v in field['value']:
                     ref[field['name']].append(v['value'].encode('UTF-8'))

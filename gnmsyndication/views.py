@@ -268,6 +268,80 @@ def asset_list_by_day(request,date):
         fieldname.text = "master"
 
         requeststring = tostring(requestroot)
+        logging.debug(requeststring)
+
+        agent = httplib2.Http()
+
+        interesting_fields = [
+            'title',
+            'durationSeconds',
+            'gnm_master_website_headline',
+            'gnm_master_website_uploadstatus',
+            'gnm_master_mainstreamsyndication_uploadstatus',
+            'gnm_master_dailymotion_uploadstatus',
+            'gnm_master_youtube_uploadstatus',
+            'gnm_master_facebook_uploadstatus',
+            'gnm_master_spotify_uploadstatus',
+            'gnm_master_publication_time',
+            'gnm_master_mainstreamsyndication_publication_time',
+            'gnm_master_dailymotion_publication_time',
+            'gnm_masterfacebook_publication_date_and_time',
+            'gnm_masterspotify_publication_date_and_time',
+            'gnm_masteryoutube_publication_date_and_time',
+            'gnm_master_generic_intendeduploadplatforms',
+            'gnm_commission_title',
+            'gnm_project_headline',
+            'gnm_master_pacdata_status',
+            'gnm_master_website_keyword_ids',
+            'gnm_mastergeneric_syndication_rule_applied',
+            'gnm_mastergeneric_syndication_rules',
+            #===========
+            'gnm_master_generic_whollyowned',
+            'gnm_master_generic_ukonly',
+            'gnm_master_generic_containsadultcontent',
+            'gnm_master_generic_preventmobileupload',
+            'gnm_master_generic_source',
+            'gnm_master_mainstreamsyndication_keywords',
+            'gnm_master_youtube_keywords'
+        ]
+
+        fields = ",".join(interesting_fields)
+        limit = 50
+        if 'limit' in request.GET:
+            limit=int(request.GET['limit'])
+
+        (headers,content) = make_vidispine_request(agent,"PUT","/API/item?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
+        if int(headers['status']) < 200 or int(headers['status']) > 299:
+            logging.error(content)
+            raise StandardError("Vidispine error: %s" % headers['status'])
+
+        data=json.loads(content)
+
+        assets = []
+        for itemdata in data['item']:
+            ref = {
+                'url': 'http://pluto.gnm.int/master/{0}'.format(itemdata['id']),
+                'itemId': itemdata['id'],
+            }
+
+            for f in interesting_fields:
+                ref[f] = ""
+            for field in itemdata['metadata']['timespan'][0]['field']:
+                if 'value' in field:
+                    if 'gnm_mastergeneric_syndication_rule_applied' in field['name']:
+                        ref['matched_time'] = field['timestamp']
+                    ref[field['name']] = []
+                    for v in field['value']:
+                        ref[field['name']].append(v['value'].encode('UTF-8'))
+                    if len(ref[field['name']]) == 1:
+                        ref[field['name']] = ref[field['name']][0]
+                    try:
+                        pass
+                        #ref[field['name']] = datetime.datetime.strptime(ref[field['name']],"%Y-%m-%dT%H:%M:%SZ")
+                    except:
+                        pass
+            ref['scope'] = scope
+            assets.append(ref)
 
     elif scope == 'everything':
         requestroot = Element("ItemSearchDocument", {"xmlns": "http://xml.vidispine.com/schema/vidispine"})
@@ -292,6 +366,47 @@ def asset_list_by_day(request,date):
 
         requeststring = tostring(requestroot)
 
+        logging.debug(requeststring)
+
+        agent = httplib2.Http()
+
+        fields = ",".join(interesting_fields)
+        limit = 50
+        if 'limit' in request.GET:
+            limit=int(request.GET['limit'])
+
+        (headers,content) = make_vidispine_request(agent,"PUT","/API/item?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
+        if int(headers['status']) < 200 or int(headers['status']) > 299:
+            logging.error(content)
+            raise StandardError("Vidispine error: %s" % headers['status'])
+
+        data=json.loads(content)
+
+        assets = []
+        for itemdata in data['item']:
+            ref = {
+                'url': 'http://pluto.gnm.int/master/{0}'.format(itemdata['id']),
+                'itemId': itemdata['id'],
+            }
+
+            for f in interesting_fields:
+                ref[f] = ""
+            for field in itemdata['metadata']['timespan'][0]['field']:
+                if 'value' in field:
+                    if 'gnm_mastergeneric_syndication_rule_applied' in field['name']:
+                        ref['matched_time'] = field['timestamp']
+                    ref[field['name']] = []
+                    for v in field['value']:
+                        ref[field['name']].append(v['value'].encode('UTF-8'))
+                    if len(ref[field['name']]) == 1:
+                        ref[field['name']] = ref[field['name']][0]
+                    try:
+                        pass
+                        #ref[field['name']] = datetime.datetime.strptime(ref[field['name']],"%Y-%m-%dT%H:%M:%SZ")
+                    except:
+                        pass
+            ref['scope'] = scope
+            assets.append(ref)
     else:
         requestroot = Element("ItemSearchDocument", {"xmlns": "http://xml.vidispine.com/schema/vidispine"})
 
@@ -315,47 +430,47 @@ def asset_list_by_day(request,date):
 
         requeststring = tostring(requestroot)
 
-    logging.debug(requeststring)
+        logging.debug(requeststring)
 
-    agent = httplib2.Http()
+        agent = httplib2.Http()
 
-    fields = ",".join(interesting_fields)
-    limit = 50
-    if 'limit' in request.GET:
-        limit=int(request.GET['limit'])
+        fields = ",".join(interesting_fields)
+        limit = 50
+        if 'limit' in request.GET:
+            limit=int(request.GET['limit'])
 
-    (headers,content) = make_vidispine_request(agent,"PUT","/API/item?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
-    if int(headers['status']) < 200 or int(headers['status']) > 299:
-        logging.error(content)
-        raise StandardError("Vidispine error: %s" % headers['status'])
+        (headers,content) = make_vidispine_request(agent,"PUT","/API/item?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
+        if int(headers['status']) < 200 or int(headers['status']) > 299:
+            logging.error(content)
+            raise StandardError("Vidispine error: %s" % headers['status'])
 
-    data=json.loads(content)
+        data=json.loads(content)
 
-    assets = []
-    for itemdata in data['item']:
-        ref = {
-            'url': 'http://pluto.gnm.int/master/{0}'.format(itemdata['id']),
-            'itemId': itemdata['id'],
-        }
+        assets = []
+        for itemdata in data['item']:
+            ref = {
+                'url': 'http://pluto.gnm.int/master/{0}'.format(itemdata['id']),
+                'itemId': itemdata['id'],
+            }
 
-        for f in interesting_fields:
-            ref[f] = ""
-        for field in itemdata['metadata']['timespan'][0]['field']:
-            if 'value' in field:
-                if 'gnm_mastergeneric_syndication_rule_applied' in field['name']:
-                    ref['matched_time'] = field['timestamp']
-                ref[field['name']] = []
-                for v in field['value']:
-                    ref[field['name']].append(v['value'].encode('UTF-8'))
-                if len(ref[field['name']]) == 1:
-                    ref[field['name']] = ref[field['name']][0]
-                try:
-                    pass
-                    #ref[field['name']] = datetime.datetime.strptime(ref[field['name']],"%Y-%m-%dT%H:%M:%SZ")
-                except:
-                    pass
-        ref['scope'] = scope
-        assets.append(ref)
+            for f in interesting_fields:
+                ref[f] = ""
+            for field in itemdata['metadata']['timespan'][0]['field']:
+                if 'value' in field:
+                    if 'gnm_mastergeneric_syndication_rule_applied' in field['name']:
+                        ref['matched_time'] = field['timestamp']
+                    ref[field['name']] = []
+                    for v in field['value']:
+                        ref[field['name']].append(v['value'].encode('UTF-8'))
+                    if len(ref[field['name']]) == 1:
+                        ref[field['name']] = ref[field['name']][0]
+                    try:
+                        pass
+                        #ref[field['name']] = datetime.datetime.strptime(ref[field['name']],"%Y-%m-%dT%H:%M:%SZ")
+                    except:
+                        pass
+            ref['scope'] = scope
+            assets.append(ref)
     return assets
 
 #date is string, dd/mm/yyyy

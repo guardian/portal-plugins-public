@@ -38,7 +38,15 @@ def syndicationStatusFormatter(value):
     else:
         iconstr = ""
 
-    return mark_safe(u"<span class=\"{0}\">{1}&nbsp;&nbsp;{2}</span>".format(value.lower(),iconstr,value))
+    if 'Not Ready' in value:
+        textforpassing = value
+    else:
+        textforpassing = value.lower()
+
+    if value == 'Not Ready':
+        textforpassing = value.lower()
+
+    return mark_safe(u"<span class=\"{0}\">{1}&nbsp;&nbsp;{2}</span>".format(textforpassing,iconstr,value))
 
 @register.filter("platformindicator")
 def platformIndicator(value):
@@ -200,7 +208,11 @@ def pacformIndicator(value):
     import json
 
     if value != "":
-        jdata = json.loads(value)
+        return
+        try:
+            jdata = json.loads(value)
+        except:
+            return 'None'
         jdata2 = jdata['matched']
         return jdata2['rule']
     else:

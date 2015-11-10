@@ -14,6 +14,9 @@
     .tooltop_icon { }
     .small { font-size: 0.8em; }
     .regular { font-size: 1em; vertical-align: center;}
+    a.hoverlink:hover {
+        cursor: pointer;
+    }
 </style>
 {% endblock %}
 {% block body %}
@@ -45,6 +48,13 @@
         <h2>Details</h2>
         <label for="details_date">Select a date</label>
         <input type="datetime" onchange="details_date_changed();" id="details_date">
+        <br />
+         <br /> 
+        <a href="./">Published</a>
+        <br />
+        <a href="?scope=masters">All Masters </a>
+        <br />
+        <a href="?scope=everything">Everything </a>
     </div>
     <div style="float:left; width:80%" id="details_area">
 
@@ -91,7 +101,8 @@ navigate away from this page in that time.  When the report is ready you will be
 
     function details_date_changed()
     {
-        $.ajax('/gnmsyndication/stats/assets_by_day/'+ $('#details_date').val(),{
+        scope = $.urlParam('scope');
+        $.ajax('/gnmsyndication/stats/assets_by_day/'+ $('#details_date').val()+'?scope='+ scope,{
             accept: 'text/html',
             success: function(data,status,jqXHR){
                 $('#details_area').html(data);

@@ -46,7 +46,13 @@ def index(request):
   start.replace(day=1)
   downloadform = DownloadReportForm(initial={'start_time': start, 'end_time': current_date})
 
-  return render(request,"syndicationstats.html", {'platforms': known_platforms,'time_period_selector': selectorform,
+  scope = request.GET.get('scope', '')
+
+  if scope != '':
+    return render(request,"syndicationstats.html", {'platforms': known_platforms,'time_period_selector': selectorform,
+  'downloadform': downloadform, 'scope': scope})
+  else:
+    return render(request,"syndicationstats.html", {'platforms': known_platforms,'time_period_selector': selectorform,
   'downloadform': downloadform})
 
 
@@ -194,6 +200,8 @@ def asset_list_by_day(request,date):
     import httplib2
     import json
 
+    scope = request.GET.get('scope', '')
+
     interesting_fields = [
         'title',
         'durationSeconds',
@@ -234,27 +242,75 @@ def asset_list_by_day(request,date):
     start_time = dt.replace(hour=0,minute=0,second=0,microsecond=0)
     end_time = dt.replace(hour=23,minute=59,second=59,microsecond=999)
 
-    requestroot = Element("ItemSearchDocument", {"xmlns": "http://xml.vidispine.com/schema/vidispine"})
+    if scope == 'masters':
+        requestroot = Element("ItemSearchDocument", {"xmlns": "http://xml.vidispine.com/schema/vidispine"})
 
-    for f in date_fields():
-        sortterm = SubElement(requestroot,"sort")
-        sortfield = SubElement(sortterm,"field")
-        sortfield.text=f
-        sortorder = SubElement(sortterm,"order")
-        sortorder.text="descending"
+        for f in date_fields():
+            sortterm = SubElement(requestroot,"sort")
+            sortfield = SubElement(sortterm,"field")
+            sortfield.text=f
+            sortorder = SubElement(sortterm,"order")
+            sortorder.text="descending"
 
-    #oper = SubElement(requestroot,"Operator", {"operation": "OR"})
-    #for f in date_fields:
-    requestfield = SubElement(requestroot,"field")
-    fieldname = SubElement(requestfield,"name")
-    fieldname.text = "gnm_master_publication_time"
-    fieldrange = SubElement(requestfield,"range")
-    fieldstart = SubElement(fieldrange,"value")
-    fieldstart.text = start_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-    fieldend = SubElement(fieldrange,"value")
-    fieldend.text = end_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        #oper = SubElement(requestroot,"Operator", {"operation": "OR"})
+        #for f in date_fields:
+        requestfield = SubElement(requestroot,"field")
+        fieldname = SubElement(requestfield,"name")
+        fieldname.text = "gnm_master_publication_time"
+        fieldrange = SubElement(requestfield,"range")
+        fieldstart = SubElement(fieldrange,"value")
+        fieldstart.text = start_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        fieldend = SubElement(fieldrange,"value")
+        fieldend.text = end_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 
-    requeststring = tostring(requestroot)
+        requeststring = tostring(requestroot)
+
+    elif scope == 'everything':
+        requestroot = Element("ItemSearchDocument", {"xmlns": "http://xml.vidispine.com/schema/vidispine"})
+
+        for f in date_fields():
+            sortterm = SubElement(requestroot,"sort")
+            sortfield = SubElement(sortterm,"field")
+            sortfield.text=f
+            sortorder = SubElement(sortterm,"order")
+            sortorder.text="descending"
+
+        #oper = SubElement(requestroot,"Operator", {"operation": "OR"})
+        #for f in date_fields:
+        requestfield = SubElement(requestroot,"field")
+        fieldname = SubElement(requestfield,"name")
+        fieldname.text = "gnm_master_publication_time"
+        fieldrange = SubElement(requestfield,"range")
+        fieldstart = SubElement(fieldrange,"value")
+        fieldstart.text = start_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        fieldend = SubElement(fieldrange,"value")
+        fieldend.text = end_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+
+        requeststring = tostring(requestroot)
+
+    else:
+        requestroot = Element("ItemSearchDocument", {"xmlns": "http://xml.vidispine.com/schema/vidispine"})
+
+        for f in date_fields():
+            sortterm = SubElement(requestroot,"sort")
+            sortfield = SubElement(sortterm,"field")
+            sortfield.text=f
+            sortorder = SubElement(sortterm,"order")
+            sortorder.text="descending"
+
+        #oper = SubElement(requestroot,"Operator", {"operation": "OR"})
+        #for f in date_fields:
+        requestfield = SubElement(requestroot,"field")
+        fieldname = SubElement(requestfield,"name")
+        fieldname.text = "gnm_master_publication_time"
+        fieldrange = SubElement(requestfield,"range")
+        fieldstart = SubElement(fieldrange,"value")
+        fieldstart.text = start_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        fieldend = SubElement(fieldrange,"value")
+        fieldend.text = end_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+
+        requeststring = tostring(requestroot)
+
     logging.debug(requeststring)
 
     agent = httplib2.Http()
@@ -294,6 +350,7 @@ def asset_list_by_day(request,date):
                     #ref[field['name']] = datetime.datetime.strptime(ref[field['name']],"%Y-%m-%dT%H:%M:%SZ")
                 except:
                     pass
+        ref['scope'] = scope
         assets.append(ref)
     return assets
 

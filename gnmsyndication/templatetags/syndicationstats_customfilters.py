@@ -199,8 +199,9 @@ def pacformIndicator(value):
 
     import json
 
-    jdata = json.loads(value)
-
-    jdata2 = jdata['matched']
-
-    return jdata2['rule']
+    if value != "":
+        jdata = json.loads(value)
+        jdata2 = jdata['matched']
+        return jdata2['rule']
+    else:
+        return 'None'

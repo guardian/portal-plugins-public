@@ -252,16 +252,20 @@ def asset_list_by_day(request,date):
             sortorder = SubElement(sortterm,"order")
             sortorder.text="descending"
 
-        #oper = SubElement(requestroot,"Operator", {"operation": "OR"})
-        #for f in date_fields:
         requestfield = SubElement(requestroot,"field")
         fieldname = SubElement(requestfield,"name")
-        fieldname.text = "gnm_master_publication_time"
+        fieldname.text = "created"
         fieldrange = SubElement(requestfield,"range")
         fieldstart = SubElement(fieldrange,"value")
         fieldstart.text = start_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         fieldend = SubElement(fieldrange,"value")
         fieldend.text = end_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+
+        requestfield = SubElement(requestroot,"field")
+        fieldname = SubElement(requestfield,"name")
+        fieldname.text = "gnm_type"
+        fieldname = SubElement(requestfield,"value")
+        fieldname.text = "master"
 
         requeststring = tostring(requestroot)
 

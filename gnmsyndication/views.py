@@ -200,7 +200,7 @@ def asset_list_by_day(request,date):
     import httplib2
     import json
 
-    scope = request.GET.get('scope', '')
+    scopesetting = request.GET.get('scope', '')
 
     interesting_fields = [
         'title',
@@ -242,7 +242,7 @@ def asset_list_by_day(request,date):
     start_time = dt.replace(hour=0,minute=0,second=0,microsecond=0)
     end_time = dt.replace(hour=23,minute=59,second=59,microsecond=999)
 
-    if scope == 'masters':
+    if scopesetting == 'masters':
         requestroot = Element("ItemSearchDocument", {"xmlns": "http://xml.vidispine.com/schema/vidispine"})
 
         for f in date_fields():
@@ -340,10 +340,10 @@ def asset_list_by_day(request,date):
                         #ref[field['name']] = datetime.datetime.strptime(ref[field['name']],"%Y-%m-%dT%H:%M:%SZ")
                     except:
                         pass
-            ref['scope'] = scope
+            ref['scope'] = scopesetting
             assets.append(ref)
 
-    elif scope == 'everything':
+    elif scopesetting == 'everything':
         requestroot = Element("ItemSearchDocument", {"xmlns": "http://xml.vidispine.com/schema/vidispine"})
 
         for f in date_fields():
@@ -357,12 +357,20 @@ def asset_list_by_day(request,date):
         #for f in date_fields:
         requestfield = SubElement(requestroot,"field")
         fieldname = SubElement(requestfield,"name")
-        fieldname.text = "gnm_master_publication_time"
+        fieldname.text = "created"
         fieldrange = SubElement(requestfield,"range")
         fieldstart = SubElement(fieldrange,"value")
         fieldstart.text = start_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
         fieldend = SubElement(fieldrange,"value")
         fieldend.text = end_time.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+
+        requestfield = SubElement(requestroot,"field")
+        fieldname = SubElement(requestfield,"name")
+        fieldname.text = "gnm_type"
+        fieldname = SubElement(requestfield,"value")
+        fieldname.text = "master"
+        fieldname = SubElement(requestfield,"value")
+        fieldname.text = "project"
 
         requeststring = tostring(requestroot)
 
@@ -375,38 +383,77 @@ def asset_list_by_day(request,date):
         if 'limit' in request.GET:
             limit=int(request.GET['limit'])
 
-        (headers,content) = make_vidispine_request(agent,"PUT","/API/item?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
+        (headers,content) = make_vidispine_request(agent,"PUT","/API/search?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
         if int(headers['status']) < 200 or int(headers['status']) > 299:
             logging.error(content)
             raise StandardError("Vidispine error: %s" % headers['status'])
 
         data=json.loads(content)
 
-        assets = []
-        for itemdata in data['item']:
-            ref = {
-                'url': 'http://pluto.gnm.int/master/{0}'.format(itemdata['id']),
-                'itemId': itemdata['id'],
-            }
+        # assets = []
+        #
+        # ref = {'jack': 4098, 'sape': 4139}
+        #
+        # ref['alldata'] = data
+        #
+        # #assets.append(ref)
+        #
+        # assets = ref
+        #
+        # return assets
 
-            for f in interesting_fields:
-                ref[f] = ""
-            for field in itemdata['metadata']['timespan'][0]['field']:
-                if 'value' in field:
-                    if 'gnm_mastergeneric_syndication_rule_applied' in field['name']:
-                        ref['matched_time'] = field['timestamp']
-                    ref[field['name']] = []
-                    for v in field['value']:
-                        ref[field['name']].append(v['value'].encode('UTF-8'))
-                    if len(ref[field['name']]) == 1:
-                        ref[field['name']] = ref[field['name']][0]
-                    try:
-                        pass
-                        #ref[field['name']] = datetime.datetime.strptime(ref[field['name']],"%Y-%m-%dT%H:%M:%SZ")
-                    except:
-                        pass
-            ref['scope'] = scope
-            assets.append(ref)
+        assets = []
+        for itemdata in data['entry']:
+            if 'item' in itemdata:
+
+                ref = {
+                    'url': 'http://pluto.gnm.int/master/{0}'.format(itemdata['item']['id']),
+                    'itemId': itemdata['item']['id'],
+                }
+
+                for f in interesting_fields:
+                    ref[f] = ""
+
+                for field in itemdata['item']['metadata']['timespan'][0]['field']:
+
+                    if 'value' in field:
+
+                        if 'gnm_mastergeneric_syndication_rule_applied' in field['name']:
+                            ref['matched_time'] = field['timestamp']
+
+                        ref[field['name']] = []
+
+                        for v in field['value']:
+                            ref[field['name']].append(v['value'].encode('UTF-8'))
+
+                        if len(ref[field['name']]) == 1:
+                            ref[field['name']] = ref[field['name']][0]
+
+                        try:
+                            pass
+                            #ref[field['name']] = datetime.datetime.strptime(ref[field['name']],"%Y-%m-%dT%H:%M:%SZ")
+                        except:
+                            pass
+
+                ref['scope'] = scopesetting
+
+                assets.append(ref)
+            else:
+
+                ref = {
+                    'url': '',
+                    'itemId': '',
+                }
+
+
+
+                ref['scope'] = scopesetting
+
+                assets.append(ref)
+
+
+
+
     else:
         requestroot = Element("ItemSearchDocument", {"xmlns": "http://xml.vidispine.com/schema/vidispine"})
 
@@ -446,6 +493,18 @@ def asset_list_by_day(request,date):
 
         data=json.loads(content)
 
+        # assets = []
+        #
+        # ref = {'jack': 4098, 'sape': 4139}
+        #
+        # ref['alldata'] = data
+        #
+        # #assets.append(ref)
+        #
+        # assets = ref
+        #
+        # return assets
+
         assets = []
         for itemdata in data['item']:
             ref = {
@@ -469,15 +528,18 @@ def asset_list_by_day(request,date):
                         #ref[field['name']] = datetime.datetime.strptime(ref[field['name']],"%Y-%m-%dT%H:%M:%SZ")
                     except:
                         pass
-            ref['scope'] = scope
+            ref['scope'] = scopesetting
             assets.append(ref)
-    return assets
+
+    scope = scopesetting
+    return assets, scope
+
 
 #date is string, dd/mm/yyyy
 def assets_by_day(request,date):
-    assets = asset_list_by_day(request,date)
+    (assets, scope) = asset_list_by_day(request,date)
     #return HttpResponse(json.dumps(assets),content_type='application/json',status=200)
-    return render(request,"syndication_filedetails.html",{"items": assets})
+    return render(request,"syndication_filedetails.html",{"items": assets, "scope": scope})
 
 def seconds_to_duration(nsec):
     m, s = divmod(float(nsec), 60)

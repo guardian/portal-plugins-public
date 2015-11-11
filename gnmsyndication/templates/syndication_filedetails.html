@@ -12,7 +12,79 @@
         <td><img src="/sitemedia/img/gnmsyndication/spotify_enabled.png" class="inline_medium_icon">Spotify</td>
     </tr>
     {% for item in items %}
-        {% if item.scope == 'masters' %}
+        {% if scope == 'masters' %}
+        <tr>
+            <td><a href="{{ item.url }}"><img width="15" src="/sitemedia/img/gnm/icon_master.png" alt="Master" class="inline_icon">{{ item.title }}</a><br>
+                <span class="small"><img width="15" src="/sitemedia/img/gnm/icon_commission.png" alt="Commission" class="inline_icon">{{ item.gnm_commission_title }}</span>&nbsp;&NonBreakingSpace;
+                <span class="small"><img width="15" src="/sitemedia/img/gnm/icon_project.png" alt="Project" class="inline_icon">{{ item.gnm_project_headline }}</span><br>
+                <span style="margin-left: auto; margin-right:0">
+                    <span style="vertical-align: top;">Upload intentions:</span> {{ item.gnm_master_generic_intendeduploadplatforms|platformindicator }}
+                </span>
+                <span class="small" style="vertical-align: top;"><a href="/pacman/{{ item.itemId }}">PAC form status: {{ item.gnm_master_pacdata_status|pacformindicator }}</a></span>
+               <span style="vertical-align: top;font-size: 80%;padding-left: 20px;">
+                   <script>
+                      $(function() {
+                        $( "#dialog{{ item.itemId }}" ).dialog({
+                          autoOpen: false,
+                          width:680,
+                          show: {
+                            //effect: "blind",
+                            //duration: 1000
+                          },
+                          hide: {
+                            //effect: "explode",
+                            //duration: 1000
+                          }
+                        });
+
+                        $( "#opener{{ item.itemId }}" ).click(function() {
+                          $( "#dialog{{ item.itemId }}" ).dialog( "open" );
+                        });
+                      });
+                    </script>
+                    <a class="hoverlink" id="opener{{ item.itemId }}">Automation: {{ item.gnm_mastergeneric_syndication_rule_applied|automationindicator }}</a>
+                    <div id="dialog{{ item.itemId }}" title="Syndication Automation Status for {{ item.itemId }}">
+                        <strong>{{ item.title }}</strong>
+                        <br />
+                        <br />
+                        Status: {{ item.gnm_mastergeneric_syndication_rule_applied|automationindicator }}
+                        <br />
+                        <br />
+                        Mainstream Syndication: {{ item.gnm_mastergeneric_syndication_rule_applied|msinfo }}
+                        <br />
+                        <br />
+                        YouTube: {{ item.gnm_mastergeneric_syndication_rule_applied|ytinfo }}
+                        <br />
+                        <br />
+                        Dailymotion: {{ item.gnm_mastergeneric_syndication_rule_applied|dminfo }}
+                        <br />
+                        <br />
+                        Facebook: {{ item.gnm_mastergeneric_syndication_rule_applied|fbinfo }}
+                        <br />
+                        <br />
+                        Spotify: {{ item.gnm_mastergeneric_syndication_rule_applied|sinfo }}
+                        <br />
+                        <br />
+                        Rule: {{ item.gnm_mastergeneric_syndication_rule_applied|ruleinfo }}
+                        <br />
+                        <br />
+                        Processed At: {{ item.matched_time }}
+                        <br />
+                        <br />
+                        Errors: {{ item.gnm_mastergeneric_syndication_rule_applied|automationerrors }}
+                        <br />
+                        <br />
+                    </div>
+                </span>
+            </td>
+            <td>{{ item.gnm_master_website_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_master_publication_time }}</span></td>
+            <td>{{ item.gnm_master_mainstreamsyndication_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_master_mainstreamsyndication_publication_time }}</span></td>
+            <td>{{ item.gnm_master_youtube_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masteryoutube_publication_date_and_time }}</span></td>
+            <td>{{ item.gnm_master_dailymotion_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_master_dailymotion_publication_time }}</span></td>
+            <td>{{ item.gnm_master_facebook_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masterfacebook_publication_date_and_time }}</span></td>
+            <td>{{ item.gnm_master_spotify_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masterspotify_publication_date_and_time }}</span></td>
+        </tr>
+        {% elif scope == 'everything' %}
         <tr>
             <td><a href="{{ item.url }}"><img width="15" src="/sitemedia/img/gnm/icon_master.png" alt="Master" class="inline_icon">{{ item.title }}</a><br>
                 <span class="small"><img width="15" src="/sitemedia/img/gnm/icon_commission.png" alt="Commission" class="inline_icon">{{ item.gnm_commission_title }}</span>&nbsp;&NonBreakingSpace;

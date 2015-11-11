@@ -409,7 +409,8 @@ def asset_list_by_day(request,date):
             'gnm_master_generic_source',
             'gnm_master_mainstreamsyndication_keywords',
             'gnm_master_youtube_keywords',
-            'gnm_type'
+            'gnm_type',
+            'gnm_project_intendeduploadplatforms',
         ]
 
         fields = ",".join(interesting_fields)

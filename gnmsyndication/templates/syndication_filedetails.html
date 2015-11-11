@@ -85,6 +85,7 @@
             <td>{{ item.gnm_master_spotify_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masterspotify_publication_date_and_time }}</span></td>
         </tr>
         {% elif scope == 'everything' %}
+            {% if item.gnm_type == 'Master' %}
         <tr>
             <td><a href="{{ item.url }}"><img width="15" src="/sitemedia/img/gnm/icon_master.png" alt="Master" class="inline_icon">{{ item.title }}</a><br>
                 <span class="small"><img width="15" src="/sitemedia/img/gnm/icon_commission.png" alt="Commission" class="inline_icon">{{ item.gnm_commission_title }}</span>&nbsp;&NonBreakingSpace;
@@ -156,6 +157,23 @@
             <td>{{ item.gnm_master_facebook_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masterfacebook_publication_date_and_time }}</span></td>
             <td>{{ item.gnm_master_spotify_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masterspotify_publication_date_and_time }}</span></td>
         </tr>
+            {% else %}
+        <tr>
+            <td><a href="{{ item.url }}"><img width="15" src="/sitemedia/img/gnm/icon_project.png" alt="Project" class="inline_icon">{{ item.title }}</a><br>
+                <span class="small"><img width="15" src="/sitemedia/img/gnm/icon_commission.png" alt="Commission" class="inline_icon">{{ item.gnm_commission_title }}</span>&nbsp;&NonBreakingSpace;
+                <br>
+                <span style="margin-left: auto; margin-right:0">
+                    <span style="vertical-align: top;">Upload intentions:</span> {{ item.gnm_master_generic_intendeduploadplatforms|platformindicator }}
+                </span>
+            </td>
+            <td>{{ item.gnm_master_website_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_master_publication_time }}</span></td>
+            <td>{{ item.gnm_master_mainstreamsyndication_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_master_mainstreamsyndication_publication_time }}</span></td>
+            <td>{{ item.gnm_master_youtube_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masteryoutube_publication_date_and_time }}</span></td>
+            <td>{{ item.gnm_master_dailymotion_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_master_dailymotion_publication_time }}</span></td>
+            <td>{{ item.gnm_master_facebook_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masterfacebook_publication_date_and_time }}</span></td>
+            <td>{{ item.gnm_master_spotify_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masterspotify_publication_date_and_time }}</span></td>
+        </tr>
+            {% endif %}
         {% else %}
         <tr>
             <td><a href="{{ item.url }}"><img width="15" src="/sitemedia/img/gnm/icon_master.png" alt="Master" class="inline_icon">{{ item.title }}</a><br>

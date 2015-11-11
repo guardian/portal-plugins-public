@@ -378,6 +378,40 @@ def asset_list_by_day(request,date):
 
         agent = httplib2.Http()
 
+        interesting_fields = [
+            'title',
+            'durationSeconds',
+            'gnm_master_website_headline',
+            'gnm_master_website_uploadstatus',
+            'gnm_master_mainstreamsyndication_uploadstatus',
+            'gnm_master_dailymotion_uploadstatus',
+            'gnm_master_youtube_uploadstatus',
+            'gnm_master_facebook_uploadstatus',
+            'gnm_master_spotify_uploadstatus',
+            'gnm_master_publication_time',
+            'gnm_master_mainstreamsyndication_publication_time',
+            'gnm_master_dailymotion_publication_time',
+            'gnm_masterfacebook_publication_date_and_time',
+            'gnm_masterspotify_publication_date_and_time',
+            'gnm_masteryoutube_publication_date_and_time',
+            'gnm_master_generic_intendeduploadplatforms',
+            'gnm_commission_title',
+            'gnm_project_headline',
+            'gnm_master_pacdata_status',
+            'gnm_master_website_keyword_ids',
+            'gnm_mastergeneric_syndication_rule_applied',
+            'gnm_mastergeneric_syndication_rules',
+            #===========
+            'gnm_master_generic_whollyowned',
+            'gnm_master_generic_ukonly',
+            'gnm_master_generic_containsadultcontent',
+            'gnm_master_generic_preventmobileupload',
+            'gnm_master_generic_source',
+            'gnm_master_mainstreamsyndication_keywords',
+            'gnm_master_youtube_keywords',
+            'gnm_type'
+        ]
+
         fields = ",".join(interesting_fields)
         limit = 50
         if 'limit' in request.GET:
@@ -445,8 +479,26 @@ def asset_list_by_day(request,date):
                     'itemId': '',
                 }
 
+                for f in interesting_fields:
+                    ref[f] = ""
 
+                for field in itemdata['collection']['metadata']['timespan'][0]['field']:
 
+                    if 'value' in field:
+
+                        ref[field['name']] = []
+
+                        for v in field['value']:
+                            ref[field['name']].append(v['value'].encode('UTF-8'))
+
+                        if len(ref[field['name']]) == 1:
+                            ref[field['name']] = ref[field['name']][0]
+
+                        try:
+                            pass
+                            #ref[field['name']] = datetime.datetime.strptime(ref[field['name']],"%Y-%m-%dT%H:%M:%SZ")
+                        except:
+                            pass
                 ref['scope'] = scopesetting
 
                 assets.append(ref)

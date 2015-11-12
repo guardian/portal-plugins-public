@@ -235,12 +235,16 @@ def ruleInfo(value):
 def displayDate(value):
 
     import time
+    import re
 
-    #example date 2015-11-12T13:08:33Z
-    inputdate = time.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+    if re.match("\d", value) is not None:
 
-    try:
-        finisheddate = time.strftime("%H:%M:%S %d/%m/%Y", inputdate)
-    except:
-        return value
-    return finisheddate
+        inputdate = time.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+
+        try:
+            finisheddate = time.strftime("%H:%M:%S %d/%m/%Y", inputdate).lstrip("0").replace("/0", "/").replace(" 0", " ")
+        except:
+            return value
+        return finisheddate
+    else:
+        return ""

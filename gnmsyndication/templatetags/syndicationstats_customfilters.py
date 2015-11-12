@@ -230,3 +230,15 @@ def ruleInfo(value):
             return 'None'
     else:
         return 'None'
+
+@register.filter("displaydate")
+def displayDate(value):
+
+    import time
+
+    #example date 2015-11-12T13:08:33Z
+    inputdate = time.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+
+    finisheddate = time.strftime("%H:%M:%S %d/%m/%Y", inputdate)
+
+    return finisheddate

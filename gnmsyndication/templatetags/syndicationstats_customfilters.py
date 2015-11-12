@@ -98,7 +98,7 @@ def pacformIndicator(value):
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
 
 @register.filter("automationindicator")
-def pacformIndicator(value):
+def automationIndicator(value):
     iconpath = '/sitemedia/img/gnm/'
 
     icon_url = ""
@@ -118,7 +118,7 @@ def pacformIndicator(value):
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
 
 @register.filter("msinfo")
-def pacformIndicator(value):
+def msInfo(value):
     iconpath = '/sitemedia/img/gnm/'
     icon_url = iconpath + 'severity_1.png'
     text = "n/a"
@@ -133,7 +133,7 @@ def pacformIndicator(value):
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
 
 @register.filter("dminfo")
-def pacformIndicator(value):
+def dmInfo(value):
     iconpath = '/sitemedia/img/gnm/'
     icon_url = iconpath + 'severity_1.png'
     text = "n/a"
@@ -148,7 +148,7 @@ def pacformIndicator(value):
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
 
 @register.filter("ytinfo")
-def pacformIndicator(value):
+def ytInfo(value):
     iconpath = '/sitemedia/img/gnm/'
     icon_url = iconpath + 'severity_1.png'
     text = "n/a"
@@ -163,7 +163,7 @@ def pacformIndicator(value):
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
 
 @register.filter("fbinfo")
-def pacformIndicator(value):
+def fbInfo(value):
     iconpath = '/sitemedia/img/gnm/'
     icon_url = iconpath + 'severity_1.png'
     text = "n/a"
@@ -178,7 +178,7 @@ def pacformIndicator(value):
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
 
 @register.filter("sinfo")
-def pacformIndicator(value):
+def sInfo(value):
     iconpath = '/sitemedia/img/gnm/'
     icon_url = iconpath + 'severity_1.png'
     text = "n/a"
@@ -193,7 +193,7 @@ def pacformIndicator(value):
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
 
 @register.filter("automationerrors")
-def pacformIndicator(value):
+def automationErrors(value):
 
     text = ""
 
@@ -211,7 +211,7 @@ def pacformIndicator(value):
     return mark_safe(text)
 
 @register.filter("ruleinfo")
-def pacformIndicator(value):
+def ruleInfo(value):
 
     import json
 

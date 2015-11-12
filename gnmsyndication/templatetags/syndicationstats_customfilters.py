@@ -196,14 +196,26 @@ def sInfo(value):
 @register.filter("automationerrors")
 def automationErrors(value):
 
+    import json
+
     text = ""
 
     if '"status": "ok"' in value:
         text = 'None'
-    elif "Matching rule was invalid for response" in value:
-        text = 'Matching rule was invalid for response'
-    elif "Invalid master" in value:
-        text = 'Invalid master'
+    elif '"status": "error"' in value:
+        try:
+            jdata = json.loads(value)
+        except:
+            return 'Unknown'
+        try:
+            jdata2 = jdata['error']
+        except:
+            return 'Unknown'
+        try:
+            return jdata2['message']
+        except:
+            return 'Unknown'
+
     elif value=="":
         text = 'Unknown'
     else:

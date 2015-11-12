@@ -239,6 +239,8 @@ def displayDate(value):
     #example date 2015-11-12T13:08:33Z
     inputdate = time.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
 
-    finisheddate = time.strftime("%H:%M:%S %d/%m/%Y", inputdate)
-
+    try:
+        finisheddate = time.strftime("%H:%M:%S %d/%m/%Y", inputdate)
+    except:
+        return value
     return finisheddate

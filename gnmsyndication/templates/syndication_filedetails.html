@@ -3,7 +3,13 @@
 
 <table class="details">
     <tr class="header">
-        <td></td>
+        {% if scope == 'masters' %}
+        <td>Displaying masters created on the date.</td>
+        {% elif scope == 'everything' %}
+        <td>Displaying masters and projects created on the date.</td>
+        {% else %}
+        <td>Displaying masters published on the date.</td>
+        {% endif %}
         <td><img src="/sitemedia/img/gnmsyndication/guardian_enabled.png" class="inline_medium_icon"><div>Guardian Website</div></td>
         <td><img src="/sitemedia/img/gnmsyndication/mainstream_enabled.png" class="inline_medium_icon">Mainstream Syndication</td>
         <td><img src="/sitemedia/img/gnmsyndication/youtube_enabled.png" class="inline_medium_icon">YouTube</td>

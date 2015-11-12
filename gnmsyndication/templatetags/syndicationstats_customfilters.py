@@ -248,3 +248,21 @@ def displayDate(value):
         return finisheddate
     else:
         return ""
+
+@register.filter("displaydateinfo")
+def displayDateInfo(value):
+
+    import time
+    import re
+    # example 2015-11-12T15:01:30.591+0000
+    if re.match("\d", value) is not None:
+
+        inputdate = time.strptime(value, "%Y-%m-%dT%H:%M:%S.%f+0000")
+
+        try:
+            finisheddate = time.strftime("%H:%M:%S %d/%m/%Y", inputdate).lstrip("0").replace("/0", "/").replace(" 0", " ")
+        except:
+            return value
+        return finisheddate
+    else:
+        return "n/a"

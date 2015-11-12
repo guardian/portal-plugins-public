@@ -230,7 +230,7 @@
                         Rule: {{ item.gnm_mastergeneric_syndication_rule_applied|ruleinfo }}
                         <br />
                         <br />
-                        Processed At: {{ item.matched_time }}
+                        Processed At: {{ item.matched_time|displaydateinfo }}
                         <br />
                         <br />
                         Errors: {{ item.gnm_mastergeneric_syndication_rule_applied|automationerrors }}

@@ -30,7 +30,7 @@ def syndicationStatusFormatter(value):
         icon = iconpath + 'ready_to_publish.png'
     elif(value=='Transcode in Progress'):
         icon = iconpath + 'ready_to_publish.png'
-    elif(value=='Not Ready'):
+    elif('Not Ready' in value):
         icon = iconpath + 'draft.png'
 
     if icon is not None:
@@ -38,8 +38,9 @@ def syndicationStatusFormatter(value):
     else:
         iconstr = ""
 
-    if 'Not Ready' in value:
+    if ('Not Ready' in value) & (value != 'Not Ready'):
         textforpassing = value
+        return mark_safe(u"<span class=\"{0}\">{1}&nbsp;&nbsp;{2}</span>".format(textforpassing,iconstr,'Not Ready'))
     else:
         textforpassing = value.lower()
 

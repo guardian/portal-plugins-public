@@ -77,17 +77,25 @@ def platformIndicator(value):
 def pacformIndicator(value):
     iconpath = '/sitemedia/img/gnm/'
 
+    text = ""
     icon_url = ""
     if value=="valid":
         icon_url = iconpath + 'severity_0.png'
+        text = "valid"
     elif value=="processing":
         icon_url = iconpath + 'severity_1.png'
+        text = "processing"
     elif value=="invalid":
         icon_url = iconpath + 'severity_3.png'
+        text = "invalid"
     elif value=="missing":
         icon_url = iconpath + 'severity_2.png'
+        text = "missing"
+    else:
+        icon_url = iconpath + 'severity_1.png'
+        text = "unknown"
 
-    return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,value))
+    return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
 
 @register.filter("automationindicator")
 def pacformIndicator(value):

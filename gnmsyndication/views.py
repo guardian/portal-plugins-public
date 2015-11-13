@@ -475,6 +475,10 @@ def asset_list_by_day(request,date):
                 assets.append(ref)
             else:
 
+                #Put some code here to query Vidispine for project info re masters
+
+                #End of Vidispine code to get project info
+
                 ref = {
                     'url': 'http://pluto.gnm.int/project/{0}'.format(itemdata['collection']['id']),
                     'itemId': itemdata['collection']['id'],

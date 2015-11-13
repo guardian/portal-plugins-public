@@ -476,6 +476,29 @@ def asset_list_by_day(request,date):
             else:
 
                 #Put some code here to query Vidispine for project info re masters
+                requestroot = Element("ItemSearchDocument", {"xmlns": "http://xml.vidispine.com/schema/vidispine"})
+
+                requestfield = SubElement(requestroot,"field")
+                fieldname = SubElement(requestfield,"name")
+                fieldname.text = "gnm_asset_category"
+                fieldname = SubElement(requestfield,"value")
+                fieldname.text = "Master"
+
+                requeststring = tostring(requestroot)
+
+                logging.debug(requeststring)
+
+                agent = httplib2.Http()
+
+                #The lines below need work
+
+                (headers,content) = make_vidispine_request(agent,"PUT","/API/collection/KP-16355/item",requeststring,{'Accept': 'application/json'})
+  #              if int(headers['status']) < 200 or int(headers['status']) > 299:
+  #                  logging.error(content)
+  #                  raise StandardError("Vidispine error: %s" % headers['status'])
+
+                #dataoutput=json.loads(content)
+
 
                 #End of Vidispine code to get project info
 

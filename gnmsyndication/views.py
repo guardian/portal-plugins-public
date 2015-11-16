@@ -521,9 +521,9 @@ def asset_list_by_day(request,date):
                                 pass
                             except:
                                 pass
-                ref['scope'] = scopesetting
+                    ref['scope'] = scopesetting
 
-                assets.append(ref)
+                    assets.append(ref)
 
     else:
         requestroot = Element("ItemSearchDocument", {"xmlns": "http://xml.vidispine.com/schema/vidispine"})

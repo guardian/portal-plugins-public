@@ -258,6 +258,8 @@ def displayDate(value):
             finisheddate = time.strftime("%H:%M:%S %d/%m/%Y", inputdate).lstrip("0").replace("/0", "/").replace(" 0", " ")
         except:
             return value
+        if finisheddate[0] == ':':
+            finisheddate = '0'+finisheddate
         return finisheddate
     else:
         return ""
@@ -276,6 +278,8 @@ def displayDateInfo(value):
             finisheddate = time.strftime("%H:%M:%S %d/%m/%Y", inputdate).lstrip("0").replace("/0", "/").replace(" 0", " ")
         except:
             return value
+        if finisheddate[0] == ':':
+            finisheddate = '0'+finisheddate
         return finisheddate
     else:
         return "n/a"

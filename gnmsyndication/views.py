@@ -475,7 +475,6 @@ def asset_list_by_day(request,date):
                 assets.append(ref)
             else:
 
-                #Put some code here to query Vidispine for project info re masters
                 requestroot = Element("ItemSearchDocument", {"xmlns": "http://xml.vidispine.com/schema/vidispine"})
 
                 requestfield = SubElement(requestroot,"field")
@@ -490,49 +489,41 @@ def asset_list_by_day(request,date):
 
                 agent = httplib2.Http()
 
-                #The lines below need work
-
-                (headers,content) = make_vidispine_request(agent,"PUT","/API/collection/KP-16355/item",requeststring,{'Accept': 'application/json'})
+                (headers,content) = make_vidispine_request(agent,"PUT","/API/collection/"+itemdata['collection']['id']+"/item",requeststring,{'Accept': 'application/json'})
   #              if int(headers['status']) < 200 or int(headers['status']) > 299:
   #                  logging.error(content)
   #                  raise StandardError("Vidispine error: %s" % headers['status'])
 
-                #dataoutput=json.loads(content)
+                dataoutput=json.loads(content)
 
+                if dataoutput['hits'] == 0:
+                    ref = {
+                        'url': 'http://pluto.gnm.int/project/{0}'.format(itemdata['collection']['id']),
+                        'itemId': itemdata['collection']['id'],
+                    }
 
-                #End of Vidispine code to get project info
+                    for f in interesting_fields:
+                        ref[f] = ""
 
-                ref = {
-                    'url': 'http://pluto.gnm.int/project/{0}'.format(itemdata['collection']['id']),
-                    'itemId': itemdata['collection']['id'],
-                }
+                    for field in itemdata['collection']['metadata']['timespan'][0]['field']:
 
-                for f in interesting_fields:
-                    ref[f] = ""
+                        if 'value' in field:
 
-                for field in itemdata['collection']['metadata']['timespan'][0]['field']:
+                            ref[field['name']] = []
 
-                    if 'value' in field:
+                            for v in field['value']:
+                                ref[field['name']].append(v['value'].encode('UTF-8'))
 
-                        ref[field['name']] = []
+                            if len(ref[field['name']]) == 1:
+                                ref[field['name']] = ref[field['name']][0]
 
-                        for v in field['value']:
-                            ref[field['name']].append(v['value'].encode('UTF-8'))
-
-                        if len(ref[field['name']]) == 1:
-                            ref[field['name']] = ref[field['name']][0]
-
-                        try:
-                            pass
-                            #ref[field['name']] = datetime.datetime.strptime(ref[field['name']],"%Y-%m-%dT%H:%M:%SZ")
-                        except:
-                            pass
+                            try:
+                                pass
+                            except:
+                                pass
                 ref['scope'] = scopesetting
 
                 assets.append(ref)
-
-
-
 
     else:
         requestroot = Element("ItemSearchDocument", {"xmlns": "http://xml.vidispine.com/schema/vidispine"})

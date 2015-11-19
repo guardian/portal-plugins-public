@@ -119,8 +119,12 @@
         {% endfor %}
 -->
         <tr class="header">
+            {% if columnsettings.jobId == 'true' %}
             <td id="col_jobId">jobId</td>
+            {% endif %}
+            {% if columnsettings.status == 'true' %}
             <td id="col_status">status</td>
+            {% endif %}
             <td id="col_type">type</td>
             <td id="col_started">started</td>
             <td id="col_priority">priority</td>
@@ -140,8 +144,12 @@
 
         {% for row in search_results %}
         <tr class="{% cycle odd even %}">
+            {% if columnsettings.jobId == 'true' %}
             <td><b>{{ row.jobId }}</b></td>
+            {% endif %}
+            {% if columnsettings.status == 'true' %}
             <td>{{ row.status|jobstatus_formatter }}</td>
+            {% endif %}
             <td>{{ row.type|jobtype_formatter }}</td>
             <td>{{ row.started }}</td>
             <td>{{ row.priority }}</td>

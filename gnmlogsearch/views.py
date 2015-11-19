@@ -104,7 +104,7 @@ def index(request):
           'fromTime': time(hour=0,minute=0,second=0),
           'toDate': datetime.now().date(),
           'toTime': datetime.now().time(),
-          'columns': ['jobId','status'],
+          'columns': ['jobId', 'status'],
         })
     else:
       raise HttpResponse("Invalid method",status=400)
@@ -119,5 +119,16 @@ def index(request):
     if search_results is not None and 'hits' in search_results:
       hits = search_results['hits']
 
-    return render(request,"logsearch.html", {'search_form': form,'search_results': results,'search_error': search_error, 'search_hits': hits })
+    columnsettings = dict()
+
+    if request.method=="POST":
+        postdata = dict(request.POST.iterlists())
+
+        if u'jobId' in postdata['columns']:
+            columnsettings['jobId'] = 'true'
+
+        if u'status' in postdata['columns']:
+            columnsettings['status'] = 'true'
+
+    return render(request,"logsearch.html", {'search_form': form,'search_results': results,'search_error': search_error, 'search_hits': hits, 'columnsettings': columnsettings})
 

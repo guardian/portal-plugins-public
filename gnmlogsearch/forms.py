@@ -80,6 +80,20 @@ class LogSearchForm(Form):
     columns = MultipleChoiceField(choices=(('jobId','jobId'),
                                 ('status','status'),
                                 ('type','type'),
+                                ('started','started'),
+                                ('priority','priority'),
+                                ('itemid','itemid'),
+                                ('systemJobModule','systemJobModule'),
+                                ('systemJobInfo','systemJobInfo'),
+                                ('destinationStorageId','destinationStorageId'),
+                                ('bestEffortFilename','bestEffortFilename'),
+                                ('fileId','fileId'),
+                                ('replicatedFileIds','replicatedFileIds'),
+                                ('fileDeleted','fileDeleted'),
+                                ('fileStateOnFailure','fileStateOnFailure'),
+                                ('filePathMap','filePathMap'),
+                                ('replicatedFileInfo','replicatedFileInfo'),
+                                ('checkReplicatedFiles','checkReplicatedFiles'),
                             ),widget=CheckboxSelectMultiple()
                        )
 

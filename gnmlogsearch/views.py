@@ -104,7 +104,7 @@ def index(request):
           'fromTime': time(hour=0,minute=0,second=0),
           'toDate': datetime.now().date(),
           'toTime': datetime.now().time(),
-          'columns': ['jobId', 'status', 'type'],
+          'columns': ['jobId', 'status', 'type', 'started', 'priority', 'itemid', 'systemJobModule', 'systemJobInfo', 'destinationStorageId', 'bestEffortFilename', 'fileId', 'replicatedFileIds', 'fileDeleted', 'fileStateOnFailure', 'filePathMap', 'replicatedFileInfo', 'checkReplicatedFiles'],
         })
     else:
       raise HttpResponse("Invalid method",status=400)

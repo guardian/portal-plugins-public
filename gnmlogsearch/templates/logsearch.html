@@ -71,10 +71,16 @@
                 <label class="fieldlabel" for="id_name">Filename contains</label>
                 {{ search_form.fileNameContains }}
             </div>
+        </div>
+        <div id="bottomrow" style="overflow:hidden">
             <div class="floatingpanel">
                 {{ search_form.jobmetadata.errors }}
                 <label class="fieldlabel" for="id_name">Metadata search (advanced)</label>
                 {{ search_form.jobmetadata }}
+            </div>
+             <div class="floatingpanel">
+                 <label class="fieldlabel" for="id_name">Columns</label>
+                 {{ search_form.columns }}
             </div>
         </div>
         </div>

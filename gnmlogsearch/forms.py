@@ -77,6 +77,11 @@ class LogSearchForm(Form):
     #my own params which will be put into the above
     fileNameContains = CharField(max_length=512,widget=TextInput(attrs={'style': 'width: 98%; visibility: hidden'}),required=False)
 
+    columns = MultipleChoiceField(choices=(('jobId','jobId'),
+                                ('status','status'),
+                            ),widget=CheckboxSelectMultiple()
+                       )
+
     def vidispine_query_url(self,base):
         from datetime import datetime
 

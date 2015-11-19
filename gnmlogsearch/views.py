@@ -104,6 +104,7 @@ def index(request):
           'fromTime': time(hour=0,minute=0,second=0),
           'toDate': datetime.now().date(),
           'toTime': datetime.now().time(),
+          'columns': ['jobId','status'],
         })
     else:
       raise HttpResponse("Invalid method",status=400)

@@ -125,7 +125,9 @@
             {% if columnsettings.status == 'true' %}
             <td id="col_status">status</td>
             {% endif %}
+            {% if columnsettings.type == 'true' %}
             <td id="col_type">type</td>
+            {% endif %}
             <td id="col_started">started</td>
             <td id="col_priority">priority</td>
             <td id="col_itemid">item</td>
@@ -150,7 +152,9 @@
             {% if columnsettings.status == 'true' %}
             <td>{{ row.status|jobstatus_formatter }}</td>
             {% endif %}
+            {% if columnsettings.type == 'true' %}
             <td>{{ row.type|jobtype_formatter }}</td>
+            {% endif %}
             <td>{{ row.started }}</td>
             <td>{{ row.priority }}</td>
             <td><a href="/vs/item/{{ row.itemId }}">{{ row.itemId }}</a></td>

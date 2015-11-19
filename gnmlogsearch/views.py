@@ -104,7 +104,7 @@ def index(request):
           'fromTime': time(hour=0,minute=0,second=0),
           'toDate': datetime.now().date(),
           'toTime': datetime.now().time(),
-          'columns': ['jobId', 'status'],
+          'columns': ['jobId', 'status', 'type'],
         })
     else:
       raise HttpResponse("Invalid method",status=400)
@@ -129,6 +129,9 @@ def index(request):
 
         if u'status' in postdata['columns']:
             columnsettings['status'] = 'true'
+
+        if u'type' in postdata['columns']:
+            columnsettings['type'] = 'true'
 
     return render(request,"logsearch.html", {'search_form': form,'search_results': results,'search_error': search_error, 'search_hits': hits, 'columnsettings': columnsettings})
 

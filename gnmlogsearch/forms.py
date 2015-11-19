@@ -79,6 +79,7 @@ class LogSearchForm(Form):
 
     columns = MultipleChoiceField(choices=(('jobId','jobId'),
                                 ('status','status'),
+                                ('type','type'),
                             ),widget=CheckboxSelectMultiple()
                        )
 

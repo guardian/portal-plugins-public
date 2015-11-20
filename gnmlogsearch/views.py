@@ -133,5 +133,47 @@ def index(request):
         if u'type' in postdata['columns']:
             columnsettings['type'] = 'true'
 
+        if u'started' in postdata['columns']:
+            columnsettings['started'] = 'true'
+
+        if u'priority' in postdata['columns']:
+            columnsettings['priority'] = 'true'
+
+        if u'itemid' in postdata['columns']:
+            columnsettings['itemid'] = 'true'
+
+        if u'systemJobModule' in postdata['columns']:
+            columnsettings['systemJobModule'] = 'true'
+
+        if u'systemJobInfo' in postdata['columns']:
+            columnsettings['systemJobInfo'] = 'true'
+
+        if u'destinationStorageId' in postdata['columns']:
+            columnsettings['destinationStorageId'] = 'true'
+
+        if u'bestEffortFilename' in postdata['columns']:
+            columnsettings['bestEffortFilename'] = 'true'
+
+        if u'fileId' in postdata['columns']:
+            columnsettings['fileId'] = 'true'
+
+        if u'replicatedFileIds' in postdata['columns']:
+            columnsettings['replicatedFileIds'] = 'true'
+
+        if u'fileDeleted' in postdata['columns']:
+            columnsettings['fileDeleted'] = 'true'
+
+        if u'fileStateOnFailure' in postdata['columns']:
+            columnsettings['fileStateOnFailure'] = 'true'
+
+        if u'filePathMap' in postdata['columns']:
+            columnsettings['filePathMap'] = 'true'
+
+        if u'replicatedFileInfo' in postdata['columns']:
+            columnsettings['replicatedFileInfo'] = 'true'
+
+        if u'checkReplicatedFiles' in postdata['columns']:
+            columnsettings['checkReplicatedFiles'] = 'true'
+
     return render(request,"logsearch.html", {'search_form': form,'search_results': results,'search_error': search_error, 'search_hits': hits, 'columnsettings': columnsettings})
 

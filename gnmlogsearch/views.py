@@ -176,5 +176,5 @@ def index(request):
         if u'checkReplicatedFiles' in postdata['columns']:
             columnsettings['checkReplicatedFiles'] = 'true'
 
-    return render(request,"logsearch.html", {'search_form': form,'search_results': results,'search_error': search_error, 'search_hits': hits, 'columnsettings': columnsettings})
+    return render(request,"logsearch.html", {'search_form': form,'search_results': results,'search_error': search_error, 'search_hits': hits, 'columnsettings': columnsettings, 'page_size': page_size})
 

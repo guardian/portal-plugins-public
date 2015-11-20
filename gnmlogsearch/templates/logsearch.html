@@ -96,10 +96,9 @@
 {% if search_hits %}
 <p class="info">Your search returned {{ search_hits }} result{{ search_hits|pluralize }}</p>
 <p class="info">Showing results {{ first_result }} to {{ last_result }}
-{% if prev_page %}
+{% if search_hits > page_size %}
 <a href="?p={{ prev_page }}">&lt; previous</a>  |
-{% endif %}
-{% if next_page %}
+
 <a href="?p={{ next_page }}">next &gt;</a>
 {% endif %}
 </p>

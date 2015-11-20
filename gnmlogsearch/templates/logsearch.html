@@ -130,20 +130,48 @@
             {% if columnsettings.type == 'true' %}
             <td id="col_type">type</td>
             {% endif %}
+            {% if columnsettings.started == 'true' %}
             <td id="col_started">started</td>
+            {% endif %}
+            {% if columnsettings.priority == 'true' %}
             <td id="col_priority">priority</td>
+            {% endif %}
+            {% if columnsettings.itemid == 'true' %}
             <td id="col_itemid">item</td>
+            {% endif %}
+            {% if columnsettings.systemJobModule == 'true' %}
             <td id="col_systemJobModule">systemJobModule</td>
+            {% endif %}
+            {% if columnsettings.systemJobInfo == 'true' %}
             <td id="col_systemJobInfo">systemJobInfo</td>
+            {% endif %}
+            {% if columnsettings.destinationStorageId == 'true' %}
             <td id="col_destinationStorageId">destinationStorageId</td>
+            {% endif %}
+            {% if columnsettings.bestEffortFilename == 'true' %}
             <td id="col_bestEffortFilename">bestEffortFilename</td>
+            {% endif %}
+            {% if columnsettings.fileId == 'true' %}
             <td id="col_fileId">Source File</td>
+            {% endif %}
+            {% if columnsettings.replicatedFileIds == 'true' %}
             <td id="col_replicatedFileIds">replicatedFileIds</td>
+            {% endif %}
+            {% if columnsettings.fileDeleted == 'true' %}
             <td id="col_fileDeleted">fileDeleted</td>
+            {% endif %}
+            {% if columnsettings.fileStateOnFailure == 'true' %}
             <td id="col_fileStateOnFailure">fileStateOnFailure</td>
+            {% endif %}
+            {% if columnsettings.filePathMap == 'true' %}
             <td id="col_filePathMap">filePathMap</td>
+            {% endif %}
+            {% if columnsettings.replicatedFileInfo == 'true' %}
             <td id="col_replicatedFileInfo">replicatedFileInfo</td>
+            {% endif %}
+            {% if columnsettings.checkReplicatedFiles == 'true' %}
             <td id="col_checkReplicatedFiles">checkReplicatedFiles</td>
+            {% endif %}
         </tr>
 
         {% for row in search_results %}
@@ -157,13 +185,28 @@
             {% if columnsettings.type == 'true' %}
             <td>{{ row.type|jobtype_formatter }}</td>
             {% endif %}
+            {% if columnsettings.started == 'true' %}
             <td>{{ row.started }}</td>
+            {% endif %}
+            {% if columnsettings.priority == 'true' %}
             <td>{{ row.priority }}</td>
+            {% endif %}
+            {% if columnsettings.itemid == 'true' %}
             <td><a href="/vs/item/{{ row.itemId }}">{{ row.itemId }}</a></td>
+            {% endif %}
+            {% if columnsettings.systemJobModule == 'true' %}
             <td>{{ row.systemJobModule }}</td>
+            {% endif %}
+            {% if columnsettings.systemJobInfo == 'true' %}
             <td>{{ row.systemJobInfo }}</td>
+            {% endif %}
+            {% if columnsettings.destinationStorageId == 'true' %}
             <td>{{ row.destinationStorageId }}</td>
+            {% endif %}
+            {% if columnsettings.bestEffortFilename == 'true' %}
             <td>{{ row.bestEffortFilename }}</td>
+            {% endif %}
+            {% if columnsettings.fileId == 'true' %}
             <td>{% if row.sourceFile %}
                 <b>File ID</b>: {{ row.sourceFile.id }}<br>
                 <b>Storage ID</b>: {{ row.sourceFile.storage }}<br>
@@ -172,12 +215,25 @@
                 {{ row.fileId }}
                 {% endif %}
             </td>
+            {% endif %}
+            {% if columnsettings.replicatedFileIds == 'true' %}
             <td>{{ row.replicatedFileIds }}</td>
+            {% endif %}
+            {% if columnsettings.fileDeleted == 'true' %}
             <td>{{ row.fileDeleted }}</td>
+            {% endif %}
+            {% if columnsettings.fileStateOnFailure == 'true' %}
             <td>{{ row.fileStateOnFailure }}</td>
+            {% endif %}
+            {% if columnsettings.filePathMap == 'true' %}
             <td>{{ row.filePathMap }}</td>
+            {% endif %}
+            {% if columnsettings.replicatedFileInfo == 'true' %}
             <td>{{ row.replicatedFileInfo }}</td>
+            {% endif %}
+            {% if columnsettings.checkReplicatedFiles == 'true' %}
             <td>{{ row.checkReplicatedFiles }}</td>
+            {% endif %}
         </tr>
         {% endfor %}
     </table>

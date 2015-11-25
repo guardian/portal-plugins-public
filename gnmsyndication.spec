@@ -14,7 +14,7 @@ Group: Applications/Productivity
 BuildRoot: %{_tmppath}/gnmsyndication
 Prefix: %{_prefix}
 BuildArch: noarch
-Vendor: David Allison <david.allison@theguardian.com>
+Vendor: David Allison <david.allison@theguardian.com> and Andy Gallagher <andy.gallagher@theguardian.com>
 Requires: Portal pluto
 
 %description

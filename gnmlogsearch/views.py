@@ -200,9 +200,8 @@ def index(request):
     last_result = 1
 
     if hits is not None:
-        if (hits + 100) > (page * 100):
-            test = 1
-            #last_result = hits[:]
+        if (hits + 100) < (page * 100 + 100):
+            last_result = hits
         else:
             last_result = page * 100
 

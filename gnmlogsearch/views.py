@@ -87,10 +87,10 @@ def index(request):
 
         pagenow = int(pagepost)
 
-        if request.POST.get("next"):
+        if request.POST.get("nextthisisauniquename"):
             page = pagenow + 1
 
-        if request.POST.get("previous"):
+        if request.POST.get("previousthisisauniquename"):
             page = pagenow - 1
 
         vsurl=""

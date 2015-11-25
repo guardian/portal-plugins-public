@@ -59,10 +59,15 @@
         <br />
         <button><a style="color: white;" href="?scope=everything">Everything </a></button>
     </div>
+        <div id="overlay" style="width:100%;text-align:center;">
+            <img src="/sitemedia/img/gnmsyndication/load.gif" alt="Loading" />
+        </div>
     <div style="float:left; width:80%" id="details_area">
 
     </div>
 </div>
+
+
 
 <div id="download_report_dialog" title="Download report">
 <p style="">Use this function to download a report of all videos uploaded within a given timeframe,
@@ -105,10 +110,14 @@ navigate away from this page in that time.  When the report is ready you will be
     function details_date_changed()
     {
         scope = $.urlParam('scope');
+        $('#details_area').fadeOut();
+        $('#overlay').fadeIn();
         $.ajax('/gnmsyndication/stats/assets_by_day/'+ $('#details_date').val()+'?scope='+ scope,{
             accept: 'text/html',
             success: function(data,status,jqXHR){
                 $('#details_area').html(data);
+                $('#overlay').fadeOut();
+                $('#details_area').fadeIn();
             },
             error: function(jqXHR,status,error_thrown){
                 $('#details_area').html('<p class="error">' + error_thrown + '</p>');

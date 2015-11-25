@@ -197,5 +197,16 @@ def index(request):
     if hits > page_size and page > 1:
         prev_page = page - 1
 
-    return render(request,"logsearch.html", {'search_form': form,'search_results': results,'search_error': search_error, 'search_hits': hits, 'columnsettings': columnsettings, 'next_page': next_page, 'prev_page': prev_page, 'page': page})
+    last_result = 1
+
+    if hits is not None:
+        if (hits + 100) > (page * 100):
+            test = 1
+            #last_result = hits[:]
+        else:
+            last_result = page * 100
+
+    first_result = page * 100 - 100 + 1
+
+    return render(request,"logsearch.html", {'search_form': form,'search_results': results,'search_error': search_error, 'search_hits': hits, 'columnsettings': columnsettings, 'next_page': next_page, 'prev_page': prev_page, 'page': page, 'first_result': first_result, 'last_result': last_result})
 

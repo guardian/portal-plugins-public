@@ -24,6 +24,20 @@ class GNMSyndicationRegister(Plugin):
 
 gnmsyndicationplugin = GNMSyndicationRegister()
 
+class GnmyoutubeAdminPlugin(Plugin):
+    implements(IPluginBlock)
+
+    def __init__(self):
+        self.name = "AdminLeftPanelBottomPanePlugin"
+        self.plugin_guid = 'e361d4c5-9683-40e7-81c1-52c0093d5a36'
+        log.debug('initiated GNMSyndication admin panel')
+
+    def return_string(self,tagname,*args):
+        #raise StandardError("testing")
+        return {'guid': self.plugin_guid, 'template': 'gnmsyndication/navigation.html'}
+
+adminplug = GnmyoutubeAdminPlugin()
+
 class GnmSyndicationUrl(Plugin):
     implements(IPluginURL)
 

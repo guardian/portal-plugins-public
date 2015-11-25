@@ -702,3 +702,32 @@ def csv_report(request):
     fout.close()
 
     return HttpResponse(rtn,status=200,content_type='text/csv')
+
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.core.urlresolvers import reverse_lazy
+
+
+class AdminPlatformsList(ListView):
+    template_name = "gnmsyndication/admin.html"
+    model = platform
+
+class AdminPlatformCreate(CreateView):
+    import forms
+    template_name = "gnmsyndication/admin_edit.html"
+    model = platform
+    form_class = forms.PlatformEditForm
+    success_url = reverse_lazy('gnmsyndication:admin')
+
+class AdminPlatformUpdate(UpdateView):
+    #from forms import PlatformEditForm
+    import forms
+    template_name = "gnmsyndication/admin_edit.html"
+    model = platform
+    form_class = forms.PlatformEditForm
+    fields = '__all__'
+    success_url = reverse_lazy('gnmsyndication:admin')
+
+class AdminPlatformDelete(DeleteView):
+    template_name = "gnmsyndication/admin_delete.html"
+    model = platform
+    success_url = reverse_lazy('gnmsyndication:admin')

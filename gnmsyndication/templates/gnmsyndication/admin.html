@@ -1,0 +1,58 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress static %}
+{% block title %}{% trans 'Multimedia Publication Dashboard Settings' %}{% endblock %}
+{% block heading %}{% trans 'Multimedia Publication Dashboard Settings' %}{% endblock %}
+{% load syndicationstats_adminfilters %}
+
+{% block extra_script %}
+<style>
+    img.smallicon {
+        width: 18px;
+        height: 18px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<table>
+    <thead style="font-weight: bold;">
+    <tr>
+        <td></td>
+        <td>Platform name</td>
+        <td>Intention label</td>
+        <td>Upload status field</td>
+        <td>Publication status field</td>
+        <td>Publication time field</td>
+        <td>Enabled icon URL</td>
+        <td>Disabled icon URL</td>
+        <td>Display icon URL</td>
+    </tr>
+    </thead>
+    {% for p in object_list %}
+    <tr>
+        <td>
+            <a href="{% url gnmsyndication:platform_update pk=p.pk %}">
+                <img src="{% static 'img/icon-edit.svg' %}" class="smallicon" alt="edit">
+            </a>
+            <a href="{% url gnmsyndication:platform_delete pk=p.pk %}">
+                <img src="{% static 'delete.png' %}" class="smallicon" alt="delete">
+            </a>
+        </td>
+        <td><a href="{% url gnmsyndication:platform_update pk=p.pk %}">{{ p.name }}</a></td>
+        <td>{{ p.intention_label }}</td>
+        <td>{{ p.uploadstatus_field }}</td>
+        <td>{{ p.publicationstatus_field }}</td>
+        <td>{{ p.publicationtime_field }}</td>
+        <td>{{ p.enabled_icon_url|image_url }}</td>
+        <td>{{ p.disable_icon_url|image_url }}</td>
+        <td>{{ p.display_icon_url|image_url }}</td>
+    </tr>
+    {% endfor %}
+</table>
+<a href="{% url gnmsyndication:platform_create %}"><button>New...</button></a>
+{% endblock %}
+
+
+{% block inlinejs %}
+
+{% endblock %}

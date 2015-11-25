@@ -83,9 +83,19 @@ def index(request):
     if request.method=="POST":
         form = LogSearchForm(request.POST)
 
+        pagepost = request.POST['page'][:]
+
+        pagenow = int(pagepost)
+
+        if request.POST.get("next"):
+            page = pagenow + 1
+
+        if request.POST.get("previous"):
+            page = pagenow - 1
+
         vsurl=""
         try:
-          vsurl = form.vidispine_query_url("/API/job")
+          vsurl = form.vidispine_query_url("/API/job", page)
           search_results = doJobSearch(vsurl)
         except LogSearchForm.FormNotValid as e:
           logging.warning(e)
@@ -176,5 +186,16 @@ def index(request):
         if u'checkReplicatedFiles' in postdata['columns']:
             columnsettings['checkReplicatedFiles'] = 'true'
 
-    return render(request,"logsearch.html", {'search_form': form,'search_results': results,'search_error': search_error, 'search_hits': hits, 'columnsettings': columnsettings, 'page_size': page_size})
+        #page = int(request.POST['page'][:])
+
+    prev_page = 0
+    next_page = None
+
+    if hits > page_size and (hits - (page * page_size)) > 1:
+        next_page = page + 1
+
+    if hits > page_size and page > 1:
+        prev_page = page - 1
+
+    return render(request,"logsearch.html", {'search_form': form,'search_results': results,'search_error': search_error, 'search_hits': hits, 'columnsettings': columnsettings, 'next_page': next_page, 'prev_page': prev_page, 'page': page})
 

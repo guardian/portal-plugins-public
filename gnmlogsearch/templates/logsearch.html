@@ -90,19 +90,26 @@
             <input type="submit" value="Search">
             <input type="reset" value="Clear">
         </div>
-    </form>
+
 </div>
 
 {% if search_hits %}
-<p class="info">Your search returned {{ search_hits }} result{{ search_hits|pluralize }}</p>
+<p class="info">{{ page }} Your search returned {{ search_hits }} result{{ search_hits|pluralize }}</p>
 <p class="info">Showing results {{ first_result }} to {{ last_result }}
-{% if search_hits > page_size %}
-<a href="?p={{ prev_page }}">&lt; previous</a>  |
-
-<a href="?p={{ next_page }}">next &gt;</a>
+{% if prev_page > 0 %}
+<input type="submit" name="previous" value="&lt; previous">
+{% endif %}
+{% if next_page > 1 %}
+<input type="submit" name="next" value="next &gt;">
 {% endif %}
 </p>
 {% endif %}
+{% if page == 1 %}
+<input type="hidden" name="page" value="1">
+{% else %}
+<input type="hidden" name="page" value="{{ page }}">
+{% endif %}
+    </form>
 {% if search_results %}
 <div class="content" style="overflow: scroll;" id="searchresults">
     <table class="details">

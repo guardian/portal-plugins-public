@@ -97,7 +97,7 @@ class LogSearchForm(Form):
                             ),widget=CheckboxSelectMultiple()
                        )
 
-    def vidispine_query_url(self,base):
+    def vidispine_query_url(self,base,page):
         from datetime import datetime
 
         if not self.is_valid():
@@ -106,12 +106,19 @@ class LogSearchForm(Form):
         #logger=self.logging.getLogger("LogSearchForm::vidispine_query_url")
         d = self.cleaned_data
 
+        if page == 1:
+            pagesetting = 0
+        else:
+            pagesetting = page * 100 - 100
+
+        pagesettingready = str(pagesetting)
+
         matrixparams = ""
         if not 'all' in d['state']:
             matrixparams += ";state=" + ",".join(map(lambda x: urllib.quote_plus(x,safe=""),d['state']))
         if not 'all' in d['type']:
             matrixparams += ";type=" + ",".join(map(lambda x: urllib.quote_plus(x,safe=""),d['type']))
-        matrixparams += ";number=100;first=0;sort={0}%20{1}".format(urllib.quote_plus(d['sort'],safe=""),d['sortOrder'])
+        matrixparams += ";number=100;first=" + pagesettingready + ";sort={0}%20{1}".format(urllib.quote_plus(d['sort'],safe=""),d['sortOrder'])
         queryparams = "?metadata=true"
 
         if d['fileNameContains']:

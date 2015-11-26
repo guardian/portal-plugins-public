@@ -136,10 +136,10 @@ def displayDateInfo(value):
         # example 2015-11-12T15:01:30.591+0000
         inputdate2 = time.strptime(value, "%Y-%m-%dT%H:%M:%S.%f+0000")
         inputdate3 = time.mktime(inputdate2)
-        tzvalue = value[25] + value[26]
+        tzvalue = value[24] + value[25]
         tzvalue2 = int(tzvalue)
 
-        if value[24] == "+":
+        if value[23] == "+":
             inputdate4 = inputdate3 + (tzvalue2 * 60)
         else:
             inputdate4 = inputdate3 - (tzvalue2 * 60)

@@ -193,7 +193,7 @@
             <td>{{ row.type|jobtype_formatter }}</td>
             {% endif %}
             {% if columnsettings.started == 'true' %}
-            <td>{{ row.started }}</td>
+            <td>{{ row.started|displaydateinfo }}</td>
             {% endif %}
             {% if columnsettings.priority == 'true' %}
             <td>{{ row.priority }}</td>

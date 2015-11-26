@@ -125,3 +125,23 @@ def filePathFormatter(value):
             text=value.split('/')[-1]
         )
     return mark_safe(rtn)
+
+@register.filter("displaydateinfo")
+def displayDateInfo(value):
+
+    import time
+    import re
+
+    if re.match("\d", value) is not None:
+
+        inputdate = time.strptime(value, "%Y-%m-%dT%H:%M:%S.%f+0000")
+
+        try:
+            finisheddate = time.strftime("%H:%M:%S %d/%m/%Y", inputdate).lstrip("0").replace("/0", "/").replace(" 0", " ")
+        except:
+            return value
+        if finisheddate[0] == ':':
+            finisheddate = '0'+finisheddate
+        return finisheddate
+    else:
+        return "n/a"

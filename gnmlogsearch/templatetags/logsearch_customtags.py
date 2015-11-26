@@ -131,10 +131,21 @@ def displayDateInfo(value):
 
     import time
     import re
+    import calendar
 
     if re.match("\d", value) is not None:
+        # example 2015-11-12T15:01:30.591+0000
+        inputdate2 = time.strptime(value, "%Y-%m-%dT%H:%M:%S.%f+0000")
+        inputdate3 = calendar.timegm(inputdate2)
+        tzvalue = value[24] + value[25]
+        tzvalue2 = int(tzvalue)
 
-        inputdate = time.strptime(value, "%Y-%m-%dT%H:%M:%S.%f+0000")
+        if value[23] == "+":
+            inputdate4 = inputdate3 + (tzvalue2 * 60)
+        else:
+            inputdate4 = inputdate3 - (tzvalue2 * 60)
+
+        inputdate = time.localtime(inputdate4)
 
         try:
             finisheddate = time.strftime("%H:%M:%S %d/%m/%Y", inputdate).lstrip("0").replace("/0", "/").replace(" 0", " ")

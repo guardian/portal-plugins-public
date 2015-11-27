@@ -114,7 +114,7 @@ def index(request):
           'fromDate': datetime.now().date() - timedelta(days=1),
           'fromTime': time(hour=0,minute=0,second=0),
           'toDate': datetime.now().date(),
-          'toTime': datetime.now().time(),
+          'toTime': datetime.now().strftime("%H:%M:%S"),
           'columns': ['jobId', 'status', 'type', 'started', 'priority', 'itemid', 'systemJobModule', 'systemJobInfo', 'destinationStorageId', 'bestEffortFilename', 'fileId', 'replicatedFileIds', 'fileDeleted', 'fileStateOnFailure', 'filePathMap', 'replicatedFileInfo', 'checkReplicatedFiles'],
         })
     else:

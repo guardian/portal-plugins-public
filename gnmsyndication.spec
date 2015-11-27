@@ -1,7 +1,7 @@
 %define name portal-pluto-gnmsyndication
 %define version 2.0
 %define unmangled_version 2.0
-%define release 5
+%define release 7
 
 Summary: GNM Multimedia Publication Dashboard
 Name: %{name}

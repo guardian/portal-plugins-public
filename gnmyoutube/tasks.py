@@ -26,7 +26,7 @@ def update_vidispine_field_values(fieldName,cats):
 
     #step one - get Vidispine's field definition
     h = httplib2.Http()
-    logger.debug("Looking up field {0}".format(fieldName))
+    logger.info("Looking up field {0}".format(fieldName))
     uri = "/API/metadata-field/{0}?data=all".format(fieldName)
 
     (headers,content) = make_vidispine_request(h,"GET",uri,"",{})
@@ -34,7 +34,7 @@ def update_vidispine_field_values(fieldName,cats):
     if int(headers['status']) < 200 or int(headers['status']) > 299:
         raise VidispineError(content)
 
-    logger.debug("Loading data from document...")
+    logger.info("Loading data from document...")
     ns = "{http://xml.vidispine.com/schema/vidispine}"
     xmlData = ET.fromstring(content)
     #//data/key[text()="extradata"]/../value/
@@ -47,13 +47,13 @@ def update_vidispine_field_values(fieldName,cats):
 
     #step 3 - replace the values list with new data that we've been given
     portalData['values'] = map(lambda x: {'value': x['snippet']['title'], 'key': x['id']}, cats)
-    logger.debug("New category list: {0}".format(str(portalData['values'])))
+    logger.info("New category list: {0}".format(str(portalData['values'])))
 
     #step 4 - re-encode the data to get a new field record document
     portalDataNode.text = json.dumps(portalData)
     newFieldRecord = ET.tostring(xmlData,encoding="UTF-8")
 
-    logger.debug("New field data record: {0}".format(newFieldRecord))
+    logger.info("New field data record: {0}".format(newFieldRecord))
 
     #step 5 - output back to Vidispine
     (headers,content)=make_vidispine_request(h,"PUT",uri,newFieldRecord,{'Accept': 'application/xml'},content_type='application/xml')
@@ -65,6 +65,7 @@ def update_vidispine_field_values(fieldName,cats):
 @periodic_task(run_every=crontab(hour=RUN_AT_HOUR,minute=RUN_AT_MINS_PAST))
 def update_categories_list():
     from models import settings as plugin_settings
+    from oauth2client.client import Error as OAuthError
 
     c = None
     try:
@@ -97,6 +98,13 @@ def update_categories_list():
         data = i.list_categories(region_code=regionCode)
 
         update_vidispine_field_values(fieldName,data['items'])
+    except OAuthError as e:
+        from traceback import format_exc
+        if c is not None:
+            c.captureException()
+        logger.error(str(e))
+        logger.error(format_exc())
+        raise
     except StandardError as e: #ensure that any errors get reported back to Sentry
         from traceback import format_exc
         if c is not None:

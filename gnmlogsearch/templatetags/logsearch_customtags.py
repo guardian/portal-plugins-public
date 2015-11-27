@@ -159,7 +159,10 @@ def displayDateInfo(value):
 
 @register.filter("filepathmap")
 def filePathMap(value):
+    import re
 
-    value2 = value.replace(",", "</li><li>")
+    #value2 = value.replace(",", "</li><li>")
+
+    value2 = re.sub(r"\,(?!\s)", "</li><li>", value)
 
     return mark_safe("<ul><li>" + value2 + "</li><ul>")

@@ -70,12 +70,13 @@ class GnmyoutubeRegister(Plugin):
 
     def __call__(self):
         from __init__ import __version__ as versionnumber
+        from __init__ import __author__
         _app_dict = {
                 'name': 'Gnmyoutube',
-                'version': '0.0.1',
-                'author': '',
+                'version': versionnumber,
+                'author': __author__,
                 'author_url': '',
-                'notes': 'Add your Copyright notice here.'}
+                'notes': 'By and For GNM Multimedia'}
         return _app_dict
 
 gnmyoutubeplugin = GnmyoutubeRegister()

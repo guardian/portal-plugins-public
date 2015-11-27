@@ -100,11 +100,10 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
     if int(headers['status']) < 200 or int(headers['status']) > 299:
         try:
             from raven import Client as RavenClient
-            if not 'RAVEN_CONFIG' in settings:
-                logger.error("Raven installed but RAVEN_CONFIG not specified. Cannot notify Sentry.")
-                return
+
             if not 'dsn' in settings.RAVEN_CONFIG:
                 logger.error("RAVEN_CONFIG specified but does not specify DSN. Consult Raven documentation for how to set it up properly")
+                return
 
             c = RavenClient(settings.RAVEN_CONFIG['dsn'])
 

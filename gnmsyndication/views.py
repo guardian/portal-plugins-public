@@ -697,7 +697,7 @@ def csv_report(request):
     current_date = start_date
     while current_date < end_date:
         try:
-            asset_list = asset_list_by_day(request,current_date)
+            (asset_list, scope) = asset_list_by_day(request,current_date)
         except StandardError as e:
             return HttpResponse(str(e),status=500,content_type='text/plain')
 

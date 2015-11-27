@@ -18,7 +18,7 @@ function build_rpm {
 
 	if [ ! -d "${BASENAME}" ]; then
 		echo Plugin source dir ${BASENAME} does not exist, cannot continue
-		exit 2
+		#exit 2
 	fi
 	
     tar cv ${BASENAME} | gzip > ${HOME}/rpmbuild/${BASENAME}.tar.gz
@@ -49,5 +49,5 @@ echo ----------------------------
 echo
 
 for x in `ls *.rpm`; do
-	aws s3 cp "$x" s3://gnm-multimedia-archivedtech/gnm_portal_plugins --acl public-read
+	aws s3 cp "$x" s3://gnm-multimedia-archivedtech/gnm_portal_plugins/$x --acl public-read
 done

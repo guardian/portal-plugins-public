@@ -135,7 +135,7 @@ def displayDateInfo(value):
 
     if re.match("\d", value) is not None:
         # example 2015-11-12T15:01:30.591+0000
-        inputdate2 = time.strptime(value, "%Y-%m-%dT%H:%M:%S.%f+0000")
+        inputdate2 = time.strptime(value, "%Y-%m-%dT%H:%M:%S.%f" + value[23] + value[24] + value[25] + value[26] + value[27])
         inputdate3 = calendar.timegm(inputdate2)
         tzvalue = value[24] + value[25]
         tzvalue2 = int(tzvalue)

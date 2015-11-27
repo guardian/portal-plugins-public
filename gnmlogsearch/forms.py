@@ -99,6 +99,8 @@ class LogSearchForm(Form):
 
     def vidispine_query_url(self,base,page):
         from datetime import datetime
+        import time
+        import calendar
 
         if not self.is_valid():
             raise self.FormNotValid()
@@ -129,6 +131,10 @@ class LogSearchForm(Form):
 
         fromTime = datetime.combine(d['fromDate'],d['fromTime'])
         toTime = datetime.combine(d['toDate'],d['toTime'])
+#        inputdate1 = calendar.timegm(fromTime)
+#        fromTime = time.localtime(inputdate1)
+#        inputdate2 = calendar.timegm(toTime)
+#        toTime = time.localtime(inputdate2)
         queryparams += "&starttime-from=" + urllib.quote_plus(fromTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),safe="")
         queryparams += "&starttime-to=" + urllib.quote_plus(toTime.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),safe="")
 

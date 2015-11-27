@@ -49,5 +49,5 @@ echo ----------------------------
 echo
 
 for x in `ls *.rpm`; do
-	aws s3 cp "$x" s3://gnm-multimedia-archivedtech/gnm_portal_plugins
+	aws s3 cp "$x" s3://gnm-multimedia-archivedtech/gnm_portal_plugins --acl public-read
 done

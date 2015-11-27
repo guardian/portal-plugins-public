@@ -148,7 +148,7 @@ def displayDateInfo(value):
         inputdate = time.localtime(inputdate4)
 
         try:
-            finisheddate = time.strftime("%H:%M:%S %d/%m/%Y", inputdate).lstrip("0").replace("/0", "/").replace(" 0", " ")
+            finisheddate = time.strftime("%H:%M:%S %d/%m/%Y %Z", inputdate).lstrip("0").replace("/0", "/").replace(" 0", " ")
         except:
             return value
         if finisheddate[0] == ':':

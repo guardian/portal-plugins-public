@@ -7,7 +7,8 @@ import logging
 from django.conf import settings
 import re
 from models import platform
-logging.basicConfig(level=logging.DEBUG)
+
+logger = logging.getLogger("portal.plugins.gnmsyndication")
 
 
 def date_fields():
@@ -78,6 +79,8 @@ def make_facet_xml(fieldname,start_time=None,number=30,intervalTime=datetime.tim
 
     return rtn
 
+class HttpError(StandardError):
+    pass
 
 def make_vidispine_request(agent,method,urlpath,body,headers,content_type='application/xml'):
     import base64
@@ -93,6 +96,38 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
     #url = "http://dc1-mmmw-05.dc1.gnm.int:8080{0}".format(urlpath)
     logging.debug("URL is %s" % url)
     (headers,content) = agent.request(url,method=method,body=body,headers=headers)
+
+    if int(headers['status']) < 200 or int(headers['status']) > 299:
+        try:
+            from raven import Client as RavenClient
+            if not 'RAVEN_CONFIG' in settings:
+                logger.error("Raven installed but RAVEN_CONFIG not specified. Cannot notify Sentry.")
+                return
+            if not 'dsn' in settings.RAVEN_CONFIG:
+                logger.error("RAVEN_CONFIG specified but does not specify DSN. Consult Raven documentation for how to set it up properly")
+
+            c = RavenClient(settings.RAVEN_CONFIG['dsn'])
+
+            c.user_context({
+                'method': method,
+                'url': url,
+                'body': body,
+                'headers': headers,
+                'content_type': content_type,
+                'content': content,
+            })
+            try:
+                raise HttpError("Vidispine error: %s" % headers['status'])
+            except HttpError:
+                c.captureException()
+                c.context.clear()
+                raise
+
+        except ImportError:
+            logger.warning("No Raven installation detected. Sentry will not be notified.")
+            return
+
+
     return (headers,content)
 
 
@@ -157,9 +192,8 @@ def platforms_by_day(request):
 
     agent = httplib2.Http()
 
+    #this now raises an HttpError if the request fails
     (headers,content) = make_vidispine_request(agent,"PUT","/API/item;number=0",requeststring,{'Accept': 'application/json'})
-    if int(headers['status']) < 200 or int(headers['status']) > 299:
-        raise StandardError("Vidispine error: %s" % headers['status'])
 
     data=json.loads(content)
 

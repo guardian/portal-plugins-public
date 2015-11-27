@@ -1,5 +1,6 @@
 from django.forms import Form,ChoiceField,Select,DateField,ModelForm,ValidationError,TextInput
 
+
 class TimePeriodSelector(Form):
     from datetime import date,datetime
 
@@ -42,6 +43,7 @@ class PlatformEditForm(ModelForm):
         #     'uploadstatus_field': TextInput(attrs={'onfocusin': "show_field_selector('id_uploadstatus_field');"}
         #                                     )
         # }
+
     def is_absolute(self,url):
         import urlparse
         return bool(urlparse.urlparse(url).netloc)

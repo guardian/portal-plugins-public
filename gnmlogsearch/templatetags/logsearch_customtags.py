@@ -156,3 +156,10 @@ def displayDateInfo(value):
         return finisheddate
     else:
         return "n/a"
+
+@register.filter("filepathmap")
+def filePathMap(value):
+
+    value2 = value.replace(",", "</li><li>")
+
+    return mark_safe("<ul><li>" + value2 + "</li><ul>")

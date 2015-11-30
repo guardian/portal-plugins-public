@@ -163,6 +163,12 @@ def filePathMap(value):
 
     #value2 = value.replace(",", "</li><li>")
 
-    value2 = re.sub(r"\,(?!\s)", "</li><li>", value)
+    if value == "":
 
-    return mark_safe("<ul><li>" + value2 + "</li><ul>")
+        return value
+
+    else:
+
+        value2 = re.sub(r"\,(?!\s)", "</li><li>", value)
+
+        return mark_safe("<ul><li>" + value2 + "</li><ul>")

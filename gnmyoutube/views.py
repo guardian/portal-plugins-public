@@ -1,7 +1,7 @@
-from portal.generic.baseviews import ClassView
 from django.views.generic import View
 from django.http import HttpResponse
 from django.shortcuts import render
+from rest_framework.views import APIView, Response
 import logging
 import re
 from forms import *
@@ -68,8 +68,22 @@ class YoutubeAdminView(View):
             return render(request,'gnmyoutube/admin/adminmain.html',{'settingsform': f})
 
 #POST to this view to make a test call, to list categories
-class YoutubeTestConnectionView(View):
+class YoutubeTestConnectionView(APIView):
+    from rest_framework.parsers import JSONParser
+    from rest_framework.renderers import JSONRenderer
+
+    parser_classes = (JSONParser, )
+    renderer_classes = (JSONRenderer, )
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            return super(YoutubeTestConnectionView,self).dispatch(request,*args,**kwargs)
+        except StandardError as e:
+            return Response({'status': 'error', 'error': str(e)}, status=500)
+
     def post(self,request):
+        from oauth2client.client import AccessTokenRefreshError, Error as OAuthError
+
         from pprint import pprint
         f = SettingsForm(request.POST)
 
@@ -77,7 +91,8 @@ class YoutubeTestConnectionView(View):
             #pprint(f.__dict__)
             logging.warning("Invalid form data sent to YoutubeTestConnectionView")
             logging.warning(str(f.__dict__))
-            return HttpResponse(json.dumps({'status': 'error','errors': f.errors}),status=400)
+            return Response({'status': 'error','errors': f.errors}, status=400)
+            #return HttpResponse(json.dumps({'status': 'error','errors': f.errors}),status=400)
 
         cd = f.cleaned_data
 
@@ -85,10 +100,15 @@ class YoutubeTestConnectionView(View):
             i = YoutubeInterface()
             i.authorize_pki(cd['clientID'],cd['privateKey'])
             c = i.list_categories()
+        except OAuthError as e:
+            return Response({'status': 'error', 'type': 'OAuth', 'error': str(e), 'info': e.__dict__},status=500)
         except StandardError as e:
-            return HttpResponse(json.dumps({'status': 'error', 'error': str(e)}), status=500)
+            return Response({'status': 'error', 'error': str(e)}, status=500)
+            #return HttpResponse(json.dumps({'status': 'error', 'error': str(e)}), status=500)
 
-        return HttpResponse(json.dumps({'status': 'unknown','error': 'Still testing', 'data': c}),status=200)
+        return Response({'status': 'unknown','error': 'Still testing', 'data': c},status=200)
+        #return HttpResponse(json.dumps({'status': 'unknown','error': 'Still testing', 'data': c}),status=200)
+
 
 #perform actions, for testing
 class YoutubeTestAction(View):

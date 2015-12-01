@@ -40,6 +40,9 @@ function testConnection()
         })
         .success(function(data) {
             $('#testResults').html("<p>Test succeeded.  "+data['count']+" items were found.</p>");
+        })
+        .fail(function( jqXHR, textStatus, errorThrown ) {
+            $('#testResults').html("<p class=\"error\">Test failed: " + textStatus + "</p><pre>" + jqXHR.responseText + "</pre>");
         });
 
     return false;

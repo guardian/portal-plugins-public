@@ -15,7 +15,6 @@ class YoutubeInterface:
         self.youtube_service = None
         pass
 
-
     def authorize_pki(self,client_id,pki,scope=YOUTUBE_ADMIN_SCOPE,as_user=None):
         from oauth2client.client import SignedJwtAssertionCredentials
         self._credentials = SignedJwtAssertionCredentials(client_id,pki,scope,sub=as_user)

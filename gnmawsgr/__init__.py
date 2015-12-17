@@ -164,8 +164,6 @@ class GNMAWSGRGearboxMenuPlugin(Plugin):
 
         test_value = self.metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_status',res['item'])
 
-
-
         if test_value == archive_test_value:
             display = 1
 
@@ -190,8 +188,20 @@ class GNMAWSGRCollectionGearboxMenuPlugin(Plugin):
 
     def return_string(self, tagname, *args):
         display = 1
+
+        from pprint import pprint
+
+        context = args[1]
+        collection = context['collection']
+        content = collection.getItems()
+
+        #pprint(content[0].getId())
+
+        for data in content:
+            pprint(data.getId())
+
         if display == 1:
-            return {'guid':self.plugin_guid, 'template':'collection_gearbox_menu.html'}
+            return {'guid':self.plugin_guid, 'template':'collection_gearbox_menu.html', 'context' : {'itemid':'', 'res':content} }
 
 GNMAWSGRCollectionpluginblock = GNMAWSGRCollectionGearboxMenuPlugin()
 

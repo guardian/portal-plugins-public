@@ -247,17 +247,13 @@ class GNMAWSGRCollectionGearboxMenuPlugin(Plugin):
 
             ith = ItemHelper()
             res = ith.getItemMetadata(data.getId())
-            pprint(data.getId())
-            print 'ran'
+            #pprint(data.getId())
             try:
                 test_value = self.metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_status',res['item'])
             except:
                 print 'An error broke the call'
-            print 'Got past suspect code'
             if test_value == archive_test_value:
                 display = 1
-                print 'Found'
-            print 'Got to end'
 
         if display == 1:
             return {'guid':self.plugin_guid, 'template':'collection_gearbox_menu.html', 'context' : {'itemid':'', 'res':''} }

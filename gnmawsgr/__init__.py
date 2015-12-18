@@ -275,7 +275,8 @@ class GNMAWSGRBinGearboxMenuPlugin(Plugin):
 
     def return_string(self, tagname, *args):
         display = 1
+
         if display == 1:
-            return {'guid':self.plugin_guid, 'template':'bin_gearbox_menu.html'}
+            return {'guid':self.plugin_guid, 'template':'bin_gearbox_menu.html', 'context' : {'itemid':'', 'res':''} }
 
 GNMAWSGRBinpluginblock = GNMAWSGRBinGearboxMenuPlugin()

@@ -6,4 +6,7 @@ from django.shortcuts import render
 def index(request):
   return render(request,"gnmawsgr.html")
 
+def r(request):
+  return render(request,"r.html")
+
 

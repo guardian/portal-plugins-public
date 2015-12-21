@@ -163,12 +163,13 @@ class GNMAWSGRGearboxMenuPlugin(Plugin):
         #print "gnm_external_archive_external_archive_status = {0}".format(self.metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_status',res['item']))
 
         test_value = self.metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_status',res['item'])
+        path = self.metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_path',res['item'])
 
         if test_value == archive_test_value:
             display = 1
 
         if display == 1:
-            return {'guid':self.plugin_guid, 'template':'gearbox_menu.html', 'context' : {'itemid':itemid, 'res':''} }
+            return {'guid':self.plugin_guid, 'template':'gearbox_menu.html', 'context' : {'itemid':itemid, 'path':path} }
 
 
 GNMAWSGRpluginblock = GNMAWSGRGearboxMenuPlugin()

@@ -10,6 +10,10 @@ def r(request):
 
     from tasks import glacier_restore
 
+    itemid = request.GET.get('id', '')
+
+    print itemid
+
     do_task = glacier_restore.delay(1,1)
 
     print do_task

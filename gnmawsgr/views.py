@@ -18,7 +18,7 @@ def r(request):
 
     print path
 
-    do_task = glacier_restore.delay(1,1)
+    do_task = glacier_restore.delay(itemid,path)
 
     #print do_task
 

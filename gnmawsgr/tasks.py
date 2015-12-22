@@ -1,10 +1,11 @@
 import celery
 
 @celery.task
-def glacier_restore(filepath="", filename=""):
-    test = filepath + filename
-    print test
-    return test
+def glacier_restore(itemid,path):
+    #print itemid
+    #print '\n'
+    #print path
+    return 'Finished'
 
 
 

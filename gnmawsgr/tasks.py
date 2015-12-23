@@ -20,6 +20,8 @@ def glacier_restore(itemid,path):
     key = bucket.get_key(path)
     if key.ongoing_restore is True:
         logger.info("Ongoing restore for "+path+" is working")
+        time.sleep(14400)
+
     else:
         logger.info("Ongoing restore for "+path+" is not working")
     return 'Finished'

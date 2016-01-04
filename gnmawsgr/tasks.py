@@ -203,8 +203,16 @@ def glacier_restore(itemid,path):
     filename = os.path.join(temp_path, os.path.basename(item_meta.get('gnm_external_archive_external_archive_path')))
     try:
         with open(filename,'wb') as fp:
+            rq.status = 'DOWNLOADING'
+            rq.save()
             key.get_file(fp, cb=download_callback, num_cb=100)
+            rq.completed_at = datetime.now()
+            rq.status = 'IMPORTING'
+            rq.save()
             post_restore_actions(itemid,filename)
+            rq.status = 'COMPLETED'
+            rq.completed_at = datetime.now()
+            rq.save()
 
     except S3ResponseError as e:
         try:

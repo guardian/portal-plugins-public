@@ -10,6 +10,7 @@ class RestoreRequest(Model):
         ('READY','Ready'),
         ('AWAITING_RESTORE','Awaiting Restore'),
         ('DOWNLOADING','Downloading'),
+        ('IMPORTING','Importing'),
         ('COMPLETED','Completed'),
         ('FAILED','Failed'),
         ('NOT_GLACIER','Not Glacier')

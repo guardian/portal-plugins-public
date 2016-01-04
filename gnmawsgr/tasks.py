@@ -8,6 +8,7 @@ try:
 except AttributeError:
     logger = logging.getLogger('main')
 
+
 class HttpError(StandardError):
     def __init__(self, code, url, headers, rtn_headers, rtn_body, *args, **kwargs):
         super(HttpError,self).__init__(*args,**kwargs)
@@ -124,7 +125,7 @@ class MiniItem(object):
                 yield field['name']
 
 def download_callback(current_progress,total):
-    logger.info("Download in progress: {0}/{1}, {2}%%".format(current_progress,total,float(current_progress)/float(total)))
+    logger.info("Download in progress: {0}/{1}, {2:.2f}%".format(current_progress,total,float(current_progress)/float(total)))
 
 @celery.task
 def glacier_restore(itemid,path):

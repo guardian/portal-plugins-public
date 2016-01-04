@@ -128,8 +128,6 @@ def download_callback(current_progress,total):
 
 @celery.task
 def glacier_restore(itemid,path):
-    import time
-    import json
     import os
     from django.conf import settings
     from boto.s3.connection import S3Connection
@@ -189,8 +187,15 @@ def glacier_restore(itemid,path):
     else:
         conn = S3Connection()
 
-    bucket = conn.get_bucket(item_meta.get('gnm_external_archive_external_archive_device'))
-    key = bucket.get_key(path)
+    try:
+        bucket = conn.get_bucket(item_meta.get('gnm_external_archive_external_archive_device'))
+        key = bucket.get_key(path)
+    except KeyError:
+        logger.error("Item {0} ({1}) does not appear to have gnm_external_archive_external_archive_device set".format(itemid,item_meta.get('title')))
+        rq.status = 'FAILED'
+        rq.completed_at = datetime.now()
+        rq.save()
+        return
 
     if key.storage_class != 'GLACIER':
         logger.info("Item {0} ({1}) is not in Glacier so not attempting to restore".format(itemid,item_meta.get('title')))

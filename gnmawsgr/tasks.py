@@ -3,7 +3,10 @@ import logging
 log = logging.getLogger(__name__)
 log.info('Testing logging outside Celery task')
 
-logger = celery.utils.log.get_task_logger(__name__)
+try:
+    logger = celery.utils.log.get_task_logger(__name__)
+except AttributeError:
+    logger = logging.getLogger('main')
 
 class HttpError(StandardError):
     def __init__(self, code, url, headers, rtn_headers, rtn_body, *args, **kwargs):
@@ -37,11 +40,10 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
         urlpath = '/' + urlpath
 
     url = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
-    #url = "http://dc1-mmmw-05.dc1.gnm.int:8080{0}".format(urlpath)
     logging.debug("URL is %s" % url)
     (rtn_headers,content) = agent.request(url,method=method,body=body,headers=headers)
-    if int(headers['status']) < 200 or int(headers['status']) > 299:
-        raise HttpError(int(headers['status']),url,headers,rtn_headers,content)
+    if int(rtn_headers['status']) < 200 or int(rtn_headers['status']) > 299:
+        raise HttpError(int(rtn_headers['status']),url,headers,rtn_headers,content)
     return (rtn_headers,content)
 
 def makeshape(itemid,uri,agent=None):
@@ -71,6 +73,24 @@ class MiniItem(object):
         else:
             raise TypeError
 
+    def _descend_groups(self,data_hash,fieldname):
+        #from pprint import pprint
+        #pprint(data_hash)
+        if not 'group' in data_hash or not isinstance(data_hash['group'],list):
+            return
+
+        for g in data_hash['group']:
+            #pprint(g)
+            for field in g['field']:
+                #print "checking field {0}".format(field['name'])
+                if field['name'] == fieldname:
+                    value_list = map(lambda x: x['value'], field['value'])
+                    return value_list
+            if 'group' in g:
+                result = self._descend_groups(g,fieldname)
+                if result is not None:
+                    return result
+
     def get(self, fieldname, allow_list=True, delim=','):
         """
         Returns the metadata for fieldname, or raises KeyError if it's not present
@@ -80,13 +100,28 @@ class MiniItem(object):
         :return: the requested metadata value
         """
         for timespan in self._data_content['item'][0]['metadata']['timespan']:
+            value_list = None
             for field in timespan['field']:
                 if field['name'] == fieldname:
                     value_list = map(lambda x: x['value'], field['value'])
-                    if allow_list:
-                        return value_list
-                    return delim.join(value_list)
+            if value_list is None:
+                value_list = self._descend_groups(timespan,fieldname)
+            if value_list is not None:
+                if len(value_list) == 1:
+                    return value_list[0]
+                if allow_list:
+                    return value_list
+                return delim.join(value_list)
         raise KeyError(fieldname)
+
+    def valid_fields(self):
+        """
+        Generator which yields the valid field names
+        :return:
+        """
+        for timespan in self._data_content['item'][0]['metadata']['timespan']:
+            for field in timespan['field']:
+                yield field['name']
 
 def download_callback(current_progress,total):
     logger.info("Download in progress: {0}/{1}, {2}%%".format(current_progress,total,float(current_progress)/float(total)))
@@ -107,6 +142,7 @@ def glacier_restore(itemid,path):
     temp_path = "/opt/cantemo/portal/portal/plugins/gnmawsgr/downloads/"
     restore_time = 2 #in days
     restore_sleep_delay = 14400 #wait this number of seconds for something to restore
+    restore_short_delay = 600
 
     if hasattr(settings,'glacier_temp_path'):
         temp_path = settings.glacier_temp_path
@@ -117,14 +153,24 @@ def glacier_restore(itemid,path):
         'title',
         'gnm_external_archive_external_archive_device',
         'gnm_external_archive_external_archive_path',
-        'gnm_external_archive_external_archive_report'
+        'gnm_external_archive_external_archive_status',
+        'gnm_external_archive_external_archive_report',
     ]
     agent = httplib2.Http()
-    headers, content = make_vidispine_request(agent,"GET","/API/item/{id}/metadata?fields={fieldlist}"
-                                              .format(itemid,','.join(interesting_fields)),
-                                              body="",
-                                              headers={'Accept': 'application/json'},
-                                              )
+
+    try:
+        headers, content = make_vidispine_request(agent,"GET","/API/item/{id}/metadata?fields={fieldlist}"
+                                                  .format(itemid,','.join(interesting_fields)),
+                                                  "",
+                                                  {'Accept': 'application/json'},
+                                                  )
+    except HttpError as e:
+        if e.code == 404:
+            logger.error("Item {0} does not exist".format(itemid))
+        else:
+            logger.error(e)
+        return
+
     item_meta = MiniItem(content)
 
     try:
@@ -159,6 +205,7 @@ def glacier_restore(itemid,path):
         with open(filename,'wb') as fp:
             key.get_file(fp, cb=download_callback, num_cb=100)
             post_restore_actions(itemid,filename)
+
     except S3ResponseError as e:
         try:
             #most likely, the asset is archived
@@ -173,7 +220,7 @@ def glacier_restore(itemid,path):
                 #in this case, a restore request is pending.  Log a warning and wait.
                 timediff = datetime.now() - rq.requested_at
                 logger.warning("Glacier request for {0} has not completed in a timely way. Requested {0} ago.".format(timediff))
-                glacier_restore.apply_async((itemid, path), countdown=600)
+                glacier_restore.apply_async((itemid, path), countdown=restore_short_delay)
                 return
 
         except S3ResponseError as e:
@@ -188,3 +235,23 @@ def post_restore_actions(itemid, downloaded_filename):
     logger.info("Creating shape for {0}...".format(itemid))
     makeshape(itemid,downloaded_filename)
     logger.info("Done.")
+
+if __name__ == '__main__':
+    print "Running test on AWSGR tasks"
+    interesting_fields = [
+        'title',
+        'gnm_external_archive_external_archive_device',
+        'gnm_external_archive_external_archive_path',
+        'gnm_external_archive_external_archive_status',
+        'gnm_external_archive_external_archive_report',
+    ]
+
+    import httplib2
+    h=httplib2.Http()
+    headers, content = make_vidispine_request(h,'GET','/API/item/KP-1161935/metadata?fields=title,gnm_external_archive_external_archive_device,gnm_external_archive_external_archive_path',"",{'Accept': 'application/json'})
+    item_meta = MiniItem(content)
+    for f in interesting_fields:
+        try:
+            print "{0} => {1}".format(f,item_meta.get(f))
+        except KeyError:
+            print "{0} => [no value]".format(f)

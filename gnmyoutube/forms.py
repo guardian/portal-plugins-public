@@ -2,7 +2,7 @@ from django.forms import ModelForm,Form,ModelChoiceField,CharField,TimeField,Tex
 
 
 class SettingsForm(Form):
-    clientID = CharField(max_length=512,label="Google Client ID")
+    clientID = CharField(max_length=512,label="Google Client email")
     privateKey = CharField(max_length=32768,widget=Textarea,label="Private Key contents")
     fieldID = CharField(max_length=512,label="Vidispine ID of YouTube categories field")
     #updateCategoriesTime = TimeField(label="Run daily category update at")

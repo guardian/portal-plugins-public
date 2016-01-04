@@ -11,13 +11,20 @@ from youtube_interface import YoutubeInterface
 from tasks import update_categories_list
 from traceback import format_exc
 #from djcelery.models.schedules import crontab
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required, permission_required
 
 class YoutubeIndexView(View):
     def get(self,request):
         return render(request,'gnmyoutube/index.html')
 
+
 #This view displays the main admin configuration form
 class YoutubeAdminView(View):
+    @method_decorator(permission_required('change_settings', login_url='/authentication/login', raise_exception=True))
+    def dispatch(self, request, *args, **kwargs):
+        return super(YoutubeAdminView,self).dispatch(request,*args,**kwargs)
+
     def get(self,request):
         clientID = ""
         privateKey=""
@@ -75,6 +82,7 @@ class YoutubeTestConnectionView(APIView):
     parser_classes = (JSONParser, )
     renderer_classes = (JSONRenderer, )
 
+    @method_decorator(permission_required('change_settings', login_url='/authentication/login', raise_exception=True))
     def dispatch(self, request, *args, **kwargs):
         try:
             return super(YoutubeTestConnectionView,self).dispatch(request,*args,**kwargs)
@@ -112,6 +120,10 @@ class YoutubeTestConnectionView(APIView):
 
 #perform actions, for testing
 class YoutubeTestAction(View):
+    @method_decorator(permission_required('change_settings', login_url='/authentication/login', raise_exception=True))
+    def dispatch(self, request, *args, **kwargs):
+        return super(YoutubeTestAction,self).dispatch(request,*args,**kwargs)
+
     def get(self,request,verb):
         if verb=="update_categories":
             try:

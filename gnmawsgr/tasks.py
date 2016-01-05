@@ -124,11 +124,12 @@ class MiniItem(object):
             for field in timespan['field']:
                 yield field['name']
 
+
 def download_callback(current_progress,total):
-    logger.info("Download in progress: {0}/{1}, {2:.2f}%".format(current_progress,total,float(current_progress)/float(total)))
+    logger.info("Download in progress: {0}/{1}, {2:.2f}%".format(current_progress,total,100%float(current_progress)/float(total)))
 
 @celery.task
-def glacier_restore(itemid,path):
+def glacier_restore(request_id,itemid,path):
     import os
     from django.conf import settings
     from boto.s3.connection import S3Connection
@@ -172,15 +173,17 @@ def glacier_restore(itemid,path):
 
     item_meta = MiniItem(content)
 
-    try:
-        rq = RestoreRequest.objects.get(item_id=itemid)
-    except RestoreRequest.DoesNotExist:
-        rq = RestoreRequest()
-        rq.requested_at = datetime.now()
-        rq.item_id = itemid
-        rq.attempts = 0
-        rq.status = 'READY'
-        rq.save()
+    rq = RestoreRequest.objects.get(pk=request_id)
+
+    # try:
+    #     rq = RestoreRequest.objects.get(item_id=itemid)
+    # except RestoreRequest.DoesNotExist:
+    #     rq = RestoreRequest()
+    #     rq.requested_at = datetime.now()
+    #     rq.item_id = itemid
+    #     rq.attempts = 0
+    #     rq.status = 'READY'
+    #     rq.save()
 
     logger.info("Attempting to contact S3")
     if hasattr(settings,'aws_access_key_id') and hasattr(settings, 'aws_secret_access_key'):

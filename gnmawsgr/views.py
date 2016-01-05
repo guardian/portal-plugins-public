@@ -1,7 +1,8 @@
 from portal.generic.baseviews import ClassView
+from django.views.generic import ListView
 from django.http import HttpResponse
 from django.shortcuts import render
-
+from models import RestoreRequest
 
 def index(request):
     return render(request,"gnmawsgr.html")
@@ -9,7 +10,6 @@ def index(request):
 
 def r(request):
     from tasks import glacier_restore
-    from models import RestoreRequest
     from datetime import datetime
 
     itemid = request.GET.get('id', '')
@@ -38,3 +38,6 @@ def r(request):
     return render(request,"r.html")
 
 
+class CurrentStatusView(ListView):
+    model = RestoreRequest
+    template_name = "gnmawsgr/restore_status.html"

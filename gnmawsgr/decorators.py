@@ -1,7 +1,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-
+#see http://thecodeship.com/patterns/guide-to-python-function-decorators/ for more information on how/why this works
 def has_group(groupname):
     def hasgroup_inner(func):
         def func_wrapper(request):

@@ -26,7 +26,7 @@ def r(request):
     except RestoreRequest.DoesNotExist:
         rq = RestoreRequest()
         rq.requested_at = datetime.now()
-        rq.username = "????"
+        rq.username = request.user.username
         rq.status = "READY"
         rq.attempts = 0
         rq.item_id = itemid
@@ -38,7 +38,6 @@ def r(request):
 
     return render(request,"r.html")
 
-@login_required
 class CurrentStatusView(ListView):
     model = RestoreRequest
     template_name = "gnmawsgr/restore_status.html"

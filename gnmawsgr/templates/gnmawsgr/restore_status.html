@@ -17,7 +17,7 @@
         <td>{{ entry.status }}</td>
         <td>{{ entry.username }}</td>
         <td><a href="/vs/item/{{ entry.item_id }}">{{ entry.item_id }}</a></td>
-        <td>{{ entry.filesize|filesizeformat }}</td>
+        <td>{{ entry.file_size|filesizeformat }}</td>
         <td>{{ entry.currently_downloaded|filesizeformat }}</td>
     </tr>
     {% endfor %}

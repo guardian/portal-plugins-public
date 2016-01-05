@@ -47,19 +47,20 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
         raise HttpError(int(rtn_headers['status']),url,headers,rtn_headers,content)
     return (rtn_headers,content)
 
-def makeshape(itemid,uri,agent=None):
+
+def makeshape(itemid,uri,tagname='original',agent=None):
     import json
+    import re
     if agent is None:
         import httplib2
         agent = httplib2.Http()
 
-    url = "/item/{0}/shape?uri={1}".format(itemid,uri)
+    if not re.match(r'^\w+:/',uri):
+        uri = 'file:' + uri
+
+    url = "/API/item/{0}/shape?uri={1}&tag={2}".format(itemid,uri,tagname)
 
     (headers,content) = make_vidispine_request(agent,"POST",url,body="",headers={'Accept': 'application/json'})
-    if int(headers['status']) < 200 or int(headers['status']) > 299:
-        #logging.error(content)
-        #raise StandardError("Vidispine error: %s" % headers['status'])
-        return None
 
     return json.loads(content)
 
@@ -125,8 +126,15 @@ class MiniItem(object):
                 yield field['name']
 
 
-def download_callback(current_progress,total):
-    logger.info("Download in progress: {0}/{1}, {2:.2f}%".format(current_progress,total,100%float(current_progress)/float(total)))
+def download_callback(rq, current_progress,total):
+    logger.info("{itemid} Download in progress: {cur}/{tot}, {pc:.2f}%".format(
+        itemid=rq.item_id,
+        cur=current_progress,
+        tot=total,
+        pc=100*float(current_progress)/float(total)))
+    rq.currently_downloaded = current_progress
+    rq.file_size = total
+    rq.save()
 
 @celery.task
 def glacier_restore(request_id,itemid,path):
@@ -138,15 +146,16 @@ def glacier_restore(request_id,itemid,path):
     from datetime import datetime
     import httplib2
     import traceback
+    from functools import partial
 
-    temp_path = "/opt/cantemo/portal/portal/plugins/gnmawsgr/downloads/"
+    temp_path = "/tmp"
     restore_time = 2 #in days
     restore_sleep_delay = 14400 #wait this number of seconds for something to restore
     restore_short_delay = 600
 
-    if hasattr(settings,'glacier_temp_path'):
+    if hasattr(settings,'GLACIER_TEMP_PATH'):
         temp_path = settings.glacier_temp_path
-    if hasattr(settings,'glacier_restore_time'):
+    if hasattr(settings,'GLACIER_RESTORE_TIME'):
         temp_path = settings.glacier_restore_time
 
     interesting_fields = [
@@ -160,7 +169,7 @@ def glacier_restore(request_id,itemid,path):
 
     try:
         headers, content = make_vidispine_request(agent,"GET","/API/item/{id}/metadata?fields={fieldlist}"
-                                                  .format(itemid,','.join(interesting_fields)),
+                                                  .format(id=itemid,fieldlist=','.join(interesting_fields)),
                                                   "",
                                                   {'Accept': 'application/json'},
                                                   )
@@ -186,9 +195,10 @@ def glacier_restore(request_id,itemid,path):
     #     rq.save()
 
     logger.info("Attempting to contact S3")
-    if hasattr(settings,'aws_access_key_id') and hasattr(settings, 'aws_secret_access_key'):
-        conn = S3Connection(settings.aws_access_key_id, settings.aws_secret_access_key)
+    if hasattr(settings, 'AWS_ACCESS_KEY_ID') and hasattr(settings, 'AWS_SECRET_ACCESS_KEY'):
+        conn = S3Connection(settings.AWS_ACCESS_KEY_ID, settings.AWS_SECRET_ACCESS_KEY)
     else:
+        raise StandardError("No credentials in settings")
         conn = S3Connection()
 
     try:
@@ -201,13 +211,13 @@ def glacier_restore(request_id,itemid,path):
         rq.save()
         return
 
-    if key.storage_class != 'GLACIER':
-        logger.info("Item {0} ({1}) is not in Glacier so not attempting to restore".format(itemid,item_meta.get('title')))
-        rq.status = 'NOT_GLACIER'
-        rq.attempts = 0
-        rq.completed_at = datetime.now()
-        rq.save()
-        return
+    # if key.storage_class != 'GLACIER':
+    #     logger.info("Item {0} ({1}) is not in Glacier so not attempting to restore".format(itemid,item_meta.get('title')))
+    #     rq.status = 'NOT_GLACIER'
+    #     rq.attempts = 0
+    #     rq.completed_at = datetime.now()
+    #     rq.save()
+    #     return
 
     filename = os.path.join(temp_path, os.path.basename(item_meta.get('gnm_external_archive_external_archive_path')))
     n=0
@@ -216,7 +226,7 @@ def glacier_restore(request_id,itemid,path):
             with open(filename,'wb') as fp:
                 rq.status = 'DOWNLOADING'
                 rq.save()
-                key.get_file(fp, cb=download_callback, num_cb=100)
+                key.get_file(fp, cb=partial(download_callback, rq), num_cb=100)
                 rq.completed_at = datetime.now()
                 rq.status = 'IMPORTING'
                 rq.save()
@@ -224,6 +234,7 @@ def glacier_restore(request_id,itemid,path):
                 rq.status = 'COMPLETED'
                 rq.completed_at = datetime.now()
                 rq.save()
+            break
 
         except IOError as e:
             n+=1
@@ -260,10 +271,13 @@ def glacier_restore(request_id,itemid,path):
                 return
 
 
-
 def post_restore_actions(itemid, downloaded_filename):
     logger.info("Creating shape for {0}...".format(itemid))
-    makeshape(itemid,downloaded_filename)
+    try:
+        makeshape(itemid,downloaded_filename,tagname='original')
+    except HttpError as e:
+        logger.error(unicode(e))
+        raise
     logger.info("Done.")
 
 if __name__ == '__main__':

@@ -1,16 +1,20 @@
-from portal.generic.baseviews import ClassView
 from django.views.generic import ListView
 from django.http import HttpResponse
 from django.shortcuts import render
 from models import RestoreRequest
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
+@login_required
 def index(request):
     return render(request,"gnmawsgr.html")
 
-
+@login_required
 def r(request):
     from tasks import glacier_restore
     from datetime import datetime
+
+    print request.user.userprofile.roles
 
     itemid = request.GET.get('id', '')
 
@@ -41,3 +45,7 @@ def r(request):
 class CurrentStatusView(ListView):
     model = RestoreRequest
     template_name = "gnmawsgr/restore_status.html"
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(CurrentStatusView,self).dispatch(request,*args,**kwargs)

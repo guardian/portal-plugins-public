@@ -210,6 +210,7 @@ def glacier_restore(request_id,itemid,path):
         return
 
     filename = os.path.join(temp_path, os.path.basename(item_meta.get('gnm_external_archive_external_archive_path')))
+    n=0
     while True:
         try:
             with open(filename,'wb') as fp:
@@ -225,6 +226,9 @@ def glacier_restore(request_id,itemid,path):
                 rq.save()
 
         except IOError as e:
+            n+=1
+            if n>20: #if we've already retried 20 times then give up
+                raise
             logger.error(e)
             filename = filename + '-1'
             continue

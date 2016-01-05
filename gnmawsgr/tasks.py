@@ -53,13 +53,9 @@ def makeshape(itemid,uri,agent=None):
         import httplib2
         agent = httplib2.Http()
 
-    url = "/item/{0}/shape?uri={1}".format(itemid,uri)
+    url = "/API/item/{0}/shape?uri=file:{1}&tag=Restored_File".format(itemid,uri)
 
     (headers,content) = make_vidispine_request(agent,"POST",url,body="",headers={'Accept': 'application/json'})
-    if int(headers['status']) < 200 or int(headers['status']) > 299:
-        #logging.error(content)
-        #raise StandardError("Vidispine error: %s" % headers['status'])
-        return None
 
     return json.loads(content)
 
@@ -159,7 +155,7 @@ def glacier_restore(itemid,path):
 
     try:
         headers, content = make_vidispine_request(agent,"GET","/API/item/{id}/metadata?fields={fieldlist}"
-                                                  .format(itemid,','.join(interesting_fields)),
+                                                  .format(id=itemid,fieldlist=','.join(interesting_fields)),
                                                   "",
                                                   {'Accept': 'application/json'},
                                                   )

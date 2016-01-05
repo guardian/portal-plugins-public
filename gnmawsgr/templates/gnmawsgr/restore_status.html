@@ -1,0 +1,25 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress %}
+{% block title %}{% trans 'Glacier Restore system status' %}{% endblock %}
+{% block heading %}{% trans 'Glacier Restore system status' %}{% endblock %}
+
+{% block content %}
+<table>
+    <tr>
+        <td>Status</td>
+        <td>Requested By</td>
+        <td>Item ID</td>
+        <td>File Size</td>
+        <td>Currently Downloaded</td>
+    </tr>
+    {% for entry in object_list %}
+    <tr>
+        <td>{{ entry.status }}</td>
+        <td>{{ entry.username }}</td>
+        <td><a href="/vs/item/{{ entry.item_id }}">{{ entry.item_id }}</a></td>
+        <td>{{ entry.filesize|filesizeformat }}</td>
+        <td>{{ entry.currently_downloaded|filesizeformat }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

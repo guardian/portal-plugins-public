@@ -120,11 +120,12 @@ class MiniItem(object):
             for field in timespan['field']:
                 yield field['name']
 
+
 def download_callback(current_progress,total):
-    logger.info("Download in progress: {0}/{1}, {2:.2f}%".format(current_progress,total,float(current_progress)/float(total)))
+    logger.info("Download in progress: {0}/{1}, {2:.2f}%".format(current_progress,total,100%float(current_progress)/float(total)))
 
 @celery.task
-def glacier_restore(itemid,path):
+def glacier_restore(request_id,itemid,path):
     import os
     from django.conf import settings
     from boto.s3.connection import S3Connection
@@ -168,15 +169,17 @@ def glacier_restore(itemid,path):
 
     item_meta = MiniItem(content)
 
-    try:
-        rq = RestoreRequest.objects.get(item_id=itemid)
-    except RestoreRequest.DoesNotExist:
-        rq = RestoreRequest()
-        rq.requested_at = datetime.now()
-        rq.item_id = itemid
-        rq.attempts = 0
-        rq.status = 'READY'
-        rq.save()
+    rq = RestoreRequest.objects.get(pk=request_id)
+
+    # try:
+    #     rq = RestoreRequest.objects.get(item_id=itemid)
+    # except RestoreRequest.DoesNotExist:
+    #     rq = RestoreRequest()
+    #     rq.requested_at = datetime.now()
+    #     rq.item_id = itemid
+    #     rq.attempts = 0
+    #     rq.status = 'READY'
+    #     rq.save()
 
     logger.info("Attempting to contact S3")
     if hasattr(settings,'aws_access_key_id') and hasattr(settings, 'aws_secret_access_key'):
@@ -203,42 +206,55 @@ def glacier_restore(itemid,path):
         return
 
     filename = os.path.join(temp_path, os.path.basename(item_meta.get('gnm_external_archive_external_archive_path')))
-    try:
-        with open(filename,'wb') as fp:
-            rq.status = 'DOWNLOADING'
-            rq.save()
-            key.get_file(fp, cb=download_callback, num_cb=100)
-            rq.completed_at = datetime.now()
-            rq.status = 'IMPORTING'
-            rq.save()
-            post_restore_actions(itemid,filename)
-            rq.status = 'COMPLETED'
-            rq.completed_at = datetime.now()
-            rq.save()
-
-    except S3ResponseError as e:
+    n=0
+    while True:
         try:
-            #most likely, the asset is archived
-            if rq.status != 'AWAITING_RESTORE':
-                #we have not yet issued a restore request
-                key.restore(restore_time)
-                rq.status = 'AWAITING_RESTORE'
+            with open(filename,'wb') as fp:
+                rq.status = 'DOWNLOADING'
                 rq.save()
-                glacier_restore.apply_async((itemid, path), countdown=restore_sleep_delay)
-                return
-            else:
-                #in this case, a restore request is pending.  Log a warning and wait.
-                timediff = datetime.now() - rq.requested_at
-                logger.warning("Glacier request for {0} has not completed in a timely way. Requested {0} ago.".format(timediff))
-                glacier_restore.apply_async((itemid, path), countdown=restore_short_delay)
-                return
+                key.get_file(fp, cb=download_callback, num_cb=100)
+                rq.completed_at = datetime.now()
+                rq.status = 'IMPORTING'
+                rq.save()
+                post_restore_actions(itemid,filename)
+                rq.status = 'COMPLETED'
+                rq.completed_at = datetime.now()
+                rq.save()
+
+        except IOError as e:
+            n+=1
+            if n>20: #if we've already retried 20 times then give up
+                raise
+            logger.error(e)
+            filename = filename + '-1'
+            continue
 
         except S3ResponseError as e:
-            #restore request failed, so there's something wrong with the object
-            rq.status = 'FAILED'
-            rq.completed_at = datetime.now()
-            logger.error(e)
-            logger.error(traceback.format_exc())
+            try:
+                #most likely, the asset is archived
+                if rq.status != 'AWAITING_RESTORE':
+                    os.unlink(filename)
+                    #we have not yet issued a restore request
+                    key.restore(restore_time)
+                    rq.status = 'AWAITING_RESTORE'
+                    rq.save()
+                    glacier_restore.apply_async((itemid, path), countdown=restore_sleep_delay)
+                    return
+                else:
+                    #in this case, a restore request is pending.  Log a warning and wait.
+                    timediff = datetime.now() - rq.requested_at
+                    logger.warning("Glacier request for {0} has not completed in a timely way. Requested {0} ago.".format(timediff))
+                    glacier_restore.apply_async((itemid, path), countdown=restore_short_delay)
+                    return
+
+            except S3ResponseError as e:
+                #restore request failed, so there's something wrong with the object
+                rq.status = 'FAILED'
+                rq.completed_at = datetime.now()
+                logger.error(e)
+                logger.error(traceback.format_exc())
+                return
+
 
 
 def post_restore_actions(itemid, downloaded_filename):

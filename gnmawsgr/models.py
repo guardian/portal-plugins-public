@@ -6,6 +6,7 @@ class RestoreRequest(Model):
     completed_at = DateTimeField(blank=True,null=True)
     attempts = IntegerField()
     item_id = CharField(max_length=32)
+    parent_collection = CharField(max_length=32,blank=True,null=True)
     username = CharField(max_length=512,default='admin')
     file_size = IntegerField(blank=True,null=True)
     currently_downloaded = IntegerField(blank=True,null=True)

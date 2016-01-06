@@ -12,6 +12,7 @@ class RestoreRequest(Model):
     project_id = CharField(max_length=32,default='(unknown)')
     filepath_original = CharField(max_length=32768,blank=True)
     filepath_destination = CharField(max_length=32768,null=True)
+    failure_reason = CharField(max_length=32768,blank=True,null=True)
     status = CharField(max_length=64,choices=(
         ('READY','Ready'),
         ('AWAITING_RESTORE','Awaiting Restore'),
@@ -21,3 +22,7 @@ class RestoreRequest(Model):
         ('FAILED','Failed'),
         ('NOT_GLACIER','Not Glacier')
     ))
+
+    def __unicode__(self):
+        return u'{u} restoring {i} at {t}, status {s}'.format(u=self.username,i=self.item_id,t=self.requested_at,
+                                                              s=self.status)

@@ -1,10 +1,11 @@
-from django.views.generic import ListView
+from django.views.generic import ListView, DeleteView
 from django.http import HttpResponse
 from django.shortcuts import render
 from models import RestoreRequest
 from decorators import has_group
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
+from django.core.urlresolvers import reverse_lazy
 
 @login_required
 def index(request):
@@ -38,6 +39,7 @@ def r(request):
 
     return render(request,"r.html")
 
+
 class CurrentStatusView(ListView):
     model = RestoreRequest
     template_name = "gnmawsgr/restore_status.html"
@@ -45,3 +47,13 @@ class CurrentStatusView(ListView):
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         return super(CurrentStatusView,self).dispatch(request,*args,**kwargs)
+
+
+class DeleteRestoreRequest(DeleteView):
+    model = RestoreRequest
+    template_name = "gnmawsgr/restore_request_delete.html"
+    success_url = reverse_lazy('status')
+
+    @method_decorator(permission_required('delete_restorerequest', login_url='/authentication/login', raise_exception=True))
+    def dispatch(self, request, *args, **kwargs):
+        return super(DeleteRestoreRequest,self).dispatch(request,*args,**kwargs)

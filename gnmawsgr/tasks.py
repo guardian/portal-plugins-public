@@ -136,8 +136,44 @@ def download_callback(rq, current_progress,total):
     rq.file_size = total
     rq.save()
 
+
 @celery.task
 def glacier_restore(request_id,itemid,path):
+    from models import RestoreRequest
+    import traceback
+    try:
+        import raven
+        from django.conf import settings
+        raven_client = raven.Client(settings.RAVEN_CONFIG['dsn'])
+
+    except StandardError as e:
+        logger.error("Raven client either not installed (pip install raven) or set up (RAVEN_CONFIG in localsettings.py).  Unable to report errors to Sentry")
+        raven_client = None
+
+    try:
+        do_glacier_restore(request_id,itemid,path)
+    except StandardError as e:
+        if raven_client: #if raven is set up, capture some extra information then grab the exception
+            raven_client.user_context({'request_id': request_id, 'item_id': itemid, 'path': path})
+            try:
+                rq = RestoreRequest.objects.get(pk=request_id)
+                rq.status = "FAILED"
+                rq.failure_reason = u"{0}\n{1}".format(unicode(e),traceback.format_exc())
+                rq.save()
+                raven_client.user_context({'request_id': request_id, 'request_details': rq.__dict__,
+                                           'item_id': itemid, 'path': path})
+            except StandardError as e: #if the database is playing silly buggers then log that too.
+                raven_client.captureException()
+                logger.error(e)
+                logger.error(traceback.format_exc())
+            raven_client.captureException()
+
+        logger.error(e)
+        logger.error(traceback.format_exc())
+        raise #re-raise the exception, so it shows as Failed in Celery Flower
+
+
+def do_glacier_restore(request_id,itemid,path):
     import os
     from django.conf import settings
     from boto.s3.connection import S3Connection
@@ -184,16 +220,6 @@ def glacier_restore(request_id,itemid,path):
 
     rq = RestoreRequest.objects.get(pk=request_id)
 
-    # try:
-    #     rq = RestoreRequest.objects.get(item_id=itemid)
-    # except RestoreRequest.DoesNotExist:
-    #     rq = RestoreRequest()
-    #     rq.requested_at = datetime.now()
-    #     rq.item_id = itemid
-    #     rq.attempts = 0
-    #     rq.status = 'READY'
-    #     rq.save()
-
     logger.info("Attempting to contact S3")
     if hasattr(settings, 'AWS_ACCESS_KEY_ID') and hasattr(settings, 'AWS_SECRET_ACCESS_KEY'):
         conn = S3Connection(settings.AWS_ACCESS_KEY_ID, settings.AWS_SECRET_ACCESS_KEY)
@@ -211,14 +237,6 @@ def glacier_restore(request_id,itemid,path):
         rq.save()
         return
 
-    # if key.storage_class != 'GLACIER':
-    #     logger.info("Item {0} ({1}) is not in Glacier so not attempting to restore".format(itemid,item_meta.get('title')))
-    #     rq.status = 'NOT_GLACIER'
-    #     rq.attempts = 0
-    #     rq.completed_at = datetime.now()
-    #     rq.save()
-    #     return
-
     filename = os.path.join(temp_path, os.path.basename(item_meta.get('gnm_external_archive_external_archive_path')))
     n=0
     while True:
@@ -226,7 +244,7 @@ def glacier_restore(request_id,itemid,path):
             with open(filename,'wb') as fp:
                 rq.status = 'DOWNLOADING'
                 rq.save()
-                key.get_file(fp, cb=partial(download_callback, rq), num_cb=100)
+                key.get_file(fp, cb=partial(download_callback, rq), num_cb=40)
                 rq.completed_at = datetime.now()
                 rq.status = 'IMPORTING'
                 rq.save()

@@ -272,6 +272,7 @@ def do_glacier_restore(request_id,itemid,path):
                     #we have not yet issued a restore request
                     key.restore(restore_time)
                     rq.status = 'AWAITING_RESTORE'
+                    rq.file_size = key.size
                     rq.save()
                     glacier_restore.apply_async((itemid, path), countdown=restore_sleep_delay)
                     return

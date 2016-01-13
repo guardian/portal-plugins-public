@@ -227,9 +227,12 @@ def do_glacier_restore(request_id,itemid,path):
         raise StandardError("No credentials in settings")
         conn = S3Connection()
 
+    checksum = "(not found)"
     try:
         bucket = conn.get_bucket(item_meta.get('gnm_external_archive_external_archive_device'))
         key = bucket.get_key(path)
+        checksum = key.md5
+
     except KeyError:
         logger.error("Item {0} ({1}) does not appear to have gnm_external_archive_external_archive_device set".format(itemid,item_meta.get('title')))
         rq.status = 'FAILED'
@@ -270,7 +273,7 @@ def do_glacier_restore(request_id,itemid,path):
                     #we have not yet issued a restore request
                     key.restore(restore_time)
                     rq.status = 'AWAITING_RESTORE'
-                    rq.md5 = key.md5
+                    rq.md5 = checksum
                     rq.save()
                     glacier_restore.apply_async((itemid, path), countdown=restore_sleep_delay)
                     return

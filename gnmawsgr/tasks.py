@@ -249,6 +249,8 @@ def do_glacier_restore(request_id,itemid,path):
                 key.get_file(fp, cb=partial(download_callback, rq), num_cb=40)
                 rq.completed_at = datetime.now()
                 if (os.path.getsize(filename) + 2048) < rq.file_size:
+                    accessurl = httplib2.Http()
+                    resp, content = accessurl.request("http://localhost/gnmawsgr/r/?id={id}&path={path}".format(id=rq.item_id,path=rq.filepath_original), "GET")
                     break
                 rq.status = 'IMPORTING'
                 rq.save()

@@ -29,7 +29,7 @@ def r(request):
         rq.requested_at = datetime.now()
         rq.username = request.user.username
         rq.status = "READY"
-        rq.attempts = 0
+        rq.attempts = 1
         rq.item_id = itemid
         rq.save()
 
@@ -38,6 +38,26 @@ def r(request):
     #print do_task
 
     return render(request,"r.html")
+
+@login_required
+@has_group('AWS_GR_Restore')
+def ra(request):
+    from tasks import glacier_restore
+    from datetime import datetime
+
+    # pprint(request.user.userprofile.__dict__)
+    # pprint(request.user.groups.all())
+    itemid = request.GET.get('id', '')
+    path = request.GET.get('path', '')
+
+    rq = RestoreRequest.objects.get(item_id=itemid)
+    rq.status = "READY"
+    rq.attempts = rq.attempts + 1
+    rq.save()
+
+    do_task = glacier_restore.delay(rq.pk,itemid,path)
+
+    return
 
 
 class CurrentStatusView(ListView):

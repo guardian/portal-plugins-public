@@ -248,6 +248,8 @@ def do_glacier_restore(request_id,itemid,path):
                 rq.save()
                 key.get_file(fp, cb=partial(download_callback, rq), num_cb=40)
                 rq.completed_at = datetime.now()
+                if (os.path.getsize(filename) + 2048) < rq.file_size:
+                    break
                 rq.status = 'IMPORTING'
                 rq.save()
                 post_restore_actions(itemid,filename)

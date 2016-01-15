@@ -39,27 +39,6 @@ def r(request):
 
     return render(request,"r.html")
 
-@login_required
-@has_group('AWS_GR_Restore')
-def ra(request):
-    from tasks import glacier_restore
-    from datetime import datetime
-
-    # pprint(request.user.userprofile.__dict__)
-    # pprint(request.user.groups.all())
-    itemid = request.GET.get('id', '')
-    path = request.GET.get('path', '')
-
-    rq = RestoreRequest.objects.get(item_id=itemid)
-    rq.status = "READY"
-    rq.attempts = rq.attempts + 1
-    rq.save()
-
-    do_task = glacier_restore.delay(rq.pk,itemid,path)
-
-    return
-
-
 class CurrentStatusView(ListView):
     model = RestoreRequest
     template_name = "gnmawsgr/restore_status.html"

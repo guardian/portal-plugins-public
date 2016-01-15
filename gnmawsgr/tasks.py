@@ -250,8 +250,10 @@ def do_glacier_restore(request_id,itemid,path):
                 rq.completed_at = datetime.now()
                 rq.status = 'IMPORTING'
                 if (os.path.getsize(filename) + 20000) < rq.file_size:
-                    accessurl = httplib2.Http()
-                    resp, content = accessurl.request("http://localhost/gnmawsgr/ra/?id={id}&path={path}".format(id=rq.item_id,path=rq.filepath_original), "GET")
+                    rq.status = "RETRY"
+                    rq.attempts = rq.attempts + 1
+                    rq.save()
+                    do_task = glacier_restore.delay(rq.pk,itemid,path)
                     return
                 rq.save()
                 post_restore_actions(itemid,filename)

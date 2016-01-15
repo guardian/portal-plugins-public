@@ -20,6 +20,7 @@ class RestoreRequest(Model):
         ('DOWNLOADING','Downloading'),
         ('IMPORTING','Importing'),
         ('COMPLETED','Completed'),
+        ('RETRY','Retry'),
         ('FAILED','Failed'),
         ('NOT_GLACIER','Not Glacier')
     ))

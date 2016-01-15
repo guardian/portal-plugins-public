@@ -248,11 +248,11 @@ def do_glacier_restore(request_id,itemid,path):
                 rq.save()
                 key.get_file(fp, cb=partial(download_callback, rq), num_cb=40)
                 rq.completed_at = datetime.now()
-                if (os.path.getsize(filename) + 2048) < rq.file_size:
+                rq.status = 'IMPORTING'
+                if (os.path.getsize(filename) + 20000) < rq.file_size:
                     accessurl = httplib2.Http()
                     resp, content = accessurl.request("http://localhost/gnmawsgr/ra/?id={id}&path={path}".format(id=rq.item_id,path=rq.filepath_original), "GET")
-                    break
-                rq.status = 'IMPORTING'
+                    return
                 rq.save()
                 post_restore_actions(itemid,filename)
                 rq.status = 'COMPLETED'

@@ -33,11 +33,12 @@ def r(request):
         rq.item_id = itemid
         rq.save()
 
-    do_task = glacier_restore.delay(rq.pk,itemid,path)
-
-    #print do_task
-
-    return render(request,"r.html")
+    if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER"):
+        do_task = glacier_restore.delay(rq.pk,itemid,path)
+        #print do_task
+        return render(request,"r.html")
+    else:
+        return render(request,"no.html")
 
 class CurrentStatusView(ListView):
     model = RestoreRequest

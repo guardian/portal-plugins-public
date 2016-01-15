@@ -280,13 +280,13 @@ def do_glacier_restore(request_id,itemid,path):
                     rq.filepath_original = path
                     rq.filepath_destination = filename
                     rq.save()
-                    glacier_restore.apply_async((itemid, path), countdown=restore_sleep_delay)
+                    glacier_restore.apply_async((rq.pk,itemid, path), countdown=restore_sleep_delay)
                     return
                 else:
                     #in this case, a restore request is pending.  Log a warning and wait.
                     timediff = datetime.now() - rq.requested_at
                     logger.warning("Glacier request for {0} has not completed in a timely way. Requested {0} ago.".format(timediff))
-                    glacier_restore.apply_async((itemid, path), countdown=restore_short_delay)
+                    glacier_restore.apply_async((rq.pk,itemid, path), countdown=restore_short_delay)
                     return
 
             except S3ResponseError as e:

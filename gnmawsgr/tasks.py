@@ -259,6 +259,8 @@ def do_glacier_restore(request_id,itemid,path):
                 post_restore_actions(itemid,filename)
                 rq.status = 'COMPLETED'
                 rq.completed_at = datetime.now()
+                rq.filepath_original = path
+                rq.filepath_destination = filename
                 rq.save()
             break
 

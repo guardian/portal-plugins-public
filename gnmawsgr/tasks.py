@@ -291,7 +291,7 @@ def do_glacier_restore(request_id,itemid,path):
                     timediff = datetime.now() - rq.requested_at
                     logger.warning("Glacier request for {0} has not completed in a timely way. Requested {0} ago.".format(timediff))
                     glacier_restore.apply_async((rq.pk,itemid, path), countdown=restore_short_delay)
-                    return
+                    raise
 
             except S3ResponseError as e:
                 #restore request failed, so there's something wrong with the object
@@ -299,7 +299,7 @@ def do_glacier_restore(request_id,itemid,path):
                 rq.completed_at = datetime.now()
                 logger.error(e)
                 logger.error(traceback.format_exc())
-                return
+                raise
 
 
 def post_restore_actions(itemid, downloaded_filename):

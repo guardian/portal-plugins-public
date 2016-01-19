@@ -127,6 +127,8 @@ class MiniItem(object):
 
 
 def download_callback(rq, current_progress,total):
+    if rq.status != 'DOWNLOADING':
+        rq.status = 'DOWNLOADING'
     logger.info("{itemid} Download in progress: {cur}/{tot}, {pc:.2f}%".format(
         itemid=rq.item_id,
         cur=current_progress,
@@ -244,8 +246,6 @@ def do_glacier_restore(request_id,itemid,path):
     while True:
         try:
             with open(filename,'wb') as fp:
-                rq.status = 'DOWNLOADING'
-                rq.save()
                 key.get_file(fp, cb=partial(download_callback, rq), num_cb=40)
                 rq.completed_at = datetime.now()
                 rq.status = 'IMPORTING'
@@ -274,6 +274,7 @@ def do_glacier_restore(request_id,itemid,path):
 
         except S3ResponseError as e:
             try:
+                logger.warning(e)
                 #most likely, the asset is archived
                 if rq.status != 'AWAITING_RESTORE':
                     os.unlink(filename)
@@ -297,6 +298,7 @@ def do_glacier_restore(request_id,itemid,path):
                 #restore request failed, so there's something wrong with the object
                 rq.status = 'FAILED'
                 rq.completed_at = datetime.now()
+                rq.save()
                 logger.error(e)
                 logger.error(traceback.format_exc())
                 raise

@@ -290,9 +290,9 @@ def do_glacier_restore(request_id,itemid,path):
                 else:
                     #in this case, a restore request is pending.  Log a warning and wait.
                     timediff = datetime.now() - rq.requested_at
-                    logger.warning("Glacier request for {0} has not completed in a timely way. Requested {0} ago.".format(timediff))
+                    logger.warning("Glacier request for {0} has not completed in a timely way. Requested {1} ago.".format(rq.item_id,timediff))
                     glacier_restore.apply_async((rq.pk,itemid, path), countdown=restore_short_delay)
-                    raise
+                    return
 
             except S3ResponseError as e:
                 #restore request failed, so there's something wrong with the object

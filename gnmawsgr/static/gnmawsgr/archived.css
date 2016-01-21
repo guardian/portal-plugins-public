@@ -1,4 +1,7 @@
 legend.collapsible {
-    filter: alpha(opacity=50);
-    opacity: 0.5;
+    background-color: #e9e9f4;
+}
+
+table.generictbl th {
+    background-color: #e9e9f4;
 }

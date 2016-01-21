@@ -182,6 +182,7 @@ def do_glacier_restore(request_id,itemid,path):
     from boto.exception import S3ResponseError
     from models import RestoreRequest
     from datetime import datetime
+    from vidispine.vs_item import VSItem
     import httplib2
     import traceback
     from functools import partial
@@ -220,6 +221,8 @@ def do_glacier_restore(request_id,itemid,path):
 
     item_meta = MiniItem(content)
 
+    item_obj = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+    item_obj.populate(itemid,specificFields=['title','gnm_asset_category'])
     rq = RestoreRequest.objects.get(pk=request_id)
 
     logger.info("Attempting to contact S3")
@@ -277,6 +280,7 @@ def do_glacier_restore(request_id,itemid,path):
                 logger.warning(e)
                 #most likely, the asset is archived
                 if rq.status != 'AWAITING_RESTORE':
+                    item_obj.set_metadata({'gnm_asset_status': 'Waiting for Archive Restore'})
                     os.unlink(filename)
                     #we have not yet issued a restore request
                     key.restore(restore_time)

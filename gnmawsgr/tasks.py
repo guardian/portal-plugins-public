@@ -158,10 +158,15 @@ def glacier_restore(request_id,itemid,path):
         if raven_client: #if raven is set up, capture some extra information then grab the exception
             raven_client.user_context({'request_id': request_id, 'item_id': itemid, 'path': path})
             try:
+                from django.conf import settings
+                from vidispine.vs_item import VSItem
+                item_obj = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+                item_obj.populate(itemid,specificFields=['title','gnm_asset_category'])
                 rq = RestoreRequest.objects.get(pk=request_id)
                 rq.status = "FAILED"
                 rq.failure_reason = u"{0}\n{1}".format(unicode(e),traceback.format_exc())
                 rq.save()
+                item_obj.set_metadata({'gnm_asset_status': 'Archived to External'})
                 raven_client.user_context({'request_id': request_id, 'request_details': rq.__dict__,
                                            'item_id': itemid, 'path': path})
             except StandardError as e: #if the database is playing silly buggers then log that too.
@@ -265,6 +270,7 @@ def do_glacier_restore(request_id,itemid,path):
                 rq.filepath_original = path
                 rq.filepath_destination = filename
                 rq.save()
+                item_obj.set_metadata({'gnm_asset_status': 'Ready for Editing (from Archive)'})
             break
 
         except IOError as e:
@@ -303,6 +309,7 @@ def do_glacier_restore(request_id,itemid,path):
                 rq.status = 'FAILED'
                 rq.completed_at = datetime.now()
                 rq.save()
+                item_obj.set_metadata({'gnm_asset_status': 'Archived to External'})
                 logger.error(e)
                 logger.error(traceback.format_exc())
                 raise

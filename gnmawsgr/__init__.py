@@ -45,7 +45,7 @@ class GNMAWSGRRegister(Plugin):
 
   def __init__(self):
     self.name = "GNM AWS Glacier Restore"
-    self.plugin_guid = "26b43a74-ce62-11e4-8e91-002056bc73c6"
+    self.plugin_guid = "7ACD5601-1255-4E70-8DC7-AB88188F06AF"
     log.debug("Registered GNM AWS Glacier Restore app")
 
   def __call__(self):
@@ -65,7 +65,7 @@ class GNMAWSGRAdminPlugin(Plugin):
 
     def __init__(self):
         self.name = "AdminLeftPanelBottomPanePlugin"
-        self.plugin_guid = 'e361d4c5-9683-40e7-81c1-12c0093d5a36'
+        self.plugin_guid = '3E43F026-1DB4-446B-B3A2-3A953597D7B2'
         log.debug('initiated GNMAWSGR admin panel')
 
     def return_string(self,tagname,*args):
@@ -80,7 +80,7 @@ class GNMAWSGRUrl(Plugin):
     urls = 'portal.plugins.gnmawsgr.urls'
     urlpattern = r'^gnmawsgr/'
     namespace = 'gnmawsgr'
-    plugin_guid = '62cdef18-ce63-11e4-aab1-002056bc73c6'
+    plugin_guid = 'A68B511D-078A-46DD-BE8D-5A4F2290ADC8'
 
     def __init__(self):
         log.info(GNMAWSGRUrl.name + ' initialized')
@@ -97,7 +97,7 @@ class GNMAWSGRGearboxMenuPlugin(Plugin):
         self.name = "MediaViewDropdown"
         # Define a GUID for each plugin.
         # Use e.g. http://www.guidgenerator.com/
-        self.plugin_guid = "02eed808-5c6b-42a7-88a1-0336bcf790d1"
+        self.plugin_guid = "1C0AC202-FB08-4BB0-8296-871385A7BC6B"
         log.debug("Initiated GNMAWSGRGearboxMenuPlugin")
 
     def recurse_for_field(self, mdkey, data):
@@ -184,7 +184,7 @@ class GNMAWSGRCollectionGearboxMenuPlugin(Plugin):
         self.name = "CollectionViewDropdown"
         # Define a GUID for each plugin.
         # Use e.g. http://www.guidgenerator.com/
-        self.plugin_guid = "05eed808-5c6b-42a7-88a1-0336bcf790d1"
+        self.plugin_guid = "71A4C13A-A116-4DAD-A801-DCC470BB2D7D"
         log.debug("Initiated GNMAWSGRCollectionGearboxMenuPlugin")
 
     def recurse_for_field(self, mdkey, data):
@@ -271,7 +271,7 @@ class GNMAWSGRBinGearboxMenuPlugin(Plugin):
         self.name = "MediaBinDropdown"
         # Define a GUID for each plugin.
         # Use e.g. http://www.guidgenerator.com/
-        self.plugin_guid = "07eed808-5c6b-42a7-88a1-0336bcf790d1"
+        self.plugin_guid = "FFCF6DC2-A88F-474A-A2FE-2C38440E3C85"
         log.debug("Initiated GNMAWSGRBinGearboxMenuPlugin")
 
     def return_string(self, tagname, *args):

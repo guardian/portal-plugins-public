@@ -90,7 +90,6 @@ def metadataValueInGroup(groupname, mdkey, meta):
 def rc(request):
     from tasks import glacier_restore
     from datetime import datetime
-    from pprint import pprint
     from portal.vidispine.icollection import CollectionHelper
     from portal.vidispine.igeneral import performVSAPICall
     from portal.vidispine.iitem import ItemHelper
@@ -105,8 +104,6 @@ def rc(request):
 
     collection = res['response']
 
-    #pprint(collection.getItems())
-
     content = collection.getItems()
 
     for data in content:
@@ -118,15 +115,13 @@ def rc(request):
         res2 = performVSAPICall(func=ith.getItemMetadata, \
                                     args={'item_id':itemid}, \
                                     vsapierror_templateorcode='template.html')
-        pprint(itemid)
+
         itemdata = res2['response']
-        #pprint(itemdata['item'])
+
         try:
             test_value = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_status',itemdata['item'])
         except:
             print 'An error broke the call'
-
-        pprint(test_value)
 
         if test_value == archive_test_value:
 

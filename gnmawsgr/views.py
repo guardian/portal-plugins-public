@@ -139,6 +139,7 @@ def rc(request):
                 rq.status = "READY"
                 rq.attempts = 1
                 rq.item_id = itemid
+                rq.parent_collection = collid
                 rq.save()
 
             if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER"):

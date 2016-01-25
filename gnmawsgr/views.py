@@ -148,10 +148,5 @@ def rc(request):
 
             if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER"):
                 do_task = glacier_restore.delay(rq.pk,itemid,path)
-                #print do_task
-                #return render(request,"r.html")
-            else:
-                makemework = 0
-                #return render(request,"no.html", {"at": rq.requested_at, "user": rq.username, "status": rq.status})
 
-    return render(request,"r.html")
+    return render(request,"rc.html")

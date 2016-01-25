@@ -241,6 +241,7 @@ class GNMAWSGRCollectionGearboxMenuPlugin(Plugin):
         context = args[1]
         collection = context['collection']
         content = collection.getItems()
+        collid = collection.getId()
 
         #pprint(content[0].getId())
 
@@ -257,7 +258,7 @@ class GNMAWSGRCollectionGearboxMenuPlugin(Plugin):
                 display = 1
 
         if display == 1:
-            return {'guid':self.plugin_guid, 'template':'collection_gearbox_menu.html', 'context' : {'itemid':'', 'res':''} }
+            return {'guid':self.plugin_guid, 'template':'collection_gearbox_menu.html', 'context' : {'collection':collid, 'res':''} }
 
 GNMAWSGRCollectionpluginblock = GNMAWSGRCollectionGearboxMenuPlugin()
 

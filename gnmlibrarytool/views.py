@@ -1,4 +1,126 @@
 from django.views.generic import View, TemplateView
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from vsmixin import HttpError, VSMixin
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class RuleDiagramDataView(VSMixin, APIView):
+    from rest_framework.parsers import JSONParser
+    from rest_framework.renderers import JSONRenderer
+
+    parser_classes = (JSONParser, )
+    renderer_classes = (JSONRenderer, )
+
+    vidispine_url = "http://dc1-mmmw-05.dc1.gnm.int"
+
+    def __init__(self,*args,**kwargs):
+        super(RuleDiagramDataView,self).__init__(*args,**kwargs)
+        import re
+
+        self._xtract_namespace = re.compile(r'^{[^}]*}')
+
+    def get_field_name(self,elem):
+        try:
+            return elem.find('{0}name'.format(self._ns)).text
+        except StandardError as e:
+            return "(not found)"
+
+    def process_field(self, elem):
+        rtn = {
+            'type': 'field',
+            'name': self.get_field_name(elem),
+            'values': []
+        }
+        for val in elem.findall('{0}value'.format(self._ns)):
+            rtn['values'].append(val.text)
+
+        return rtn
+
+    def process_operator(self, elem):
+        return {
+            'type': 'operator',
+            'operation': elem.attrib['operation'],
+            'members': self.search_diagram_data(elem)
+        }
+
+    def search_diagram_data(self, query_doc):
+        """
+        :param query_doc: ElementTree representation of the query document as returned by VSLibrary
+        :return:
+        """
+        batch = []
+        for child_node in query_doc:
+            real_name = self._xtract_namespace.sub('',child_node.tag)
+            if real_name == 'operator':
+                batch.append(self.process_operator(child_node))
+            elif real_name == 'field':
+                batch.append(self.process_field(child_node))
+        return batch
+
+    def _xml_get(self, tagname, doc, default='(not found)'):
+        try:
+            return doc.find('{0}{1}'.format(self._ns,tagname)).text
+        except StandardError:
+            return default
+
+    def storage_list(self, rule_doc):
+        rtn = []
+        for groupnode in rule_doc.findall('{0}group'.format(self._ns)):
+            rtn.append(groupnode.text)
+        for stornode in rule_doc.findall('{0}storage'.format(self._ns)):
+            rtn.append(stornode.text)
+
+        return rtn
+
+    def rule_diagram_data(self, rule_doc):
+        rtn = {}
+        for tag_node in rule_doc.findall('{0}tag'.format(self._ns)):
+            rtn[tag_node.attrib['id']] = {
+                'count': int(self._xml_get('storageCount', tag_node, default=-1)),
+                'include': self.storage_list(tag_node),
+                'exclude': []
+            }
+            try:
+                rtn[tag_node.attrib['id']]['exclude'] = self.storage_list(tag_node.find('{0}not'.format(self._ns)))
+            except StandardError as e:
+                logger.warning(e)
+        return rtn
+
+    def get(self, response, lib=None):
+        from .VSLibrary import VSLibrary, HttpError
+        from models import LibraryNickname
+        from django.conf import settings
+        from traceback import format_exc
+        import memcache
+
+        mc = memcache.Client([settings.CACHE_LOCATION])
+
+        l = VSLibrary(url=self.vidispine_url,port=self.vidispine_port,
+                      username=settings.VIDISPINE_USERNAME, password=settings.VIDISPINE_PASSWORD,cache=mc)
+
+        #try:
+        l.populate(lib)
+        #except HttpError as e:
+        #    return Response({'status': 'error', 'error': str(e), 'trace': format_exc()}, status=400)
+
+        rtn = {
+            'id': lib,
+            'hits': l.get_hits(lib),
+            'nickname': None,
+            'query': self.search_diagram_data(l.query),
+            'rules': self.rule_diagram_data(l.storagerule)
+        }
+
+        try:
+            nick_data = LibraryNickname.objects.get(library_id=lib)
+            rtn['nickname'] = nick_data.nickname
+        except LibraryNickname.DoesNotExist:
+            nick_data = None
+
+        return Response({'status': 'ok','data': rtn})
 
 
 class MainAppView(TemplateView):

@@ -20,8 +20,6 @@ class RuleDiagramDataView(VSMixin, APIView):
     parser_classes = (JSONParser, )
     renderer_classes = (JSONRenderer, )
 
-    vidispine_url = "http://dc1-mmmw-05.dc1.gnm.int"
-
     def __init__(self,*args,**kwargs):
         super(RuleDiagramDataView,self).__init__(*args,**kwargs)
         import re
@@ -145,7 +143,7 @@ class NicknameQueryViewset(viewsets.ReadOnlyModelViewSet):
 
             portal_rules = DistributionMetadataRule.objects.all()
 
-            qs = list(chain(qs, map(lambda x: {'library_id': x.vsid, 'nickname': x.name}, portal_rules)))
+            qs = list(chain(qs, map(lambda x: {'library_id': x.vs_id, 'nickname': x.name}, portal_rules)))
         except ImportError as e:
             pass
         return qs

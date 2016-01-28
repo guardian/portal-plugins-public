@@ -150,6 +150,7 @@ class NicknameQueryViewset(viewsets.ReadOnlyModelViewSet):
             pass
         return qs
 
+
 class MainAppView(TemplateView):
     from .forms import ShowSearchForm
     template_name = "gnmlibrarytool/index.html"

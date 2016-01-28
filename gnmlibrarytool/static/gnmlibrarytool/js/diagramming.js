@@ -62,7 +62,7 @@ function throbber(libid){
     return rtn;
 }
 
-function draw_diagram(parent, baseurl, libid){
+function draw_diagram(parent, baseurl, libid, sourcestr){
     var container=$("<div>", {'id': "diagram_" + libid, 'class': 'diagram_container'})
     parent.append(container);
 
@@ -86,8 +86,8 @@ function draw_diagram(parent, baseurl, libid){
         str = "<h1 class='library_nick'>" + data['data']['nickname'] + "</h1>";
         str += "<p class='library_id'>" + data['data']['id'] + "</p>";
         str += "<p class='library_hitcount'>Currently able to affect " + data['data']['hits'].toLocaleString() + " items</p>";
-        if(data['data']['source']){
-            str += "<p class='library_source'>" + data['data']['source'] + "</p>";
+        if(sourcestr){
+            str += "<p class='library_source'>" + sourcestr + "</p>";
         }
         info_box.append(str);
         //container.append('<h1>test</h1>')

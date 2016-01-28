@@ -145,7 +145,7 @@ class NicknameQueryViewset(viewsets.ReadOnlyModelViewSet):
 
             portal_rules = DistributionMetadataRule.objects.all()
 
-            qs = list(chain(qs,map(lambda x: {'library_id': x['vsid'], 'nickname': x['name']}, portal_rules)))
+            qs = list(chain(qs, map(lambda x: {'library_id': x.vsid, 'nickname': x.name}, portal_rules)))
         except ImportError as e:
             pass
         return qs

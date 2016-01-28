@@ -1,0 +1,134 @@
+div.diagram_container {
+    border-bottom: 4px dotted black;
+    overflow: hidden; display: block;
+    padding-bottom: 1em;
+    margin-top: 1em;
+}
+
+div.field_column {
+    float: left;
+    margin-left: 2em;
+    margin-right: 8em;
+}
+
+.rule_column {
+    float: left; margin-right: 2em; margin-top: 1em;
+}
+
+.info_column {
+    float: left;
+    margin-left: 2em;
+    margin-right: 8em;
+    width: 15%;
+    word-wrap: break-word;
+}
+
+div.throbber {
+    overflow: hidden;
+}
+
+.throbber_caption {
+  float: left;
+}
+
+div.rule_box {
+    //position: absolute; left: 30px; top: 100px;
+    border: 2px solid black;
+    //padding-left: 16px;
+    border-radius: 8px;
+    background-color: lightgray;
+    margin-top: 1em;
+}
+
+p.field_name {
+    font-weight: bold;
+    text-align: center;
+    font-size: 1.1em;
+    background-color: lightblue;
+    position: relative;
+    box-sizing: border-box;
+/*
+    padding: 0px;
+    margin-left: auto;
+    width: 100%;"
+*/
+}
+
+ul.rule_list {
+    padding-right: 2em;
+    padding-left: 1.4em;
+    font-size: 0.9em;
+    padding-right: 2em; padding-left: 1.4em;
+    list-style-type: none;
+    font-size: 0.9em;
+    margin-left: 0.5em;
+    text-align: center;
+}
+
+.operator_box {
+    border: 2px solid black; border-radius: 8px; margin-top: 1em;
+    background-color: lightgoldenrodyellow;
+}
+
+.operator_type {
+    font-weight: bold; font-size: 1em; text-align: center; background-color: lightsalmon;
+}
+
+.operator_members {
+    margin-right: 0.6em;
+    margin-left: 0.6em;
+}
+
+
+
+.storage_box {
+    border: 2px solid black; border-radius: 8px; background-color: lightgray;
+}
+
+.tag_name {
+    font-weight: bold; text-align: center; background-color: aquamarine;
+}
+
+.storage_count {
+    text-align: center;
+}
+
+.precedence {
+    text-align: center;
+    font-weight: bold;
+}
+
+.prio_HIGHEST {
+    color: rgb(255, 0, 0); font-weight: bold;
+}
+.prio_HIGH {
+    color: rgb(128, 0, 0);
+}
+.prio_MEDIUM {
+    color: rgb(128, 128, 128);
+}
+.prio_LOW {
+    color: rgb(0, 0, 128);
+}
+.prio_LOWEST {
+    color: rgb: (0,0,255);
+}
+
+.subtitle {
+    color: rgb(33, 69, 131); font-weight: bold;
+}
+
+.info_box {
+    text-align: right;
+}
+
+.library_nick {
+    font-size: 1.4em; margin-bottom: 0px; padding-bottom: 0px;
+}
+
+.library_id {
+    font-family: courier;
+}
+
+.library_hitcount {
+}

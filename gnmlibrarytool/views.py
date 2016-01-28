@@ -1,10 +1,16 @@
 from django.views.generic import View, TemplateView
 from rest_framework.views import APIView
+from rest_framework import viewsets
 from rest_framework.response import Response
 from vsmixin import HttpError, VSMixin
+from models import LibraryNickname, LibraryNicknameSerializer
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+class DiagramMainView(TemplateView):
+    template_name = 'gnmlibrarytool/diagram.html'
 
 
 class RuleDiagramDataView(VSMixin, APIView):
@@ -79,7 +85,8 @@ class RuleDiagramDataView(VSMixin, APIView):
         rtn = {}
         for tag_node in rule_doc.findall('{0}tag'.format(self._ns)):
             rtn[tag_node.attrib['id']] = {
-                'count': int(self._xml_get('storageCount', tag_node, default=-1)),
+                'count': int(self._xml_get('storageCount', tag_node, default="-1")),
+                'precedence': self._xml_get('precedence', tag_node, default='(unknown)'),
                 'include': self.storage_list(tag_node),
                 'exclude': []
             }
@@ -122,6 +129,26 @@ class RuleDiagramDataView(VSMixin, APIView):
 
         return Response({'status': 'ok','data': rtn})
 
+
+class NicknameQueryViewset(viewsets.ReadOnlyModelViewSet):
+    queryset = LibraryNickname.objects.all().order_by('nickname')
+    serializer_class = LibraryNicknameSerializer
+
+    def get_queryset(self):
+        from itertools import chain
+
+        qs = super(NicknameQueryViewset, self).get_queryset()
+
+        #if the rules engine plugin is available, then add in what's known there...
+        try:
+            from portal.plugins.rulesengine.models import DistributionMetadataRule
+
+            portal_rules = DistributionMetadataRule.objects.all()
+
+            qs = list(chain(qs,map(lambda x: {'library_id': x['vsid'], 'nickname': x['name']}, portal_rules)))
+        except ImportError as e:
+            pass
+        return qs
 
 class MainAppView(TemplateView):
     from .forms import ShowSearchForm

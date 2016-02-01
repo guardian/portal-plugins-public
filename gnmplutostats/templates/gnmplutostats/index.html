@@ -24,6 +24,38 @@
 
 <script language="JavaScript">
 
+var common_chart_settings = {
+    series: {
+        argumentField: 'category',  //the "x-axis" fieldname in the data returned
+        valueField: 'value',
+        label: {
+            visible: true,
+            connector: {
+                visible: true
+            }
+        }
+    },
+    tooltip: {
+        enabled: true,
+        percentPrecision: 1,
+        customizeTooltip: function(value) {
+            return {
+                text: value.percentText
+            };
+        }
+    },
+    title: {
+        text: "",
+        font: {
+            size: '20'
+        }
+    },
+    legend: {
+        horizontalAlignment: 'right',
+        verticalAlignment: 'center'
+    }
+};
+
 function make_chart(jqid, vs_class)
 {
     url = "{% url gnmplutostats_get_stats 'classparam'%}".replace('classparam', vs_class);
@@ -35,47 +67,39 @@ function make_chart(jqid, vs_class)
                 break;
             }
 
-            $(jqid).dxPieChart({
-                dataSource: response['data'][key],
-                series: {
-                    argumentField: 'category',  //the "x-axis" fieldname in the data returned
-                    valueField: 'value',
-                    label: {
-                        visible: true,
-                        connector: {
-                            visible: true
-                        }
-                    }
-                },
-                tooltip: {
-                    enabled: true,
-                    percentPrecision: 1,
-                    customizeTooltip: function(value) {
-                        return {
-                            text: value.percentText
-                        };
-                    }
-		        },
-                title: {
-                    text: key,
-                    font: {
-                        size: '20'
-                    }
-                },
-                legend: {
-                    horizontalAlignment: 'right',
-                    verticalAlignment: 'center'
-                }
-            });
+            s = common_chart_settings;
+            s['dataSource'] = response['data'][key];
+            s['title']['text'] = key;
+            $(jqid).dxPieChart(s);
+
         }).fail(function( jqXHR, textStatus, errorThrown ){
                 console.log(jqXHR.responseText);
         });
 }
 
+function make_collections_chart(jqid){
+    url = "{% url gnmplutostats_collection_stats %}";
+
+    $.getJSON(url)
+        .done(function(response, textStatus, jqXHR){
+            console.log(response);
+
+            s = common_chart_settings;
+            s['dataSource'] = response['data'];
+            s['series']['argumentField'] = 'bucket';
+            s['series']['valueField'] = 'hits';
+            s['title']['text'] = 'Amount of media connected to collections';
+            $(jqid).dxPieChart(s);
+
+        }).fail(function( jqXHR, textStatus, errorThrown ){
+                console.log(jqXHR.responseText);
+        });
+}
 $(document).ready(function () {
     make_chart('#commissions_chart','commission');
     make_chart('#projects_chart', 'project');
     make_chart('#masters_chart', 'master');
+    make_collections_chart('#collections_chart');
 });
 
 </script>
@@ -94,6 +118,10 @@ $(document).ready(function () {
     </div>
 
     <div class="chartarea" id="masters_chart">
+
+    </div>
+
+    <div class="chartarea" id="collections_chart">
 
     </div>
 </div>

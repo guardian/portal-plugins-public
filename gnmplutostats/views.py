@@ -272,3 +272,109 @@ class GetStatsView(BaseStatsView):
         pprint(data)
 
         return Response({'status': 'ok', 'data': self.process_facets(data)})
+
+import threading
+import Queue
+
+
+class MediaProjectAttachmentDataView(BaseStatsView):
+    max_threads = 4
+    max_collection_size = 10
+
+    interesting_fields = [
+        'name',
+        'originalFilename',
+        'fileSize',
+        'duration',
+        'gnm_asset_category',
+        'gnm_type'
+    ]
+
+    class FetchDataThread(VSMixin, threading.Thread):
+        vidispine_url = "http://dc1-mmmw-05.dc1.gnm.int"
+
+        def __init__(self,input_queue,output_queue,*args,**kwargs):
+            import httplib2
+            super(MediaProjectAttachmentDataView.FetchDataThread,self).__init__(*args,**kwargs)
+            self._q = input_queue
+            self._outq = output_queue
+            self.agent = httplib2.Http()
+
+        def make_doc(self, cats, doc_size):
+            from xml.etree.cElementTree import Element,SubElement, tostring
+            if not isinstance(cats,list):
+                cats = [cats]
+            docroot = Element('ItemSearchDocument', {'xmlns': 'http://xml.vidispine.com/schema/vidispine'})
+            fieldEl = SubElement(docroot,'field')
+            nameEl = SubElement(fieldEl, 'name')
+            nameEl.text = 'gnm_asset_category'
+            for c in cats:
+                valueEl = SubElement(fieldEl,'value')
+                valueEl.text = unicode(c)
+
+            fieldEl = SubElement(docroot,'field')
+            nameEl = SubElement(fieldEl, 'name')
+            nameEl.text = '__collection_size'
+            valueEl = SubElement(fieldEl,'value')
+            valueEl.text = str(doc_size)
+            return tostring(docroot,encoding="UTF-8")
+
+        def run(self):
+            import json
+            from pprint import pprint
+            while True:
+                data = self._q.get()
+                if 'complete' in data:
+                    break
+                doc = self.make_doc(data['categories'],data['bucket'])
+                print doc
+                try:
+                    headers, content = self._make_vidispine_request(self.agent,"PUT","/API/item;number=0",doc,headers={'Accept': 'application/json'})
+
+                    rtn_data = json.loads(content)
+                    pprint(content)
+                    data['response'] = rtn_data
+                    self._outq.put(data)
+                except StandardError as e:
+                    log.error(e)
+                self._q.task_done()
+
+    def inner_get(self, request, type=None):
+        input_queue = Queue.Queue()
+        output_queue = Queue.Queue()
+        threads = []
+
+        log.info("Starting {0} threads".format(self.max_threads))
+        #print "Starting {0} threads".format(self.max_threads)
+        for n in range(0,self.max_threads):
+            t = self.FetchDataThread(input_queue,output_queue)
+            threads.append(t)
+            t.start()
+
+        for n in range(0,self.max_collection_size):
+            input_queue.put({'categories': ['Rushes'], 'bucket': n})
+
+        log.info("Waiting for data back from Vidispine...")
+        #print "Waiting for data back from Vidispine..."
+
+        input_queue.join()
+
+        log.info("Terminating threads...")
+        #print "Terminating threads..."
+        for n in range(0, self.max_threads):
+            input_queue.put({'complete': True})
+
+        result = []
+        try:
+            while True:
+                data = output_queue.get(False)
+                data['hits'] = data['response']['hits']
+                data['n'] = data['bucket']
+                data['bucket'] = "{0} collections".format(data['bucket'])
+                del data['response']
+                result.append(data)
+
+        except Queue.Empty:
+            pass
+
+        return Response({'status': 'ok', 'data': sorted(result, key=lambda x: x['n'])})

@@ -291,8 +291,6 @@ class MediaProjectAttachmentDataView(BaseStatsView):
     ]
 
     class FetchDataThread(VSMixin, threading.Thread):
-        vidispine_url = "http://dc1-mmmw-05.dc1.gnm.int"
-
         def __init__(self,input_queue,output_queue,*args,**kwargs):
             import httplib2
             super(MediaProjectAttachmentDataView.FetchDataThread,self).__init__(*args,**kwargs)

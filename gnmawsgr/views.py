@@ -142,7 +142,7 @@ def rc(request):
                 rq.parent_collection = collid
                 rq.save()
 
-            if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER"):
+            if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER") or (rq.status == "COMPLETED"):
                 do_task = glacier_restore.delay(rq.pk,itemid,path)
 
     return render(request,"rc.html")

@@ -1,0 +1,15 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress %}
+{% block title %}{% trans 'Glacier Restore system Settings' %}{% endblock %}
+{% block heading %}{% trans 'Glacier Restore system Settings' %}{% endblock %}
+
+{% block content %}
+<form method="post">{% csrf_token %}
+    <p><strong>WARNING</strong> This is an advanced function for administrators only.  The purpose is to delete requests
+    which have failed for some reason not picked up by the software.  Outstanding requests will not be cancelled, but if
+    you delete a request which is still active you will probably receive errors from the backend.</p>
+    <p>Are you sure you want to delete "{{ object }}" ?</p>
+    <p><input type="submit" value="Yes" /></p>
+</form>
+
+{% endblock %}

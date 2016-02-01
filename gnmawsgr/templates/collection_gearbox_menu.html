@@ -1,0 +1,22 @@
+<script>
+  $(function() {
+    $( "#dialog{{ collection }}" ).dialog({
+      autoOpen: false,
+      width:480,
+    });
+
+    $( "#opener{{ collection }}" ).click(function() {
+      $( "#dialog{{ collection }}" ).dialog( "open" );
+      $( "#dialog{{ collection }}" ).load( "/gnmawsgr/rc/?id={{ collection }}" );
+    });
+  });
+
+</script>
+
+<li>
+<a id="opener{{ collection }}">Restore from Glacier</a>
+</li>
+
+<div id="dialog{{ collection }}" title="Restore from Glacier">
+
+</div>

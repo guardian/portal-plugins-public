@@ -35,7 +35,7 @@ def r(request):
         rq.item_id = itemid
         rq.save()
 
-    if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER"):
+    if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER") or (rq.status == "COMPLETED"):
         do_task = glacier_restore.delay(rq.pk,itemid,path)
         #print do_task
         return render(request,"r.html")

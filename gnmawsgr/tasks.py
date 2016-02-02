@@ -198,9 +198,9 @@ def do_glacier_restore(request_id,itemid,path):
     restore_short_delay = 600
 
     if hasattr(settings,'GLACIER_TEMP_PATH'):
-        temp_path = settings.glacier_temp_path
+        temp_path = settings.GLACIER_TEMP_PATH
     if hasattr(settings,'GLACIER_RESTORE_TIME'):
-        temp_path = settings.glacier_restore_time
+        temp_path = settings.GLACIER_RESTORE_TIME
 
     interesting_fields = [
         'title',

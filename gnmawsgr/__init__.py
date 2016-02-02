@@ -18,8 +18,8 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
     if not re.match(r'^/',urlpath):
         urlpath = '/' + urlpath
 
-    #url = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
-    url = "http://dc1-mmmw-05.dc1.gnm.int:8080{0}".format(urlpath)
+    url = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
+    #url = "http://dc1-mmmw-05.dc1.gnm.int:8080{0}".format(urlpath)
     logging.debug("URL is %s" % url)
     (headers,content) = agent.request(url,method=method,body=body,headers=headers)
     return (headers,content)
@@ -31,6 +31,22 @@ def getItemInfo(itemid,agent=None):
         agent = httplib2.Http()
 
     url = "/API/item/{0}".format(itemid)
+
+    (headers,content) = make_vidispine_request(agent,"GET",url,body="",headers={'Accept': 'application/json'})
+    if int(headers['status']) < 200 or int(headers['status']) > 299:
+        #logging.error(content)
+        #raise StandardError("Vidispine error: %s" % headers['status'])
+        return None
+
+    return json.loads(content)
+
+def getBinInfo(agent=None):
+    import json
+    if agent is None:
+        import httplib2
+        agent = httplib2.Http()
+
+    url = "/API/v1/mediabin/"
 
     (headers,content) = make_vidispine_request(agent,"GET",url,body="",headers={'Accept': 'application/json'})
     if int(headers['status']) < 200 or int(headers['status']) > 299:
@@ -72,6 +88,21 @@ class GNMAWSGRAdminPlugin(Plugin):
         return {'guid': self.plugin_guid, 'template': 'gnmawsgr/navigation.html'}
 
 GNMAWSGRadminplug = GNMAWSGRAdminPlugin()
+
+class GNMAWSGRAdminNavigationPlugin(Plugin):
+    # This adds your app to the navigation bar
+    # Please update the information below with the author etc..
+    implements(IPluginBlock)
+
+    def __init__(self):
+        self.name = "NavigationAdminPlugin"
+        self.plugin_guid = 'FC1732F9-A02E-4355-8BA0-F67924DECA5F'
+        log.debug('Initiated navigation plugin')
+
+    def return_string(self, tagname, *args):
+        return {'guid': self.plugin_guid, 'template': 'gnmawsgr/menu.html'}
+
+GNMAWSGRnavplug = GNMAWSGRAdminNavigationPlugin()
 
 class GNMAWSGRUrl(Plugin):
     implements(IPluginURL)
@@ -278,7 +309,9 @@ class GNMAWSGRBinGearboxMenuPlugin(Plugin):
     def return_string(self, tagname, *args):
         display = 1
 
+        mediabin = getBinInfo()
+
         if display == 1:
-            return {'guid':self.plugin_guid, 'template':'bin_gearbox_menu.html', 'context' : {'itemid':'', 'res':''} }
+            return {'guid':self.plugin_guid, 'template':'bin_gearbox_menu.html', 'context' : {'mediabin':mediabin} }
 
 GNMAWSGRBinpluginblock = GNMAWSGRBinGearboxMenuPlugin()

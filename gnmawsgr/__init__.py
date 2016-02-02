@@ -90,8 +90,6 @@ class GNMAWSGRAdminPlugin(Plugin):
 GNMAWSGRadminplug = GNMAWSGRAdminPlugin()
 
 class GNMAWSGRAdminNavigationPlugin(Plugin):
-    # This adds your app to the navigation bar
-    # Please update the information below with the author etc..
     implements(IPluginBlock)
 
     def __init__(self):
@@ -122,12 +120,7 @@ class GNMAWSGRGearboxMenuPlugin(Plugin):
     implements(IPluginBlock)
 
     def __init__(self):
-        # The name of the plugin which should match the pluginblock tag in the Portal template
-        # For instance as defined in media_view.html: {% pluginblock "MediaViewDropdown" %}
-        # This plugin is placed in the gearbox menu for the item.
         self.name = "MediaViewDropdown"
-        # Define a GUID for each plugin.
-        # Use e.g. http://www.guidgenerator.com/
         self.plugin_guid = "1C0AC202-FB08-4BB0-8296-871385A7BC6B"
         log.debug("Initiated GNMAWSGRGearboxMenuPlugin")
 
@@ -209,12 +202,7 @@ class GNMAWSGRCollectionGearboxMenuPlugin(Plugin):
     implements(IPluginBlock)
 
     def __init__(self):
-        # The name of the plugin which should match the pluginblock tag in the Portal template
-        # For instance as defined in media_view.html: {% pluginblock "MediaViewDropdown" %}
-        # This plugin is placed in the gearbox menu for the item.
         self.name = "CollectionViewDropdown"
-        # Define a GUID for each plugin.
-        # Use e.g. http://www.guidgenerator.com/
         self.plugin_guid = "71A4C13A-A116-4DAD-A801-DCC470BB2D7D"
         log.debug("Initiated GNMAWSGRCollectionGearboxMenuPlugin")
 
@@ -297,12 +285,7 @@ class GNMAWSGRBinGearboxMenuPlugin(Plugin):
     implements(IPluginBlock)
 
     def __init__(self):
-        # The name of the plugin which should match the pluginblock tag in the Portal template
-        # For instance as defined in media_view.html: {% pluginblock "MediaViewDropdown" %}
-        # This plugin is placed in the gearbox menu for the item.
         self.name = "MediaBinDropdown"
-        # Define a GUID for each plugin.
-        # Use e.g. http://www.guidgenerator.com/
         self.plugin_guid = "FFCF6DC2-A88F-474A-A2FE-2C38440E3C85"
         log.debug("Initiated GNMAWSGRBinGearboxMenuPlugin")
 

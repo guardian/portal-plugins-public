@@ -67,10 +67,10 @@ class GNMAWSGRRegister(Plugin):
   def __call__(self):
     _app_dict = {
       'name': self.name,
-      'version': 0.1,
-      'author': 'David Allison',
+      'version': "1.0.0",
+      'author': 'Dave Allison and Andy Gallagher',
       'author_url': 'www.theguardian.com/',
-      'notes': 'Test'
+      'notes': 'Allows restoration of items and collections from the Amazon Web Services Glacier system.'
     }
     return _app_dict
 

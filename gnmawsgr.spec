@@ -43,9 +43,6 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root)
 /opt/cantemo/portal/portal/plugins/gnmawsgr
-/opt/cantemo/portal/portal_themes/gnm/templates/media/media_view.html
-/opt/cantemo/portal/portal_themes/gnm/templates/media/media_inc_preview.html
-/opt/cantemo/portal/portal_media/gnm/css/logos.css
 /opt/cantemo/portal/portal_media/img/gnm/logos/axe.gif
 /opt/cantemo/portal/portal_media/img/gnm/logos/archived.png
 /opt/cantemo/portal/portal_media/img/gnm/logos/restored.png

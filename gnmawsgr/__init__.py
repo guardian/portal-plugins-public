@@ -118,7 +118,6 @@ GNMAWSGRurlplugin = GNMAWSGRUrl()
 
 class GNMAWSGRGearboxMenuPlugin(Plugin):
     implements(IPluginBlock)
-    from decorators import has_group
 
     def __init__(self):
         self.name = "MediaViewDropdown"
@@ -170,7 +169,6 @@ class GNMAWSGRGearboxMenuPlugin(Plugin):
                             return rtn
         raise ValueError("Could not find metadata key {0}".format(mdkey))
 
-    @has_group('AWS_GR_Restore')
     def return_string(self, tagname, *args):
         display = 0
 
@@ -202,7 +200,6 @@ GNMAWSGRpluginblock = GNMAWSGRGearboxMenuPlugin()
 
 class GNMAWSGRCollectionGearboxMenuPlugin(Plugin):
     implements(IPluginBlock)
-    from decorators import has_group
 
     def __init__(self):
         self.name = "CollectionViewDropdown"
@@ -254,7 +251,6 @@ class GNMAWSGRCollectionGearboxMenuPlugin(Plugin):
                             return rtn
         raise ValueError("Could not find metadata key {0}".format(mdkey))
 
-    @has_group('AWS_GR_Restore')
     def return_string(self, tagname, *args):
         display = 0
 
@@ -287,14 +283,12 @@ GNMAWSGRCollectionpluginblock = GNMAWSGRCollectionGearboxMenuPlugin()
 
 class GNMAWSGRBinGearboxMenuPlugin(Plugin):
     implements(IPluginBlock)
-    from decorators import has_group
 
     def __init__(self):
         self.name = "MediaBinDropdown"
         self.plugin_guid = "FFCF6DC2-A88F-474A-A2FE-2C38440E3C85"
         log.debug("Initiated GNMAWSGRBinGearboxMenuPlugin")
 
-    @has_group('AWS_GR_Restore')
     def return_string(self, tagname, *args):
         display = 1
 

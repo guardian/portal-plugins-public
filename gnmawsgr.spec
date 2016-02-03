@@ -46,6 +46,9 @@ rm -rf $RPM_BUILD_ROOT
 /opt/cantemo/portal/portal_media/img/gnm/logos/axe.gif
 /opt/cantemo/portal/portal_media/img/gnm/logos/archived.png
 /opt/cantemo/portal/portal_media/img/gnm/logos/restored.png
+/opt/cantemo/portal/portal_media/gnmawsgr/gnm/css/logos.css
+/opt/cantemo/portal/portal_media/gnmawsgr/gnm/templates/media/media_view.html
+/opt/cantemo/portal/portal_media/gnmawsgr/gnm/templates/media/media_inc_preview.html
 
 %pre
 if [ -f /opt/cantemo/portal/portal_media/gnm/css/logos.css ]; then

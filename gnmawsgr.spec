@@ -49,6 +49,7 @@ rm -rf $RPM_BUILD_ROOT
 /opt/cantemo/portal/portal_media/gnmawsgr/gnm/css/logos.css
 /opt/cantemo/portal/portal_media/gnmawsgr/gnm/templates/media/media_view.html
 /opt/cantemo/portal/portal_media/gnmawsgr/gnm/templates/media/media_inc_preview.html
+/opt/cantemo/portal/portal_media/delete.png
 
 %pre
 if [ -f /opt/cantemo/portal/portal_media/gnm/css/logos.css ]; then
@@ -75,5 +76,6 @@ chmod 0775 /opt/cantemo/portal/portal_media/gnm/css/logos.css
 chmod 0775 /opt/cantemo/portal/portal_media/img/gnm/logos/axe.gif
 chmod 0775 /opt/cantemo/portal/portal_media/img/gnm/logos/archived.png
 chmod 0775 /opt/cantemo/portal/portal_media/img/gnm/logos/restored.png
+chmod 0775 /opt/cantemo/portal/portal_media/delete.png
  
 %preun

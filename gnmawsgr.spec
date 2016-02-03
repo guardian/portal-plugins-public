@@ -1,7 +1,7 @@
 %define name portal-pluto-gnmawsgr
 %define version 1.0
 %define unmangled_version 1.0
-%define release 1
+%define release 6
 
 Summary: GNM Amazon Web Services Glacier Restore
 Name: %{name}
@@ -50,10 +50,20 @@ rm -rf $RPM_BUILD_ROOT
 /opt/cantemo/portal/portal_media/img/gnm/logos/archived.png
 /opt/cantemo/portal/portal_media/img/gnm/logos/restored.png
 
+%pre
+mv /opt/cantemo/portal/portal_media/gnm/css/logos.css /opt/cantemo/portal/portal_media/gnm/css/logos_old.css
+mv /opt/cantemo/portal/portal_themes/gnm/templates/media/media_view.html /opt/cantemo/portal/portal_themes/gnm/templates/media/media_view_old.html
+mv /opt/cantemo/portal/portal_themes/gnm/templates/media/media_inc_preview.html /opt/cantemo/portal/portal_themes/gnm/templates/media/media_inc_preview_old.html
 
 %post
 /opt/cantemo/portal/manage.py collectstatic --noinput
 /opt/cantemo/portal/manage.py migrate gnmawsgr --noinput
 /opt/cantemo/portal/manage.py install_glacierrestore
-
+chmod 0775 /opt/cantemo/portal/portal_themes/gnm/templates/media/media_view.html
+chmod 0775 /opt/cantemo/portal/portal_themes/gnm/templates/media/media_inc_preview.html
+chmod 0775 /opt/cantemo/portal/portal_media/gnm/css/logos.css
+chmod 0775 /opt/cantemo/portal/portal_media/img/gnm/logos/axe.gif
+chmod 0775 /opt/cantemo/portal/portal_media/img/gnm/logos/archived.png
+chmod 0775 /opt/cantemo/portal/portal_media/img/gnm/logos/restored.png
+ 
 %preun

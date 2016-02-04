@@ -4,6 +4,21 @@
 {% block heading %}{% trans 'Glacier Restore system status' %}{% endblock %}
 
 {% block content %}
+<script>
+  {% for entry in object_list %}
+  $(function() {
+    $( "#dialog{{ entry.item_id }}" ).dialog({
+      autoOpen: false,
+      width:480,
+    });
+
+    $( "#opener{{ entry.item_id }}" ).click(function() {
+      $( "#dialog{{ entry.item_id }}" ).dialog( "open" );
+      $( "#dialog{{ entry.item_id }}" ).load( "/gnmawsgr/re/?id={{ entry.item_id }}&path={{ entry.filepath_original }}" );
+    });
+  });
+  {% endfor %}
+</script>
 <table>
     <tr>
         <td>Status</td>
@@ -12,6 +27,7 @@
         <td>File Size</td>
         <td>Currently Downloaded</td>
         <td>File Size Check</td>
+        <td>Retry</td>
         <td>Delete</td>
     </tr>
     {% for entry in object_list %}
@@ -22,10 +38,18 @@
         <td>{{ entry.file_size|filesizeformat }}</td>
         <td>{{ entry.currently_downloaded|filesizeformat }}</td>
         <td>{{ entry.file_size_check }}</td>
+        <td><a id="opener{{ entry.item_id }}">Retry</a></td>
         <td><a href='{% url delete_request pk=entry.pk %}'><img src='{% static "delete.png" %}' style="width: 16px"></a></td>
     </tr>
     {% endfor %}
 </table>
+
+{% for entry in object_list %}
+<div id="dialog{{ entry.item_id }}" title="Restore from Glacier">
+
+</div>
+{% endfor %}
+
 {% if object_list|length == 0 %}
 <p style="text-align: center; font-size: 1.2em"><strong>No restore requests currently present</strong></p>
 {% endif %}

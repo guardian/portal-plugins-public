@@ -261,7 +261,6 @@ def do_glacier_restore(request_id,itemid,path):
                 if (os.path.getsize(filename) + 20000) < rq.file_size:
                     rq.status = "FAILED"
                     rq.save()
-                    return
                 rq.save()
                 post_restore_actions(itemid,filename)
                 rq.status = 'COMPLETED'

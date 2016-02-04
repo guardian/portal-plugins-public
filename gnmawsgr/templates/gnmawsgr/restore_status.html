@@ -11,6 +11,7 @@
         <td>Item ID</td>
         <td>File Size</td>
         <td>Currently Downloaded</td>
+        <td>File Size Check</td>
         <td>Delete</td>
     </tr>
     {% for entry in object_list %}
@@ -20,6 +21,7 @@
         <td><a href="/vs/item/{{ entry.item_id }}">{{ entry.item_id }}</a></td>
         <td>{{ entry.file_size|filesizeformat }}</td>
         <td>{{ entry.currently_downloaded|filesizeformat }}</td>
+        <td>{{ entry.file_size_check }}</td>
         <td><a href='{% url delete_request pk=entry.pk %}'><img src='{% static "delete.png" %}' style="width: 16px"></a></td>
     </tr>
     {% endfor %}

@@ -14,6 +14,7 @@ class RestoreRequest(Model):
     filepath_original = CharField(max_length=32768,blank=True)
     filepath_destination = CharField(max_length=32768,null=True)
     failure_reason = CharField(max_length=32768,blank=True,null=True)
+    file_size_check = CharField(max_length=32768,null=True)
     status = CharField(max_length=64,choices=(
         ('READY','Ready'),
         ('AWAITING_RESTORE','Awaiting Restore'),

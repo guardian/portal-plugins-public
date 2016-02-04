@@ -60,6 +60,20 @@ class DeleteRestoreRequest(DeleteView):
     def dispatch(self, request, *args, **kwargs):
         return super(DeleteRestoreRequest,self).dispatch(request,*args,**kwargs)
 
+@login_required
+@has_group('AWS_GR_Restore')
+def re(request):
+    from tasks import glacier_restore
+
+    itemid = request.GET.get('id', '')
+    path = request.GET.get('path', '')
+
+    rq = RestoreRequest.objects.get(item_id=itemid)
+    rq.status = "RETRY"
+    rq.attempts = rq.attempts + 1
+    rq.save()
+    do_task = glacier_restore.delay(rq.pk,itemid,path)
+    return render(request,"r.html")
 
 def _find_group(groupname,meta):
     if not 'group' in meta:

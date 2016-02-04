@@ -260,9 +260,7 @@ def do_glacier_restore(request_id,itemid,path):
                 rq.file_size_check = "Expected: {0} bytes. Actual: {1} bytes.".format(rq.file_size,os.path.getsize(filename))
                 if (os.path.getsize(filename) + 20000) < rq.file_size:
                     rq.status = "FAILED"
-                    #rq.attempts = rq.attempts + 1
                     rq.save()
-                    #do_task = glacier_restore.delay(rq.pk,itemid,path)
                     return
                 rq.save()
                 post_restore_actions(itemid,filename)

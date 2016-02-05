@@ -1,7 +1,7 @@
 %define name portal-pluto-gnmawsgr
 %define version 1.0
 %define unmangled_version 1.0
-%define release 9
+%define release 13
 
 Summary: GNM Amazon Web Services Glacier Restore
 Name: %{name}
@@ -36,6 +36,7 @@ mkdir -p $RPM_BUILD_ROOT/opt/cantemo/portal/portal_media/img/gnm/logos
 cp -a /opt/cantemo/portal/portal_media/img/gnm/logos/axe.gif $RPM_BUILD_ROOT/opt/cantemo/portal/portal_media/img/gnm/logos/axe.gif
 cp -a /opt/cantemo/portal/portal_media/img/gnm/logos/archived.png $RPM_BUILD_ROOT/opt/cantemo/portal/portal_media/img/gnm/logos/archived.png
 cp -a /opt/cantemo/portal/portal_media/img/gnm/logos/restored.png $RPM_BUILD_ROOT/opt/cantemo/portal/portal_media/img/gnm/logos/restored.png
+cp -a /opt/cantemo/portal/portal_media/delete.png $RPM_BUILD_ROOT/opt/cantemo/portal/portal_media/delete.png
 
 %clean
 rm -rf $RPM_BUILD_ROOT

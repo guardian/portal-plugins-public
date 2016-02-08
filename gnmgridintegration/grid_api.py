@@ -4,6 +4,7 @@ import logging
 class GridBase(object):
     class HttpError(StandardError):
         def __init__(self, code, response_content, response_headers, request_headers, uri, method, *args,**kwargs):
+            import json
             super(GridBase.HttpError,self).__init__(*args,**kwargs)
             self.code = code
             self.response_content = response_content
@@ -12,8 +13,20 @@ class GridBase(object):
             self.uri = uri
             self.method = method
 
+            try:
+                self.exception_info = json.loads(response_content)
+                self.grid_error_code = self.exception_info['errorKey']
+                self.grid_error_message = self.exception_info['errorMessage']
+            except StandardError:
+                self.exception_info = {}
+                self.grid_error_code = '(unknown)'
+                self.grid_error_message = '(unknown)'
+
         def __unicode__(self):
-            return u'HTTP error {0} performing {1} on {2}\n"{3}'.format(self.code,self.method,self.uri,self.__dict__)
+            if len(self.exception_info) > 0:
+                return u'{0}: {1}, {2}'.format(self.code, self.grid_error_code, self.grid_error_message)
+            else:
+                return u'HTTP error {0} performing {1} on {2}\n"{3}'.format(self.code,self.method,self.uri,self.__dict__)
 
         def __str__(self):
             return self.__unicode__().encode('ASCII')
@@ -52,7 +65,10 @@ class GridBase(object):
         if int(resp_headers['status']) < 200 or int(resp_headers['status']) > 299:
             raise self.HttpError(int(resp_headers['status']),content,resp_headers,headers,uri,method)
 
-        return json.loads(content)
+        try:
+            return json.loads(content)
+        except ValueError:
+            return content
 
 
 class GridLoader(GridBase):
@@ -113,6 +129,9 @@ class GridImage(GridBase):
     def info(self):
         return self.request(self.uri)
 
+    def delete(self):
+        return self.request(self.uri,"DELETE")
+
 if __name__ == '__main__':
     import sys
     from pprint import pprint
@@ -127,3 +146,4 @@ if __name__ == '__main__':
         image = l.upload_image(fp, '')
     pprint(image)
     pprint(image.info())
+    image.delete()

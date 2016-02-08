@@ -110,10 +110,10 @@ class GridLoader(GridBase):
             return GridImage(response['uri'],self._api_key) #this is normally the only thing returned
         return response
 
-
 class GridImage(GridBase):
     logger = logging.getLogger('grid_api.GridImage')
     _base_uri = 'https://api.media.test.dev-gutools.co.uk/images'
+    max_cache_time = 30 #in seconds
 
     def __init__(self,uri_or_id,*args,**kwargs):
         import re
@@ -126,14 +126,39 @@ class GridImage(GridBase):
                 raise ValueError("uri_or_id should be a URL or a hexadecimal grid ID")
             self.uri = self._base_uri + '/' + uri_or_id
 
+        self._info_cache_time = None
+        self._info_cache = None
+
+    @property
+    def actions(self):
+        data=self.info()
+        return map(lambda x: x['name'], data['actions'])
+
     def info(self):
-        return self.request(self.uri)
+        import time
+        if self._info_cache is not None:
+            if self._info_cache_time > time.time() - self.max_cache_time:
+                return self._info_cache
+
+        self._info_cache = self.request(self.uri)
+        self._info_cache_time = time.time()
+        return self._info_cache
 
     def delete(self):
         return self.request(self.uri,"DELETE")
 
+    def set_metadata(self, new_md):
+        import json
+
+        if not isinstance(new_md, dict):
+            raise ValueError("set_metadata expects a dictionary of metadata key/value to set")
+
+        body_doc = json.dumps({'data': new_md})
+        self.request(self.uri,'PUT',query_params=None,body=body_doc,extra_headers={'Content-Type': 'application/json'})
+
 if __name__ == '__main__':
     import sys
+    import time
     from pprint import pprint
     logging.basicConfig(level=logging.DEBUG)
     logging.info("Running tests on grid_api classes")
@@ -144,6 +169,11 @@ if __name__ == '__main__':
 
     with open(sys.argv[1]) as fp:
         image = l.upload_image(fp, '')
-    pprint(image)
-    pprint(image.info())
-    image.delete()
+    #pprint(image)
+    #pprint(image.info())
+    time.sleep(1)
+    print "Image supports: {0}".format(image.actions)
+    image.set_metadata({'credit': 'Andy Gallagher', 'description': 'Test image'})
+    time.sleep(1)
+    print "Image supports: {0}".format(image.actions)
+    #image.delete()

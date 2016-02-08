@@ -110,6 +110,7 @@ class GridLoader(GridBase):
             return GridImage(response['uri'],self._api_key) #this is normally the only thing returned
         return response
 
+
 class GridImage(GridBase):
     logger = logging.getLogger('grid_api.GridImage')
     _base_uri = 'https://api.media.test.dev-gutools.co.uk/images'
@@ -153,8 +154,10 @@ class GridImage(GridBase):
         if not isinstance(new_md, dict):
             raise ValueError("set_metadata expects a dictionary of metadata key/value to set")
 
+        info = self.info()
+        md_uri = info['data']['userMetadata']['data']['metadata']['uri']
         body_doc = json.dumps({'data': new_md})
-        self.request(self.uri,'PUT',query_params=None,body=body_doc,extra_headers={'Content-Type': 'application/json'})
+        self.request(md_uri,'PUT',query_params=None,body=body_doc,extra_headers={'Content-Type': 'application/json'})
 
 if __name__ == '__main__':
     import sys

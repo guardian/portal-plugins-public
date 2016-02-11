@@ -315,8 +315,6 @@ def do_glacier_restore(request_id,itemid,path):
 
 
 def post_restore_actions(itemid, downloaded_filename):
-    import os
-    os.chown(downloaded_filename,504,-1)
     logger.info("Creating shape for {0}...".format(itemid))
     try:
         makeshape(itemid,downloaded_filename,tagname='original')

@@ -139,7 +139,7 @@ def download_callback(rq, current_progress,total):
     rq.save()
 
 
-@celery.task
+#@celery.task
 def propagate(collectionid,field,switch):
     #from models import RestoreRequest
     from vidispine.vs_collection import VSCollection
@@ -152,6 +152,10 @@ def propagate(collectionid,field,switch):
     except StandardError as e:
         logger.error("Raven client either not installed (pip install raven) or set up (RAVEN_CONFIG in localsettings.py).  Unable to report errors to Sentry")
         raven_client = None
+
+    print collectionid
+    print field
+    print switch
 
 
     if (0 == 1):
@@ -332,21 +336,8 @@ if __name__ == '__main__':
     #Use this statment to test from command line
     for arg in sys.argv:
         print arg
-    print "Running test on AWSGR tasks"
-    interesting_fields = [
-        'title',
-        'gnm_external_archive_external_archive_device',
-        'gnm_external_archive_external_archive_path',
-        'gnm_external_archive_external_archive_status',
-        'gnm_external_archive_external_archive_report',
-    ]
 
-    import httplib2
-    h=httplib2.Http()
-    headers, content = make_vidispine_request(h,'GET','/API/item/KP-1161935/metadata?fields=title,gnm_external_archive_external_archive_device,gnm_external_archive_external_archive_path',"",{'Accept': 'application/json'})
-    item_meta = MiniItem(content)
-    for f in interesting_fields:
-        try:
-            print "{0} => {1}".format(f,item_meta.get(f))
-        except KeyError:
-            print "{0} => [no value]".format(f)
+    propagate(sys.argv[1],sys.argv[2],sys.argv[3])
+
+
+

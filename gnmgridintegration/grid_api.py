@@ -2,6 +2,9 @@ import logging
 
 
 class GridBase(object):
+    logger = logging.getLogger("grid_api.GridBase")
+    cert_verification = False
+
     class HttpError(StandardError):
         def __init__(self, code, response_content, response_headers, request_headers, uri, method, *args,**kwargs):
             import json
@@ -44,9 +47,12 @@ class GridBase(object):
             'Accept': 'application/json'
         }
 
-        if extra_headers is not None and not isinstance(extra_headers,dict):
+        pprint(headers)
+        if extra_headers is not None and isinstance(extra_headers,dict):
             headers.update(extra_headers)
 
+        pprint(extra_headers)
+        pprint(headers)
         if query_params is not None and not isinstance(query_params,dict):
             raise TypeError("query_params must be a dictionary")
 
@@ -60,7 +66,8 @@ class GridBase(object):
             full_uri += "?"+urllib.urlencode(query_params)
 
         #https://loader.media.test.dev-gutools.co.uk/images{?uploadedBy,identifiers,uploadTime,filename}
-        h=httplib2.Http()
+        h=httplib2.Http(disable_ssl_certificate_validation=not self.cert_verification)
+        self.logger.debug("URL is {0}".format(full_uri))
         (resp_headers, content) = h.request(full_uri,method,body,headers)
         if int(resp_headers['status']) < 200 or int(resp_headers['status']) > 299:
             raise self.HttpError(int(resp_headers['status']),content,resp_headers,headers,uri,method)
@@ -135,6 +142,11 @@ class GridImage(GridBase):
         data=self.info()
         return map(lambda x: x['name'], data['actions'])
 
+    @property
+    def links(self):
+        data=self.info()
+        return map(lambda x:x['rel'], data['links'])
+
     def info(self):
         import time
         if self._info_cache is not None:
@@ -168,15 +180,15 @@ if __name__ == '__main__':
 
     logging.info("Attempting to upload {0}".format(sys.argv[1]))
 
-    l = GridLoader('pluto_grid_api_test','')
+    l = GridLoader('pluto_grid_api_test','pluto-35495dd119156ab447ab8719e1218983a33d3952')
 
     with open(sys.argv[1]) as fp:
         image = l.upload_image(fp, '')
     #pprint(image)
     #pprint(image.info())
     time.sleep(1)
-    print "Image supports: {0}".format(image.actions)
+    print "Image supports: {0} and {1}".format(image.actions,image.links)
     image.set_metadata({'credit': 'Andy Gallagher', 'description': 'Test image'})
     time.sleep(1)
-    print "Image supports: {0}".format(image.actions)
+    print "Image supports: {0} and {1}".format(image.actions, image.links)
     #image.delete()

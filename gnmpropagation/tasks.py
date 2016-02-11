@@ -328,7 +328,10 @@ def post_restore_actions(itemid, downloaded_filename):
     logger.info("Done.")
 
 if __name__ == '__main__':
+    import sys
     #Use this statment to test from command line
+    for arg in sys.argv:
+        print arg
     print "Running test on AWSGR tasks"
     interesting_fields = [
         'title',

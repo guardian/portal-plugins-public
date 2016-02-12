@@ -142,7 +142,7 @@ def download_callback(rq, current_progress,total):
 #@celery.task
 def propagate(collectionid,field,switch):
     #from models import RestoreRequest
-    from vidispine.vs_collection import VSCollection
+    from vidispine.vs_collection import VSCollection, VSItem
     import traceback
     from pprint import pprint
     try:
@@ -163,12 +163,30 @@ def propagate(collectionid,field,switch):
     VIDISPINE_PORT = 8080
     VIDISPINE_PASSWORD = "admin"
 
+    setswitch = None
+
+    if (field == 'gnm_storage_rule_sensitive') and (switch == '1'):
+        setswitch = 'Sensitive'
+
+
     #collection_obj = VSCollection(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
     collection_obj = VSCollection(url=VIDISPINE_URL,port=VIDISPINE_PORT,user=VIDISPINE_USERNAME,passwd=VIDISPINE_PASSWORD)
-    collection_obj.populate(collectionid,specificFields=['title','gnm_asset_category'])
+    collection_obj.populate(collectionid, specificFields=['title','gnm_asset_category'])
 
     for subitem in collection_obj.content(shouldPopulate=False):
-        pprint(subitem.__dict__)
+        subitem.populate(subitem.name, specificFields=['title','gnm_asset_category','gnm_type',field])
+        #pprint(subitem.__dict__)
+        type = '(unknown)'
+        if isinstance(subitem,VSItem):
+            type = "item"
+        elif isinstance(subitem,VSCollection):
+            type = "collection"
+
+        print "Got {0} {1}".format(type, subitem.name)
+        for f in ['title','gnm_type','gnm_asset_category',field]:
+            print "\t{0}: {1}".format(f,subitem.get(f))
+        print setswitch
+        subitem.set_metadata({field: setswitch})
 
     if (0 == 1):
 

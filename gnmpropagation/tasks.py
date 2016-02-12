@@ -18,7 +18,6 @@ def do_propagate(collectionid,field,switch):
 
 @celery.task
 def propagate(collectionid,field,switch):
-    #from models import RestoreRequest
     from vidispine.vs_collection import VSCollection, VSItem
     import traceback
     #from pprint import pprint
@@ -54,9 +53,10 @@ def propagate(collectionid,field,switch):
     if (switch != '1') and (switch != '0'):
         setswitch = switch
 
+    from django.conf import settings
 
-    #collection_obj = VSCollection(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
-    collection_obj = VSCollection(url=VIDISPINE_URL,port=VIDISPINE_PORT,user=VIDISPINE_USERNAME,passwd=VIDISPINE_PASSWORD)
+    collection_obj = VSCollection(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+    #collection_obj = VSCollection(url=VIDISPINE_URL,port=VIDISPINE_PORT,user=VIDISPINE_USERNAME,passwd=VIDISPINE_PASSWORD)
     collection_obj.populate(collectionid, specificFields=['title','gnm_asset_category'])
 
     for subitem in collection_obj.content(shouldPopulate=False):

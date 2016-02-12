@@ -166,7 +166,13 @@ def propagate(collectionid,field,switch):
     setswitch = None
 
     if (field == 'gnm_storage_rule_sensitive') and (switch == '1'):
-        setswitch = 'Sensitive'
+        setswitch = 'storage_rule_sensitive'
+
+    if (field == 'gnm_storage_rule_deletable') and (switch == '1'):
+        setswitch = 'storage_rule_deletable'
+
+    if (field == 'gnm_storage_rule_deep_archive') and (switch == '1'):
+        setswitch = 'storage_rule_deep_archive'
 
 
     #collection_obj = VSCollection(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)

@@ -43,13 +43,13 @@ def r(request):
         return render(request,"no.html", {"at": rq.requested_at, "user": rq.username, "status": rq.status})
 
 def p(request):
-    from tasks import do_propagate
+    from tasks import propagate
 
     collectionid = request.GET.get('id', '')
     field = request.GET.get('field', '')
     switch = request.GET.get('switch', '')
 
-    do_task = do_propagate.delay(collectionid,field,switch)
+    do_task = propagate.delay(collectionid,field,switch)
 
     return render(request,"p.html")
 

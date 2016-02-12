@@ -174,6 +174,9 @@ def propagate(collectionid,field,switch):
     if (field == 'gnm_storage_rule_deep_archive') and (switch == '1'):
         setswitch = 'storage_rule_deep_archive'
 
+    if (switch != '1') and (switch != '0'):
+        setswitch = switch
+
 
     #collection_obj = VSCollection(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
     collection_obj = VSCollection(url=VIDISPINE_URL,port=VIDISPINE_PORT,user=VIDISPINE_USERNAME,passwd=VIDISPINE_PASSWORD)
@@ -192,7 +195,9 @@ def propagate(collectionid,field,switch):
         for f in ['title','gnm_type','gnm_asset_category',field]:
             print "\t{0}: {1}".format(f,subitem.get(f))
         print setswitch
-        subitem.set_metadata({field: setswitch})
+
+        if subitem.get(field) != setswitch:
+            subitem.set_metadata({field: setswitch})
 
     if (0 == 1):
 

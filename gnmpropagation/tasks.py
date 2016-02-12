@@ -144,6 +144,7 @@ def propagate(collectionid,field,switch):
     #from models import RestoreRequest
     from vidispine.vs_collection import VSCollection
     import traceback
+    from pprint import pprint
     try:
         import raven
         from django.conf import settings
@@ -157,6 +158,17 @@ def propagate(collectionid,field,switch):
     print field
     print switch
 
+    VIDISPINE_URL = "http://127.0.0.1"
+    VIDISPINE_USERNAME = "admin"
+    VIDISPINE_PORT = 8080
+    VIDISPINE_PASSWORD = "admin"
+
+    #collection_obj = VSCollection(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+    collection_obj = VSCollection(url=VIDISPINE_URL,port=VIDISPINE_PORT,user=VIDISPINE_USERNAME,passwd=VIDISPINE_PASSWORD)
+    collection_obj.populate(collectionid,specificFields=['title','gnm_asset_category'])
+
+    for subitem in collection_obj.content(shouldPopulate=False):
+        pprint(subitem.__dict__)
 
     if (0 == 1):
 

@@ -74,4 +74,16 @@ class GNMPropagationRegister(Plugin):
 
 GNMPropagationplugin = GNMPropagationRegister()
 
+class GNMPropagationUrl(Plugin):
+    implements(IPluginURL)
 
+    name = 'GNM Propagation URL'
+    urls = 'portal.plugins.gnmpropagation.urls'
+    urlpattern = r'^gnmpropagation/'
+    namespace = 'gnmpropagation'
+    plugin_guid = 'AB9F2C5E-B68D-4E17-BCF5-96327B0825A8'
+
+    def __init__(self):
+        log.info(GNMPropagationUrl.name + ' initialized')
+
+GNMPropagationurlplugin = GNMPropagationUrl()

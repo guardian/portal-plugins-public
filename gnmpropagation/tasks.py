@@ -139,8 +139,16 @@ def download_callback(rq, current_progress,total):
     rq.save()
 
 
-#@celery.task
 def propagate(collectionid,field,switch):
+
+    from pprint import pprint
+
+    do_task = do_propagate.delay(collectionid,field,switch)
+
+    pprint(do_task.__dict__)
+
+@celery.task
+def do_propagate(collectionid,field,switch):
     #from models import RestoreRequest
     from vidispine.vs_collection import VSCollection, VSItem
     import traceback

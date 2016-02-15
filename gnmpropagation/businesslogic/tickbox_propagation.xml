@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<rules>
+    <rule type="collection">
+        <trigger field="gnm_storage_rule_sensitive"/>
+
+        <![CDATA[
+           from portal.plugins.gnmpropagation import tasks
+           import logging
+           logger = logging.getLogger(__name__)
+           logger.info("Starting propagation from {0}".format(collectionId))
+
+           tasks.propagate.delay(collectionId, 'gnm_storage_rule_sensitive', gnm_storage_rule_sensitive)
+           logger.info("Propagation task scheduled")
+        ]]>
+    </rule>
+
+    <rule type="collection">
+        <trigger field="gnm_storage_rule_deletable"/>
+
+        <![CDATA[
+           from portal.plugins.gnmpropagation import tasks
+           import logging
+           logger = logging.getLogger(__name__)
+           logger.info("Starting propagation from {0}".format(collectionId))
+
+           tasks.propagate.delay(collectionId, 'gnm_storage_rule_deletable', gnm_storage_rule_deletable)
+           logger.info("Propagation task scheduled")
+        ]]>
+    </rule>
+
+    <rule type="collection">
+        <trigger field="gnm_storage_rule_deep_archive"/>
+        <![CDATA[
+           from portal.plugins.gnmpropagation import tasks
+           import logging
+           logger = logging.getLogger(__name__)
+           logger.info("Starting propagation from {0}".format(collectionId))
+
+           tasks.propagate.delay(collectionId, 'gnm_storage_rule_deep_archive', gnm_storage_rule_deep_archive)
+           logger.info("Propagation task scheduled")
+        ]]>
+    </rule>
+</rules>

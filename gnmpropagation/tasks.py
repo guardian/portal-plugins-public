@@ -85,6 +85,9 @@ def propagate(collectionid,field,current_value):
                         subitem.get('__collection_size')
                     ))
                     continue
+            except TypeError:
+                #this means that __collection_size was None or an invalid value
+                logger.warning("{0} {1} had no __collection_size".format(type,subitem.name))
             except StandardError as e:
                 logger.error(e)
                 if raven_client is not None: raven_client.captureException()

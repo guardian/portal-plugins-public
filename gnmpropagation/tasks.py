@@ -68,7 +68,7 @@ def propagate(collectionid,field,current_value):
     for subitem in collection_obj.content(shouldPopulate=False):
         logger.debug("propagating value from parent {0} to child {1} ({2})".format(collectionid,subitem.name,subitem.__class__))
 
-        subitem.populate(subitem.name, specificFields=['title','gnm_asset_category','gnm_type',field])
+        subitem.populate(subitem.name, specificFields=['title','gnm_asset_category','gnm_type','__collection_size',field])
         logger.debug(u"title: {0}, category: {1}, type: {2}".format(subitem.get('title'),subitem.get('gnm_asset_category'),
                                                                     subitem.get('gnm_type')))
 
@@ -76,6 +76,17 @@ def propagate(collectionid,field,current_value):
         type = '(unknown)'
         if isinstance(subitem,VSItem):
             type = "item"
+            try:
+                if int(subitem.get('__collection_size')) > 1:
+                    logger.warning("Item {0} in collection {1} is linked {2} times, so not flagging".format(
+                        subitem.name,
+                        collectionid,
+                        subitem.get('__collection_size')
+                    ))
+                    continue
+            except StandardError as e:
+                logger.error(e)
+                if raven_client is not None: raven_client.captureException()
         elif isinstance(subitem,VSCollection):
             type = "collection"
 
@@ -85,8 +96,13 @@ def propagate(collectionid,field,current_value):
         #print setswitch
 
         if subitem.get(field) != current_value:
-            subitem.set_metadata({field: current_value})
-        logger.info("value set on {0}".format(subitem.name))
+            try:
+                subitem.set_metadata({field: current_value})
+            except StandardError as e:
+                if raven_client is not None: raven_client.captureException()
+                raise
+
+        logger.info("value set on {0} {1}".format(type, subitem.name))
         n+=1
 
     logger.info("Propagation run completed for {0}.  Affected {1} items".format(collectionid, n))

@@ -9,7 +9,7 @@
            from portal.plugins.gnmpropagation import tasks
            import logging
            logger = logging.getLogger(__name__)
-           logger.info("Starting propagation from {0}".format(itemId))
+           logger.info("Starting propagation from {0}".format(collectionId))
 
            tasks.propagate.delay(itemId, 'gnm_storage_rule_sensitive', gnm_storage_rule_sensitive)
            logger.info("Propagation task scheduled")
@@ -24,7 +24,7 @@
            from portal.plugins.gnmpropagation import tasks
            import logging
            logger = logging.getLogger(__name__)
-           logger.info("Starting propagation from {0}".format(itemId))
+           logger.info("Starting propagation from {0}".format(collectionId))
 
            tasks.propagate.delay(itemId, 'gnm_storage_rule_deletable', gnm_storage_rule_deletable)
            logger.info("Propagation task scheduled")

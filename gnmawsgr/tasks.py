@@ -41,7 +41,7 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
         urlpath = '/' + urlpath
 
     url = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
-    logging.debug("URL is %s" % url)
+    logger.debug("URL is %s" % url)
     (rtn_headers,content) = agent.request(url,method=method,body=body,headers=headers)
     if int(rtn_headers['status']) < 200 or int(rtn_headers['status']) > 299:
         raise HttpError(int(rtn_headers['status']),url,headers,rtn_headers,content)
@@ -198,9 +198,9 @@ def do_glacier_restore(request_id,itemid,path):
     restore_short_delay = 600
 
     if hasattr(settings,'GLACIER_TEMP_PATH'):
-        temp_path = settings.glacier_temp_path
+        temp_path = settings.GLACIER_TEMP_PATH
     if hasattr(settings,'GLACIER_RESTORE_TIME'):
-        temp_path = settings.glacier_restore_time
+        restore_time = settings.GLACIER_RESTORE_TIME
 
     interesting_fields = [
         'title',
@@ -255,22 +255,21 @@ def do_glacier_restore(request_id,itemid,path):
         try:
             with open(filename,'wb') as fp:
                 key.get_file(fp, cb=partial(download_callback, rq), num_cb=40)
-                rq.completed_at = datetime.now()
-                rq.status = 'IMPORTING'
-                if (os.path.getsize(filename) + 20000) < rq.file_size:
-                    rq.status = "RETRY"
-                    rq.attempts = rq.attempts + 1
-                    rq.save()
-                    do_task = glacier_restore.delay(rq.pk,itemid,path)
-                    return
+            rq.completed_at = datetime.now()
+            rq.status = 'IMPORTING'
+            rq.file_size_check = "Expected: {0} bytes. Actual: {1} bytes.".format(rq.file_size,os.path.getsize(filename))
+            if (os.path.getsize(filename) + 20000) < rq.file_size:
+                rq.status = "FAILED"
                 rq.save()
-                post_restore_actions(itemid,filename)
-                rq.status = 'COMPLETED'
-                rq.completed_at = datetime.now()
-                rq.filepath_original = path
-                rq.filepath_destination = filename
-                rq.save()
-                item_obj.set_metadata({'gnm_asset_status': 'Ready for Editing (from Archive)'})
+                break
+            rq.save()
+            post_restore_actions(itemid,filename)
+            rq.status = 'COMPLETED'
+            rq.completed_at = datetime.now()
+            rq.filepath_original = path
+            rq.filepath_destination = filename
+            rq.save()
+            item_obj.set_metadata({'gnm_asset_status': 'Ready for Editing (from Archive)'})
             break
 
         except IOError as e:

@@ -1,4 +1,4 @@
-from django.db.models import Model,IntegerField,CharField,DateTimeField,BooleanField
+from django.db.models import Model,BigIntegerField,IntegerField,CharField,DateTimeField,BooleanField
 
 
 class RestoreRequest(Model):
@@ -8,12 +8,13 @@ class RestoreRequest(Model):
     item_id = CharField(max_length=32)
     parent_collection = CharField(max_length=32,blank=True,null=True)
     username = CharField(max_length=512,default='admin')
-    file_size = IntegerField(blank=True,null=True)
-    currently_downloaded = IntegerField(blank=True,null=True)
+    file_size = BigIntegerField(blank=True,null=True)
+    currently_downloaded = BigIntegerField(blank=True,null=True)
     project_id = CharField(max_length=32,default='(unknown)')
     filepath_original = CharField(max_length=32768,blank=True)
     filepath_destination = CharField(max_length=32768,null=True)
     failure_reason = CharField(max_length=32768,blank=True,null=True)
+    file_size_check = CharField(max_length=32768,null=True)
     status = CharField(max_length=64,choices=(
         ('READY','Ready'),
         ('AWAITING_RESTORE','Awaiting Restore'),

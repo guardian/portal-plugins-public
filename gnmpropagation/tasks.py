@@ -14,6 +14,7 @@ rule_value_table = {
     'gnm_storage_rule_deep_archive': 'storage_rule_deep_archive'
 }
 
+
 class UnknownFieldError(StandardError):
     pass
 
@@ -87,6 +88,7 @@ def propagate(collectionid,field,current_value):
             except StandardError as e:
                 logger.error(e)
                 if raven_client is not None: raven_client.captureException()
+                raise
         elif isinstance(subitem,VSCollection):
             type = "collection"
 

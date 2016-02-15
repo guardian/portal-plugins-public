@@ -18,7 +18,7 @@ class UnknownFieldError(StandardError):
     pass
 
 @celery.task
-def propagate(collectionid,field,switch):
+def propagate(collectionid,field,current_value):
     from vidispine.vs_collection import VSCollection, VSItem
     import traceback
     #from pprint import pprint
@@ -47,7 +47,7 @@ def propagate(collectionid,field,switch):
     #     setswitch = 'storage_rule_deep_archive'
 
     try:
-        if switch:
+        if not current_value or current_value == "":
             setswitch = rule_value_table[field]
         else:
             setswitch = ""

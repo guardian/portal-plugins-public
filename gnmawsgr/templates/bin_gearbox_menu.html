@@ -1,3 +1,21 @@
-<li>
-<a href="/gnmawsgr/r/">Restore from Glacier</a>
-</li>
+<script>
+  $(function() {
+    $( "#dialog" ).dialog({
+      autoOpen: false,
+      width:480,
+    });
+
+    $( "#opener" ).click(function() {
+      $( "#dialog" ).dialog( "open" );
+    });
+  });
+
+</script>
+
+<!-- <li>
+<a id="opener">Restore from Glacier</a>
+</li> -->
+
+<div id="dialog" title="Restore from Glacier">
+
+</div>

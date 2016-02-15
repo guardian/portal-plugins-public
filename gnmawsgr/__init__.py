@@ -18,8 +18,8 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
     if not re.match(r'^/',urlpath):
         urlpath = '/' + urlpath
 
-    #url = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
-    url = "http://dc1-mmmw-05.dc1.gnm.int:8080{0}".format(urlpath)
+    url = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
+    #url = "http://dc1-mmmw-05.dc1.gnm.int:8080{0}".format(urlpath)
     logging.debug("URL is %s" % url)
     (headers,content) = agent.request(url,method=method,body=body,headers=headers)
     return (headers,content)
@@ -40,6 +40,22 @@ def getItemInfo(itemid,agent=None):
 
     return json.loads(content)
 
+def getBinInfo(agent=None):
+    import json
+    if agent is None:
+        import httplib2
+        agent = httplib2.Http()
+
+    url = "/API/v1/mediabin/"
+
+    (headers,content) = make_vidispine_request(agent,"GET",url,body="",headers={'Accept': 'application/json'})
+    if int(headers['status']) < 200 or int(headers['status']) > 299:
+        #logging.error(content)
+        #raise StandardError("Vidispine error: %s" % headers['status'])
+        return None
+
+    return json.loads(content)
+
 class GNMAWSGRRegister(Plugin):
   implements(IAppRegister)
 
@@ -51,10 +67,10 @@ class GNMAWSGRRegister(Plugin):
   def __call__(self):
     _app_dict = {
       'name': self.name,
-      'version': 0.1,
-      'author': 'David Allison',
+      'version': "1.0.0",
+      'author': 'Dave Allison and Andy Gallagher',
       'author_url': 'www.theguardian.com/',
-      'notes': 'Test'
+      'notes': 'Allows restoration of items and collections from the Amazon Web Services Glacier system.'
     }
     return _app_dict
 
@@ -72,6 +88,19 @@ class GNMAWSGRAdminPlugin(Plugin):
         return {'guid': self.plugin_guid, 'template': 'gnmawsgr/navigation.html'}
 
 GNMAWSGRadminplug = GNMAWSGRAdminPlugin()
+
+class GNMAWSGRAdminNavigationPlugin(Plugin):
+    implements(IPluginBlock)
+
+    def __init__(self):
+        self.name = "NavigationAdminPlugin"
+        self.plugin_guid = 'FC1732F9-A02E-4355-8BA0-F67924DECA5F'
+        log.debug('Initiated navigation plugin')
+
+    def return_string(self, tagname, *args):
+        return {'guid': self.plugin_guid, 'template': 'gnmawsgr/menu.html'}
+
+GNMAWSGRnavplug = GNMAWSGRAdminNavigationPlugin()
 
 class GNMAWSGRUrl(Plugin):
     implements(IPluginURL)
@@ -91,12 +120,7 @@ class GNMAWSGRGearboxMenuPlugin(Plugin):
     implements(IPluginBlock)
 
     def __init__(self):
-        # The name of the plugin which should match the pluginblock tag in the Portal template
-        # For instance as defined in media_view.html: {% pluginblock "MediaViewDropdown" %}
-        # This plugin is placed in the gearbox menu for the item.
         self.name = "MediaViewDropdown"
-        # Define a GUID for each plugin.
-        # Use e.g. http://www.guidgenerator.com/
         self.plugin_guid = "1C0AC202-FB08-4BB0-8296-871385A7BC6B"
         log.debug("Initiated GNMAWSGRGearboxMenuPlugin")
 
@@ -178,12 +202,7 @@ class GNMAWSGRCollectionGearboxMenuPlugin(Plugin):
     implements(IPluginBlock)
 
     def __init__(self):
-        # The name of the plugin which should match the pluginblock tag in the Portal template
-        # For instance as defined in media_view.html: {% pluginblock "MediaViewDropdown" %}
-        # This plugin is placed in the gearbox menu for the item.
         self.name = "CollectionViewDropdown"
-        # Define a GUID for each plugin.
-        # Use e.g. http://www.guidgenerator.com/
         self.plugin_guid = "71A4C13A-A116-4DAD-A801-DCC470BB2D7D"
         log.debug("Initiated GNMAWSGRCollectionGearboxMenuPlugin")
 
@@ -266,19 +285,16 @@ class GNMAWSGRBinGearboxMenuPlugin(Plugin):
     implements(IPluginBlock)
 
     def __init__(self):
-        # The name of the plugin which should match the pluginblock tag in the Portal template
-        # For instance as defined in media_view.html: {% pluginblock "MediaViewDropdown" %}
-        # This plugin is placed in the gearbox menu for the item.
         self.name = "MediaBinDropdown"
-        # Define a GUID for each plugin.
-        # Use e.g. http://www.guidgenerator.com/
         self.plugin_guid = "FFCF6DC2-A88F-474A-A2FE-2C38440E3C85"
         log.debug("Initiated GNMAWSGRBinGearboxMenuPlugin")
 
     def return_string(self, tagname, *args):
         display = 1
 
+        mediabin = getBinInfo()
+
         if display == 1:
-            return {'guid':self.plugin_guid, 'template':'bin_gearbox_menu.html', 'context' : {'itemid':'', 'res':''} }
+            return {'guid':self.plugin_guid, 'template':'bin_gearbox_menu.html', 'context' : {'mediabin':mediabin} }
 
 GNMAWSGRBinpluginblock = GNMAWSGRBinGearboxMenuPlugin()

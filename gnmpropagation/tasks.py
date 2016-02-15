@@ -46,14 +46,14 @@ def propagate(collectionid,field,current_value):
     # if (field == 'gnm_storage_rule_deep_archive') and (switch == '1'):
     #     setswitch = 'storage_rule_deep_archive'
 
-    try:
-        if not current_value or current_value == "":
-            setswitch = rule_value_table[field]
-        else:
-            setswitch = ""
-    except KeyError:
-        logger.error("I can't propagate the value of {0} as I do not have the string value to set it to.  Check rule_value_table in gnmproparation:tasks.py")
-        raise UnknownFieldError(field)
+    # try:
+    #     if current_value is None or not current_value or current_value == "":
+    #         setswitch = rule_value_table[field]
+    #     else:
+    #         setswitch = ""
+    # except KeyError:
+    #     logger.error("I can't propagate the value of {0} as I do not have the string value to set it to.  Check rule_value_table in gnmproparation:tasks.py")
+    #     raise UnknownFieldError(field)
     #
     # if (switch != '1') and (switch != '0'):
     #     setswitch = switch
@@ -84,8 +84,8 @@ def propagate(collectionid,field,current_value):
         #    print "\t{0}: {1}".format(f,subitem.get(f))
         #print setswitch
 
-        if subitem.get(field) != setswitch:
-            subitem.set_metadata({field: setswitch})
+        if subitem.get(field) != current_value:
+            subitem.set_metadata({field: current_value})
         logger.info("value set on {0}".format(subitem.name))
         n+=1
 

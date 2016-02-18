@@ -213,7 +213,6 @@ class GenericListView(APIView):
         'gnm_type'
     ]
 
-
     def get(self, request, search_criteria={}, response_extra={},*args,**kwargs):
         from vidispine.vs_search import VSSearch
         from django.conf import settings
@@ -254,8 +253,12 @@ class ProjectListView(GenericListView):
         'title',
         'gnm_project_type',
         'gnm_project_headline',
+        'gnm_project_byline',
+        'gnm_project_standfirst',
+        'gnm_project_tags',
         'gnm_project_status',
-        'gnm_type'
+        'gnm_type',
+
     ]
 
     def get(self, request, **kwargs):

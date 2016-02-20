@@ -5,7 +5,7 @@ import logging
 
 from django.conf.urls.defaults import *
 from views import ProjectTemplateFileView,ProjectDefaultInformationView,ProjectListView,CommissionListView,\
-    WorkingGroupListView, CommissionerListView, ProjectTypeListView,ProjectSubTypeListView
+    WorkingGroupListView, CommissionerListView, ProjectTypeListView,ProjectSubTypeListView,ProjectMakeView
 # This new app handles the request to the URL by responding with the view which is loaded 
 # from portal.plugins.gnmextprojecthelper.views.py. Inside that file is a class which responsedxs to the 
 # request, and sends in the arguments template - the html file to view.
@@ -21,4 +21,5 @@ urlpatterns = patterns('portal.plugins.gnmextprojecthelper.views',
     url(r'^commissioner_list/*$', CommissionerListView.as_view(), name='commissioners'),
     url(r'^project_type_list/*$', ProjectTypeListView.as_view(), name='project_types'),
     url(r'^project_subtype_list/(?P<project_type>[\w\d]+)/*$', ProjectSubTypeListView.as_view(), name='project_types'),
+    url(r'^new_project/(?P<commission_id>\w{2}-\d+)/*$', ProjectMakeView.as_view(), name='make_project')
 )

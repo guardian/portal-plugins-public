@@ -115,6 +115,68 @@ class ProjectDefaultInformationView(ProjectNewView):
         return HttpResponse(json.dumps(self._initial_data(commission,request.user)))
 
 
+class ProjectMakeView(APIView):
+    from rest_framework.parsers import JSONParser
+    from rest_framework.renderers import JSONRenderer
+
+    parser_classes = (JSONParser, )
+    renderer_classes = (JSONRenderer, )
+
+    def post(self,request, **kwargs):
+        from portal.plugins.gnm_projects.models import VSProject
+        from portal.plugins.gnm_commissions.models import VSCommission
+        from portal.plugins.gnm_commissions.exceptions import NotACommissionError
+        from portal.plugins.gnm_vidispine_utils.models import Reference
+        from portal.plugins.gnm_vidispine_utils import constants as const
+        from portal.plugins.gnm_projects.forms import ProjectForm
+        from pprint import pprint
+        from django.http import Http404
+        from tasks import complete_project_setup
+        import json
+        from django.contrib import messages
+        commission_id = kwargs['commission_id']
+        try:
+            commission = VSCommission(commission_id, self.request.user)
+        except NotACommissionError:
+            '''
+            FIXME
+            display that someone is trying to create a project that wont belong to a commission
+            and that is verboten!
+            Probably shouldn't raise a 404 but it's something
+            '''
+            raise Http404
+
+        form = ProjectForm(request.DATA)
+        if form.is_valid():
+            data = form.cleaned_data
+            references = []
+            commission_workinggroup_uuid = commission.get_workinggroup_reference_uuid()
+            commission_title_uuid = commission.get_title_reference_uuid()
+            if commission_workinggroup_uuid is not None:
+                references.append(Reference(name=const.GNM_COMMISSION_WORKINGGROUP, uuid=commission_workinggroup_uuid))
+            if commission_title_uuid is not None:
+                references.append(Reference(name=const.GNM_COMMISSION_TITLE, uuid=commission_title_uuid))
+        else:
+            return Response({'status': 'error','error': 'invalid data',
+                             'detail': [(k, unicode(v[0])) for k,v in form.errors.items()]},
+                            status=400)
+
+        # Create collection with metadata
+        project = VSProject.vs_create(data, request.user, references=references)
+        #request_data = json.dumps(request.__dict__)
+        complete_project_setup.delay(commission_id,unicode(project.md.collectionId),user_id=request.user)
+
+        # print project.md.__class__
+        # pprint(project.md.__dict__)
+        # meta = {}
+        # for k,v in project.md.__dict__.items(): #this is a dictproxy so i can't get at it directly
+        #     meta[k] = v
+        # pprint(meta)
+        messages.info(request, 'Project created')
+
+        return Response({'status': 'ok', 'project_id': unicode(project.md.collectionId), 'commission_id': commission_id},status=200)
+
+
 class CachedViewMixin(object):
     def __init__(self,*args,**kwargs):
         import memcache

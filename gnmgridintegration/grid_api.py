@@ -90,16 +90,19 @@ class GridLoader(GridBase):
         import io
         import os.path
 
-        if not isinstance(fp,io.IOBase) and not isinstance(fp,file):
+        if not isinstance(fp, io.IOBase) and not isinstance(fp,file):
             raise TypeError("fp should be a file-like object returned by open() (was {0})".format(fp.__class__))
         # if filename is None:
         #     if not isinstance(fp,io.FileIO):
         #         self.logger.warning("Unable to determine filename from a non-file type stream")
         #     else:
         #         filename = fp.name
-        filename = os.path.basename(fp.name)
+        if filename is None:
+            filename = os.path.basename(fp.name)
 
-        if isinstance(identifiers,list):
+        if identifiers is None:
+            id_string = ""
+        elif isinstance(identifiers,list):
             id_string = ",".join(identifiers)
         else:
             id_string = identifiers
@@ -107,14 +110,15 @@ class GridLoader(GridBase):
         response = self.request("{0}/images".format(self._base_uri),method="POST",
                      query_params={
                         'uploaded_by': self._client_name,
-                        'filename': filename
+                        'filename': filename,
+                        'identifiers': id_string
                      },
                      body=fp.read(),
                      extra_headers={'Content-Type': 'application/octet-stream'}
                      )
 
         if 'uri' in response:
-            return GridImage(response['uri'],self._api_key) #this is normally the only thing returned
+            return GridImage(response['uri'], self._api_key) #this is normally the only thing returned
         return response
 
 

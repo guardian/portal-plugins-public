@@ -1,4 +1,8 @@
 from vidispine.vidispine_api import VSApi
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class VSMiniThumb(VSApi):
     def __init__(self,target_frame,framerate,uri,*args,**kwargs):
@@ -136,16 +140,54 @@ class VidispineResponseWrapper(VSApi):
 #             {u'key': u'user', u'value': u'admin'},
 #             {u'key': u'transcodeDone', u'value': u'true'}]}
 
+
+def get_and_upload_image(item_id, thumbpath, identifiers):
+    from notification_handler import VSMiniThumb
+    from vidispine.vs_item import VSItem
+    from grid_api import GridLoader
+    from django.conf import settings
+
+    loader = GridLoader('pluto_gnmgridintegration', settings.GNM_GRID_API_KEY)
+
+    logger.info("Trying to upload {0} to Grid...".format(thumbpath))
+    with open(thumbpath) as fp:
+        gridimage = loader.upload_image(fp,identifiers) #use default filename
+
+    logger.info("Image {0} uploaded as {1}".format(thumbpath, gridimage.uri))
+
+    item = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
+                  user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+    logger.info("Looking up associated item {0}".format(item_id))
+    item.populate(item_id,specific_fields = ['gnm_grid_image_refs'])
+
+    current_value = item.get('gnm_grid_image_refs')
+    if current_value is None or current_value == "":
+        current_value = []
+    logger.debug("Current field value is {0}".format(current_value))
+
+    current_value.append(gridimage.uri)
+
+    logger.debug("Setting new value {0} to gnm_grid_image_refs".format(current_value))
+    item.set_metadata({'gnm_grid_image_refs': current_value})
+
+    logger.info("Completed get_and_upload_image for {0} from {1}".format(thumbpath,item_id))
+
+
 def get_new_thumbnail(notification_data):
     from django.conf import settings
     import os.path
+    #from tasks import get_and_upload_image
+
     tempdir = "/tmp"
 
     resp = VidispineResponseWrapper(notification_data,url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,
                                     passwd=settings.VIDISPINE_PASSWORD)
-    print "Notified of new thumbnail for {0}".format(resp.get('itemId'))
+    logger.info("Notified of new thumbnail for {0}".format(resp.get('itemId')))
+
     for t in resp.thumbs().each():
-        outpath = os.path.join(tempdir,"{item}_{frm}.jpg".format(item=resp.get('itemId'),frm=str(t.target_frame)))
+        filename = "{item}_{frm}.jpg".format(item=resp.get('itemId'),frm=str(t.target_frame))
+        outpath = os.path.join(tempdir,filename)
         print "Outputting to {0}".format(outpath)
         with open(outpath,'w') as f:
             f.write(t.download())
+        get_and_upload_image(resp.get('item'),outpath,[filename])

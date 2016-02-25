@@ -157,6 +157,9 @@ class ProjectMakeView(APIView):
             if commission_title_uuid is not None:
                 references.append(Reference(name=const.GNM_COMMISSION_TITLE, uuid=commission_title_uuid))
         else:
+            pprint(request.DATA)
+            pprint({'status': 'error','error': 'invalid data',
+                             'detail': [(k, unicode(v[0])) for k,v in form.errors.items()]})
             return Response({'status': 'error','error': 'invalid data',
                              'detail': [(k, unicode(v[0])) for k,v in form.errors.items()]},
                             status=400)

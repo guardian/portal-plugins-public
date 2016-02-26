@@ -3,6 +3,29 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+VIDISPINE_GRID_REF_FIELD = 'gnm_grid_image_refs'
+
+ITEM_META_FIELDS = {
+    'credit': {
+        'format_string': "{vs_field_data}",
+        'vs_field': 'gnm_master_generic_source'
+    },
+    'description': {
+        'format_string': "Still from frame {frame_number} of '{vs_field_data}'",
+        'vs_field': 'gnm_master_website_headline'
+    },
+}
+
+RIGHTS_META_FIELDS = {
+    'category': {
+        'format_string': 'screengrab',
+    },
+    'source': {
+        'format_string': "PLUTO Master '{vs_field_data}'",
+        'vs_field': 'gnm_master_website_headline'
+    }
+}
+
 
 class VSMiniThumb(VSApi):
     def __init__(self,target_frame,framerate,uri,*args,**kwargs):
@@ -146,32 +169,90 @@ def get_and_upload_image(item_id, thumbpath, identifiers):
     from vidispine.vs_item import VSItem
     from grid_api import GridLoader
     from django.conf import settings
-
+    import traceback
     loader = GridLoader('pluto_gnmgridintegration', settings.GNM_GRID_API_KEY)
 
     logger.info("Trying to upload {0} to Grid...".format(thumbpath))
-    with open(thumbpath) as fp:
-        gridimage = loader.upload_image(fp,identifiers) #use default filename
 
+    try:
+        with open(thumbpath) as fp:
+            gridimage = loader.upload_image(fp) #use default filename
+    except GridLoader.HttpError as e:
+        logger.error("Unable to upload {0} to Grid: {1}".format(thumbpath, unicode(e)))
+        return
+    except Exception as e:
+        logger.error("{0}: {1}".format(e.__class__, unicode(e)))
+        logger.error(traceback.format_exc())
+        return
     logger.info("Image {0} uploaded as {1}".format(thumbpath, gridimage.uri))
 
     item = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
                   user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
     logger.info("Looking up associated item {0}".format(item_id))
-    item.populate(item_id,specific_fields = ['gnm_grid_image_refs'])
+    item.populate(item_id,specificFields = [VIDISPINE_GRID_REF_FIELD])
 
-    current_value = item.get('gnm_grid_image_refs')
+    current_value = item.get(VIDISPINE_GRID_REF_FIELD, allowArray=True)
     if current_value is None or current_value == "":
         current_value = []
     logger.debug("Current field value is {0}".format(current_value))
 
+    if not isinstance(current_value,list):
+        current_value = [current_value]
     current_value.append(gridimage.uri)
 
-    logger.debug("Setting new value {0} to gnm_grid_image_refs".format(current_value))
-    item.set_metadata({'gnm_grid_image_refs': current_value})
+    logger.debug("Setting new value {0} to {1}".format(current_value,VIDISPINE_GRID_REF_FIELD))
+    item.set_metadata({VIDISPINE_GRID_REF_FIELD: current_value})
 
     logger.info("Completed get_and_upload_image for {0} from {1}".format(thumbpath,item_id))
+    return gridimage
 
+
+def setup_image_metadata(item_id, grid_image, frame_number=None):
+    from vidispine.vs_item import VSItem
+    from django.conf import settings
+    from pprint import pprint
+    from grid_api import GridImage
+
+    item = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
+                  user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+
+    fieldnames = []
+    for k,v in ITEM_META_FIELDS.items():
+        fieldnames.append(v['vs_field'])
+
+    item.populate(item_id, specificFields=fieldnames)
+
+    output_meta = {}
+    for k,v in ITEM_META_FIELDS.items():
+        try:
+            if 'format_string' in v:
+                output_meta[k] = v['format_string'].format(vs_field_data=item.get(v['vs_field']),frame_number=frame_number)
+            else:
+                output_meta[k] = item.get(v['vs_field'])
+
+        except StandardError as e:
+            if k in output_meta:
+                del output_meta['k']
+            logger.error(e)
+    pprint(output_meta)
+    grid_image.set_metadata(output_meta)
+    output_meta = {}
+    for k,v in RIGHTS_META_FIELDS.items():
+        try:
+            if 'format_string' in v:
+                if 'vs_field' in v:
+                    output_meta[k] = v['format_string'].format(vs_field_data=item.get(v['vs_field']),frame_number=frame_number)
+                else:
+                    output_meta[k] = v['format_string'].format(frame_number=frame_number)
+            else:
+                output_meta[k] = item.get(v['vs_field'])
+
+        except StandardError as e:
+            if k in output_meta:
+                del output_meta['k']
+            logger.error(e)
+    pprint(output_meta)
+    grid_image.set_usage_rights(category=output_meta['category'], source=output_meta['source'])
 
 def get_new_thumbnail(notification_data):
     from django.conf import settings
@@ -184,10 +265,17 @@ def get_new_thumbnail(notification_data):
                                     passwd=settings.VIDISPINE_PASSWORD)
     logger.info("Notified of new thumbnail for {0}".format(resp.get('itemId')))
 
+    total = 0
+    #FIXME: need to get largest frame size for each target frame.  Can we do that here or can we do it when we set up
+    #the notification?
     for t in resp.thumbs().each():
         filename = "{item}_{frm}.jpg".format(item=resp.get('itemId'),frm=str(t.target_frame))
         outpath = os.path.join(tempdir,filename)
-        print "Outputting to {0}".format(outpath)
+        logger.debug("Outputting to {0}".format(outpath))
         with open(outpath,'w') as f:
             f.write(t.download())
-        get_and_upload_image(resp.get('item'),outpath,[filename])
+        img = get_and_upload_image(resp.get('itemId'), outpath, [])
+        setup_image_metadata(resp.get('itemId'), img, frame_number = t.target_frame)
+        total +=1
+
+    logger.info("Handler completed for {0}, processed {1} thumbs".format(resp.get('itemId'), total))

@@ -41,6 +41,7 @@ class GridBase(object):
         import httplib2
         import urllib
         import json
+        from pprint import pprint
 
         headers = {
             'X-Gu-Media-Key': self._api_key,
@@ -86,7 +87,7 @@ class GridLoader(GridBase):
         super(GridLoader,self).__init__(*args,**kwargs)
         self._client_name = client_name
 
-    def upload_image(self, fp, identifiers, filename=None):
+    def upload_image(self, fp, identifiers=None, filename=None):
         import io
         import os.path
 
@@ -100,19 +101,18 @@ class GridLoader(GridBase):
         if filename is None:
             filename = os.path.basename(fp.name)
 
-        if identifiers is None:
-            id_string = ""
-        elif isinstance(identifiers,list):
-            id_string = ",".join(identifiers)
-        else:
-            id_string = identifiers
+        qp = {'uploaded_by': self._client_name,
+              'filename': filename
+              }
+
+        if isinstance(identifiers,list):
+            qp['identifiers'] = ",".join(identifiers)
+        elif identifiers is not None:
+            qp['identifiers'] = identifiers
+
 
         response = self.request("{0}/images".format(self._base_uri),method="POST",
-                     query_params={
-                        'uploaded_by': self._client_name,
-                        'filename': filename,
-                        'identifiers': id_string
-                     },
+                     query_params=qp,
                      body=fp.read(),
                      extra_headers={'Content-Type': 'application/octet-stream'}
                      )
@@ -151,6 +151,11 @@ class GridImage(GridBase):
         data=self.info()
         return map(lambda x:x['rel'], data['links'])
 
+    @property
+    def usage_rights_link(self):
+        data=self.info()
+        return data['data']['userMetadata']['data']['usageRights']['uri']
+
     def info(self):
         import time
         if self._info_cache is not None:
@@ -175,6 +180,12 @@ class GridImage(GridBase):
         body_doc = json.dumps({'data': new_md})
         self.request(md_uri,'PUT',query_params=None,body=body_doc,extra_headers={'Content-Type': 'application/json'})
 
+    def set_usage_rights(self, category="", source=""):
+        import json
+        md = json.dumps({'data': {'category': category, 'source': source}})
+
+        self.request(self.usage_rights_link,method="PUT",body=md,extra_headers={'Content-Type': 'application/json'})
+
 if __name__ == '__main__':
     import sys
     import time
@@ -187,7 +198,7 @@ if __name__ == '__main__':
     l = GridLoader('pluto_grid_api_test','pluto-35495dd119156ab447ab8719e1218983a33d3952')
 
     with open(sys.argv[1]) as fp:
-        image = l.upload_image(fp, '')
+        image = l.upload_image(fp, ['testimage'])
     #pprint(image)
     #pprint(image.info())
     time.sleep(1)

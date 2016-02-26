@@ -15,7 +15,6 @@ from portal.vidispine.iexception import NotFoundError
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.response import Response
-from tasks import get_and_upload_image
 log = logging.getLogger(__name__)
 
 

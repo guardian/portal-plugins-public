@@ -79,3 +79,78 @@ class MDCreateView(CreateView):
     model = GridMetadataFields
     template_name = "gnmgridintegration/meta_edit.html"
     success_url = reverse_lazy('gnmgridintegration_admin_meta')
+
+
+class MDTestView(APIView):
+    from rest_framework.parsers import JSONParser
+    from rest_framework.renderers import JSONRenderer
+    from rest_framework import permissions
+
+    #permission_classes = (permissions.AllowAny, )
+    parser_classes = (JSONParser, )
+    renderer_classes = (JSONRenderer, )
+
+    def get(self, request, vs_item_id=None):
+        from django.conf import settings
+        from vidispine.vs_item import VSItem, VSNotFound
+        from models import GridMetadataFields
+        from traceback import format_exc
+        from notification_handler import do_meta_substitution, vs_field_list
+        item = VSItem(url=settings.VIDISPINE_URL, port=settings.VIDISPINE_PORT,
+              user=settings.VIDISPINE_USERNAME, passwd=settings.VIDISPINE_PASSWORD)
+
+        try:
+            log.debug("Looking up item {0}".format(vs_item_id))
+            fieldnames = vs_field_list()
+            log.debug("Field list: {0}".format(fieldnames))
+            try:
+                item.populate(vs_item_id, specificFields=fieldnames)
+            except VSNotFound as e:
+                return Response({'status': 'error', 'problem': 'Item not found', 'exception': e}, status=404)
+
+            return Response({'status': 'success',
+                             'item_meta': do_meta_substitution(item, -1, 1),
+                             'rights_meta': do_meta_substitution(item, -1, 2)})
+
+        except Exception as e:
+            if settings.DEBUG:
+                return Response({'status': 'error', 'exception': e, 'type': e.__class__, 'trace': format_exc()}, status=500)
+            else:
+                return Response({'status': 'error', 'exception': e, }, status=500)
+
+class MDItemInfoView(APIView):
+    from rest_framework.parsers import JSONParser
+    from rest_framework.renderers import JSONRenderer
+    from rest_framework import permissions
+
+    #permission_classes = (permissions.AllowAny, )
+    parser_classes = (JSONParser, )
+    renderer_classes = (JSONRenderer, )
+
+    interesting_fields = ['title', 'gnm_type', 'gnm_asset_category', 'representativeThumbnailNoAuth']
+
+    def get(self, request, vs_item_id=None):
+        from django.conf import settings
+        from vidispine.vs_item import VSItem, VSNotFound
+        from notification_handler import VIDISPINE_GRID_REF_FIELD
+        from notification_handler import vs_field_list
+        from pprint import pformat
+        log.debug("Request data: {0}".format(pformat(request.__dict__)))
+        log.debug("Request user: {0}".format(request.user))
+
+        item = VSItem(url=settings.VIDISPINE_URL, port=settings.VIDISPINE_PORT,
+              user=settings.VIDISPINE_USERNAME, passwd=settings.VIDISPINE_PASSWORD)
+
+        try:
+            log.debug("Looking up item {0}".format(vs_item_id))
+            item.populate(vs_item_id, specificFields = self.interesting_fields)
+        except VSNotFound as e:
+            return Response({'status': 'error', 'problem': 'Item not found', 'exception': e}, status=404)
+        meta = {}
+
+        for f in self.interesting_fields:
+            meta[f] = item.get(f, allowArray=True)
+        for f in vs_field_list():
+            meta[f] = item.get(f, allowArray=True)
+        meta[VIDISPINE_GRID_REF_FIELD] = item.get(VIDISPINE_GRID_REF_FIELD, allowArray=True)
+        return Response({'status': 'success', 'item': vs_item_id, 'metadata': meta})

@@ -32,16 +32,19 @@ class GridMetadataFields(models.Model):
         :return: Formatted string
         """
         from vidispine.vs_item import VSItem
-
-        format_params = kwargs
+        from pprint import pformat
+        format_params = {}
+        format_params.update(kwargs)
         if vsitem is not None:
             if not isinstance(vsitem, VSItem):
                 raise TypeError("GridMetadataFields.real_value must be passed a populated VSItem")
             if self.vs_field != "":
                 format_params['vs_field_data'] = vsitem.get(self.vs_field)
+                logger.debug("got value {0} for field {1}".format(format_params['vs_field_data'], self.vs_field))
             else:
                 logger.warning("No vs_field set for '{0}'".format(unicode(self)))
-        return self.format_string.format(format_params)
+        logger.debug(pformat(format_params))
+        return self.format_string.format(**format_params)
 
     class Meta:
         ordering = ['type','grid_field_name']

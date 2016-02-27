@@ -1,0 +1,29 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress staticfiles %}
+{% block title %}{% trans 'Grid Integration metadata configuration' %}{% endblock %}
+{% block heading %}{% trans 'Grid Integration metadata configuration' %}{% endblock %}
+
+{% block content %}
+<span><a href='{% url gnmgridintegration_new_meta %}'>New...</a></span>
+<table>
+    <tr>
+        <td>Grid field name</td>
+        <td>Format string</td>
+        <td>Vidispine field ID</td>
+        <td>Metadata Type</td>
+    </tr>
+    {% for entry in object_list %}
+    <tr>
+        <td><strong>{{ entry.grid_field_name }}</strong></td>
+        <td>{{ entry.format_string }}</td>
+        <td>{{ entry.vs_field }}</td>
+        <td>{{ entry.type }}</td>
+        <td><a href='{% url gnmgridintegration_edit_meta pk=entry.pk %}'><img src='{% static "img/icon-metadata-editor.png" %}' style="width: 16px"></a></td>
+        <td><a href='{% url gnmgridintegration_delete_meta pk=entry.pk %}'><img src='{% static "delete.png" %}' style="width: 16px"></a></td>
+    </tr>
+    {% endfor %}
+</table>
+{% if object_list|length == 0 %}
+<p style="text-align: center; font-size: 1.2em"><strong>No metadata fields currently present</strong></p>
+{% endif %}
+{% endblock %}

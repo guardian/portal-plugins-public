@@ -3,6 +3,30 @@
 {% block title %}{% trans 'Grid Integration metadata configuration' %}{% endblock %}
 {% block heading %}{% trans 'Grid Integration metadata configuration' %}{% endblock %}
 
+{% block extra_script %}
+<script src="{% static 'gnmgridintegration/grid_meta_admin.js' %}"></script>
+<style>
+    .item_meta_text {
+        display: inline-block;
+        vertical-align: top;
+        //margin-top: 1em;
+        margin-left: 1em;
+    }
+    .item_meta_image {
+        width: 240px;
+        display:inline-block;
+    }
+    .item_container {
+        border: 1px solid black;
+        border-radius: 1em;
+        padding: 0.5em;
+        background-color: white;
+        display: inline-block;
+        margin-top: 1em;
+    }
+
+</style>
+{% endblock %}
 {% block content %}
 <span><a href='{% url gnmgridintegration_new_meta %}'>New...</a></span>
 <table>
@@ -26,4 +50,18 @@
 {% if object_list|length == 0 %}
 <p style="text-align: center; font-size: 1.2em"><strong>No metadata fields currently present</strong></p>
 {% endif %}
+
+<hr>
+<div id="testarea">
+    <h2>Test</h2>
+    <input type="text" id="id_test_itemid" name="test_itemid" onchange="test_itemid_changed();">
+    <label for="test_itemid">Item ID to test with: </label>
+    <!--<button type="button" onclick="test_go">Go!</button>-->
+    <div id="testitem">
+
+    </div>
+    <div id="testresults">
+
+    </div>
+</div>
 {% endblock %}

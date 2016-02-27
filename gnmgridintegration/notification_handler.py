@@ -185,70 +185,46 @@ def get_and_upload_image(item_id, thumbpath, identifiers):
     return gridimage
 
 
+def do_meta_substitution(item, frame_number, type):
+    from models import GridMetadataFields
+    from traceback import format_exc
+    output_meta = {}
+
+    for rec in GridMetadataFields.objects.filter(type=type):
+        logger.debug("Setting up field {0}".format(unicode(rec)))
+        try:
+            output_meta[rec.grid_field_name] = rec.real_value(item, frame_number=frame_number)
+        except StandardError as e:
+            logger.error("{0}: {1}".format(e.__class__,unicode(e)))
+            logger.error(format_exc())
+            continue
+
+    return output_meta
+
+
+def vs_field_list():
+    from models import GridMetadataFields
+    out = []
+
+    for rec in GridMetadataFields.objects.all():
+        if rec.vs_field != "" and rec.vs_field is not None:
+            out.append(rec.vs_field)
+    return out
+
+
 def setup_image_metadata(item_id, grid_image, frame_number=None):
     from vidispine.vs_item import VSItem
     from django.conf import settings
-    from pprint import pprint
-    from grid_api import GridImage
-    from models import GridMetadataFields
 
     item = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
                   user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
 
-    fieldnames = []
-    # for k,v in ITEM_META_FIELDS.items():
-    #     fieldnames.append(v['vs_field'])
-
+    fieldnames = vs_field_list()
     item.populate(item_id, specificFields=fieldnames)
-
-    output_meta = {}
-
-    for rec in GridMetadataFields.objects.filter(type=1):
-        logger.debug("Setting up field {0}".format(unicode(rec)))
-        try:
-            output_meta[rec.grid_field_name] = rec.real_value(item, frame_number=frame_number)
-        except StandardError as e:
-            logger.error(e)
-            continue
-
-    # for k,v in ITEM_META_FIELDS.items():
-    #     try:
-    #         if 'format_string' in v:
-    #             output_meta[k] = v['format_string'].format(vs_field_data=item.get(v['vs_field']),frame_number=frame_number)
-    #         else:
-    #             output_meta[k] = item.get(v['vs_field'])
-    #
-    #     except StandardError as e:
-    #         if k in output_meta:
-    #             del output_meta['k']
-    #         logger.error(e)
-    pprint(output_meta)
+    output_meta = do_meta_substitution(item,frame_number,1)
     grid_image.set_metadata(output_meta)
 
-    output_meta = {}
-    for rec in GridMetadataFields.objects.filter(type=2):
-        logger.debug("Setting up field {0}".format(unicode(rec)))
-        try:
-            output_meta[rec.grid_field_name] = rec.real_value(item, frame_number=frame_number)
-        except StandardError as e:
-            logger.error(e)
-            continue
-
-    # for k,v in RIGHTS_META_FIELDS.items():
-    #     try:
-    #         if 'format_string' in v:
-    #             if 'vs_field' in v:
-    #                 output_meta[k] = v['format_string'].format(vs_field_data=item.get(v['vs_field']),frame_number=frame_number)
-    #             else:
-    #                 output_meta[k] = v['format_string'].format(frame_number=frame_number)
-    #         else:
-    #             output_meta[k] = item.get(v['vs_field'])
-    #
-    #     except StandardError as e:
-    #         if k in output_meta:
-    #             del output_meta['k']
-    #         logger.error(e)
-    pprint(output_meta)
+    output_meta = do_meta_substitution(item, frame_number,2)
     grid_image.set_usage_rights(category=output_meta['category'], source=output_meta['source'])
 
 

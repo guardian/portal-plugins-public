@@ -2,6 +2,27 @@ class ManagementMixin(object):
     """
     Mixin class that provides functionality for install/uninstall commands
     """
+    DEFAULT_ITEM_META_FIELDS = {
+        'credit': {
+            'format_string': "{vs_field_data}",
+            'vs_field': 'gnm_master_generic_source'
+        },
+        'description': {
+            'format_string': "Still from frame {frame_number} of '{vs_field_data}'",
+            'vs_field': 'gnm_master_website_headline'
+        },
+    }
+
+    DEFAULT_RIGHTS_META_FIELDS = {
+        'category': {
+            'format_string': 'screengrab',
+        },
+        'source': {
+            'format_string': "PLUTO Master '{vs_field_data}'",
+            'vs_field': 'gnm_master_website_headline'
+        }
+    }
+
     def get_notification_url(self):
         from django.core.urlresolvers import reverse, reverse_lazy
         import socket
@@ -43,7 +64,6 @@ class ManagementMixin(object):
             raise
 
         #print n.as_xml()
-
 
     def remove_notification(self):
         from vidispine.vs_notifications import VSNotificationCollection

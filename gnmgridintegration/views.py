@@ -10,11 +10,14 @@ import logging
 
 from django.contrib.auth.decorators import login_required
 from portal.generic.baseviews import ClassView
+from django.views.generic import ListView, CreateView, DeleteView, UpdateView
+from django.core.urlresolvers import reverse_lazy
 from portal.vidispine.iitem import ItemHelper
 from portal.vidispine.iexception import NotFoundError
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.response import Response
+from models import GridMetadataFields
 log = logging.getLogger(__name__)
 
 
@@ -34,7 +37,7 @@ class GenericAppView(ClassView):
 # setup the object, and decorate so that only logged in users can see it
 GenericAppView = GenericAppView._decorate(login_required)
 
-
+### Views for Vidispine callback
 class VSCallbackView(APIView):
     from rest_framework.parsers import JSONParser
     from rest_framework.renderers import JSONRenderer
@@ -53,3 +56,26 @@ class VSCallbackView(APIView):
         return Response({'status': 'ok', 'information': 'Not implemented', 'sent': request.DATA}, status=200)
         # except TypeError as e:
         #     return Response({'status': 'error', 'exception': str(e)},status=400)
+
+### Views for admin metadata editor
+class ConfigListView(ListView):
+    model = GridMetadataFields
+    template_name = "gnmgridintegration/admin_list.html"
+
+
+class MDEditView(UpdateView):
+    model = GridMetadataFields
+    template_name = "gnmgridintegration/meta_edit.html"
+    success_url = reverse_lazy('gnmgridintegration_admin_meta')
+
+
+class MDDeleteView(DeleteView):
+    model = GridMetadataFields
+    template_name = "gnmgridintegration/meta_delete.html"
+    success_url = reverse_lazy('gnmgridintegration_admin_meta')
+
+
+class MDCreateView(CreateView):
+    model = GridMetadataFields
+    template_name = "gnmgridintegration/meta_edit.html"
+    success_url = reverse_lazy('gnmgridintegration_admin_meta')

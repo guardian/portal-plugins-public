@@ -5,28 +5,6 @@ logger = logging.getLogger(__name__)
 
 VIDISPINE_GRID_REF_FIELD = 'gnm_grid_image_refs'
 
-ITEM_META_FIELDS = {
-    'credit': {
-        'format_string': "{vs_field_data}",
-        'vs_field': 'gnm_master_generic_source'
-    },
-    'description': {
-        'format_string': "Still from frame {frame_number} of '{vs_field_data}'",
-        'vs_field': 'gnm_master_website_headline'
-    },
-}
-
-RIGHTS_META_FIELDS = {
-    'category': {
-        'format_string': 'screengrab',
-    },
-    'source': {
-        'format_string': "PLUTO Master '{vs_field_data}'",
-        'vs_field': 'gnm_master_website_headline'
-    }
-}
-
-
 class VSMiniThumb(VSApi):
     def __init__(self,target_frame,framerate,uri,*args,**kwargs):
         self.target_frame = target_frame
@@ -212,47 +190,67 @@ def setup_image_metadata(item_id, grid_image, frame_number=None):
     from django.conf import settings
     from pprint import pprint
     from grid_api import GridImage
+    from models import GridMetadataFields
 
     item = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
                   user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
 
     fieldnames = []
-    for k,v in ITEM_META_FIELDS.items():
-        fieldnames.append(v['vs_field'])
+    # for k,v in ITEM_META_FIELDS.items():
+    #     fieldnames.append(v['vs_field'])
 
     item.populate(item_id, specificFields=fieldnames)
 
     output_meta = {}
-    for k,v in ITEM_META_FIELDS.items():
-        try:
-            if 'format_string' in v:
-                output_meta[k] = v['format_string'].format(vs_field_data=item.get(v['vs_field']),frame_number=frame_number)
-            else:
-                output_meta[k] = item.get(v['vs_field'])
 
+    for rec in GridMetadataFields.objects.filter(type=1):
+        logger.debug("Setting up field {0}".format(unicode(rec)))
+        try:
+            output_meta[rec.grid_field_name] = rec.real_value(item, frame_number=frame_number)
         except StandardError as e:
-            if k in output_meta:
-                del output_meta['k']
             logger.error(e)
+            continue
+
+    # for k,v in ITEM_META_FIELDS.items():
+    #     try:
+    #         if 'format_string' in v:
+    #             output_meta[k] = v['format_string'].format(vs_field_data=item.get(v['vs_field']),frame_number=frame_number)
+    #         else:
+    #             output_meta[k] = item.get(v['vs_field'])
+    #
+    #     except StandardError as e:
+    #         if k in output_meta:
+    #             del output_meta['k']
+    #         logger.error(e)
     pprint(output_meta)
     grid_image.set_metadata(output_meta)
-    output_meta = {}
-    for k,v in RIGHTS_META_FIELDS.items():
-        try:
-            if 'format_string' in v:
-                if 'vs_field' in v:
-                    output_meta[k] = v['format_string'].format(vs_field_data=item.get(v['vs_field']),frame_number=frame_number)
-                else:
-                    output_meta[k] = v['format_string'].format(frame_number=frame_number)
-            else:
-                output_meta[k] = item.get(v['vs_field'])
 
+    output_meta = {}
+    for rec in GridMetadataFields.objects.filter(type=2):
+        logger.debug("Setting up field {0}".format(unicode(rec)))
+        try:
+            output_meta[rec.grid_field_name] = rec.real_value(item, frame_number=frame_number)
         except StandardError as e:
-            if k in output_meta:
-                del output_meta['k']
             logger.error(e)
+            continue
+
+    # for k,v in RIGHTS_META_FIELDS.items():
+    #     try:
+    #         if 'format_string' in v:
+    #             if 'vs_field' in v:
+    #                 output_meta[k] = v['format_string'].format(vs_field_data=item.get(v['vs_field']),frame_number=frame_number)
+    #             else:
+    #                 output_meta[k] = v['format_string'].format(frame_number=frame_number)
+    #         else:
+    #             output_meta[k] = item.get(v['vs_field'])
+    #
+    #     except StandardError as e:
+    #         if k in output_meta:
+    #             del output_meta['k']
+    #         logger.error(e)
     pprint(output_meta)
     grid_image.set_usage_rights(category=output_meta['category'], source=output_meta['source'])
+
 
 def get_new_thumbnail(notification_data):
     from django.conf import settings

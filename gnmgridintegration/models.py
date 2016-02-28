@@ -6,6 +6,12 @@ logger = logging.getLogger(__name__)
 
 
 class GridMetadataFields(models.Model):
+    """
+    This model represents a profile for setting metadata fields in the Grid for a captured image based on the Vidispine
+    metadata of the Item that it was captured from.
+    It supports either static strings or Vidispine field captures, one per output field, and also inserting the captured
+    frame number
+    """
     grid_field_name = models.CharField(max_length=255, help_text=html.escape('The name of the metadata field to set in The Grid'))
     format_string = models.CharField(max_length=4096,
                                      help_text=html.escape('''The value to set.  {vs_field_data} and {frame_number} will be substituted.''')
@@ -49,3 +55,15 @@ class GridMetadataFields(models.Model):
     class Meta:
         ordering = ['type','grid_field_name']
 
+
+class GridCapturePreset(models.Model):
+    """
+    In production use you probably would not want to capture every image snapped in the picker to the Grid.
+    This model represents a metadata profile that, if matched, will allow the image to be sent on.
+    """
+    vs_field = models.CharField(max_length=256)
+    field_value_regex = models.CharField(max_length=2048)
+    active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['vs_field', 'field_value_regex']

@@ -1,0 +1,29 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress staticfiles %}
+{% block title %}{% trans 'Grid Integration enabling configuration' %}{% endblock %}
+{% block heading %}{% trans 'Grid Integration enabling configuration' %}{% endblock %}
+
+{% block extra_script %}
+<style>
+    span.helptext {
+        font-size: 0.8em;
+        font-style: italic;
+        color: #214583;
+        padding-left: 1em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<script language="JavaScript">
+
+</script>
+
+<form method="post">{% csrf_token %}
+    <ul>
+    {{ form.as_ul }}
+    </ul>
+    <input type="submit" value="Submit" />
+</form>
+
+{% endblock %}

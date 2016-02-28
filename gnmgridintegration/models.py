@@ -11,7 +11,7 @@ class GridMetadataFields(models.Model):
                                      help_text=html.escape('''The value to set.  {vs_field_data} and {frame_number} will be substituted.''')
                                      )
     vs_field = models.CharField(max_length=255, blank=True,
-                                help_text=html.escape('Read the value of this metadata field and substitute it in to format_string as {vs_field_value}'))
+                                help_text=html.escape('Read the value of this metadata field and substitute it in to format_string as {vs_field_data}'))
     type = models.IntegerField(choices=((1, 'ItemMetadata'),(2, 'RightsMetadata')),
                                help_text=html.escape('Should the field be set as item metadata or rights metadata?'))
 

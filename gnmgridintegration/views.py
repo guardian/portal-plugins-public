@@ -118,6 +118,7 @@ class MDTestView(APIView):
             else:
                 return Response({'status': 'error', 'exception': e, }, status=500)
 
+
 class MDItemInfoView(APIView):
     from rest_framework.parsers import JSONParser
     from rest_framework.renderers import JSONRenderer

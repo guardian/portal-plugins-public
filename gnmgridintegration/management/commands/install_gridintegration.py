@@ -12,6 +12,15 @@ class Command(ManagementMixin, BaseCommand):
         from vidispine.vs_field import VSField, VSNotFound
         from django.conf import settings
         from portal.plugins.gnmgridintegration.notification_handler import VIDISPINE_GRID_REF_FIELD
+        from pprint import pprint
+
+        pprint(options)
+        raise StandardError("Testing")
+
+        logger.info("Setting API key....")
+        self.update_config_file({'grid_api_key': options['key']})
+        logger.info("Done")
+
         logger.info("Configuring notification...")
         self.setup_notification()
         fieldref = VSField(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,

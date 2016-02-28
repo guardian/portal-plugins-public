@@ -23,6 +23,12 @@ class ManagementMixin(object):
         }
     }
 
+    CONFIG_STARTING_LINE = "### Grid installation config"
+    CONFIG_ENDING_LINE = "### END Grid installation config"
+    CONFIG_BLOCK = """
+GNM_GRID_API_KEY = {grid_api_key}
+"""
+
     def get_notification_url(self):
         from django.core.urlresolvers import reverse, reverse_lazy
         import socket
@@ -94,3 +100,67 @@ class ManagementMixin(object):
             print "Warning: Unable to find any notifications to remove"
         else:
             print "Removed {0} relevant notifications".format(i)
+
+    def add_config_lines(self,dest,params):
+#         dest.write("""### Purgemeister installation config
+# if not 'CELERY_IMPORTS' in globals():
+#     CELERY_IMPORTS = []
+#
+# CELERY_IMPORTS  += ['portal.plugins.gnmpurgemeister.tasks']
+# ### END Purgemeister installation config
+# """)
+        dest.write(self.CONFIG_STARTING_LINE)
+        dest.write("\n")
+        dest.write(self.CONFIG_BLOCK.format(**params))
+        if not self.CONFIG_BLOCK.endswith("\n"):
+            dest.write("\n")
+        dest.write(self.CONFIG_ENDING_LINE)
+        dest.write("\n")
+
+    def update_config_file(self,params):
+        import shutil
+        import os
+        import sys
+        import re
+
+        installation_path =  os.path.dirname(os.path.realpath(sys.argv[0]))
+        print "Installation path is %s" % installation_path
+
+        localsettings = os.path.join(installation_path,'portal','localsettings.py')
+        backupfile = localsettings + ".bak"
+        shutil.move(localsettings, backupfile)
+
+        print "Backing up {0} to {1}".format(localsettings, backupfile)
+
+        starting_line = re.compile(r'^{0}'.format(self.CONFIG_STARTING_LINE))
+        ending_line = re.compile(r'^{0}'.format(self.CONFIG_ENDING_LINE))
+        try:
+            with open(backupfile,mode='r') as source:
+                with open(localsettings,mode='w') as dest:
+                    in_block = False
+                    block_found = False
+                    for lines in source:
+                        if not in_block:
+                            if starting_line.match(lines):
+                                in_block = True
+                                block_found = True
+                                print "Existing configuration found"
+                            else:
+                                dest.write(lines)
+                        else:
+                            #swallow all in-block lines then replace them
+                            if ending_line.match(lines):
+                                print "Over-writing existing configuration with current version"
+                                self.add_config_lines(dest,params)
+                                in_block = False
+
+                    if not block_found:
+                        print "No configuration found, adding config to %s" % localsettings
+                        self.add_config_lines(dest,params)
+            print "Configuration finished.  You now need to restart Portal and the Celery services by running sudo supervisorctl restart all"
+        except StandardError as e:
+            print "An error occurred: {0}".format(str(e))
+            print "Restoring backup of old settings file..."
+            shutil.move(backupfile, localsettings)
+            print "Restore done.  Original error was:"
+            raise

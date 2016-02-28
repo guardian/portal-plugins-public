@@ -23,6 +23,14 @@ function test_itemid_changed(){
             htmlstring += key + ": " + value + "<br>";
         });
 
+        var numGridImgs = 0;
+        if(Array.isArray(data['metadata']['gnm_grid_image_refs'])){
+            numGridImgs = data['metadata']['gnm_grid_image_refs'].length;
+        } else if(data['metadata']['gnm_grid_image_refs']!=null){
+            numGridImgs = 1;
+        }
+
+        htmlstring += "<hr>" + numGridImgs + " images already in the Grid<br>";
         //htmlstring += "<br><button type=\"button\" onClicked=\"test_go_clicked('" + data['item'] + "');\">Test</button>";
 
         textDiv.html(htmlstring)

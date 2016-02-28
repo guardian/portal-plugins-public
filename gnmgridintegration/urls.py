@@ -5,6 +5,8 @@ import logging
 
 from django.conf.urls.defaults import patterns,url
 from views import VSCallbackView, ConfigListView, MDEditView, MDDeleteView, MDCreateView, MDTestView, MDItemInfoView
+from django.views.generic.base import RedirectView
+from django.core.urlresolvers import reverse_lazy
 # This new app handles the request to the URL by responding with the view which is loaded 
 # from portal.plugins.gnmgridintegration.views.py. Inside that file is a class which responsedxs to the 
 # request, and sends in the arguments template - the html file to view.
@@ -18,5 +20,6 @@ urlpatterns = patterns('portal.plugins.gnmgridintegration.views',
     url(r'^admin/metadata/new$', MDCreateView.as_view(), name='gnmgridintegration_new_meta'),
     url(r'^admin/metadata/test/(?P<vs_item_id>\w{2}-\d+)/iteminfo$', MDItemInfoView.as_view(), name='gnmgridintegration_item_meta'),
     url(r'^admin/metadata/test/(?P<vs_item_id>\w{2}-\d+)$', MDTestView.as_view(), name='gnmgridintegration_test_meta'),
-    url(r'^admin/metadata/*$', ConfigListView.as_view(), name='gnmgridintegration_admin_meta'),
+    url(r'^admin/metadata/$', ConfigListView.as_view(), name='gnmgridintegration_admin_meta'),
+    url(r'^admin/metadata$', RedirectView.as_view(url=reverse_lazy('gnmgridintegration_admin_meta'), permanent=True))
 )

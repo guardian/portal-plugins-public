@@ -1,0 +1,32 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress staticfiles %}
+{% block title %}{% trans 'Grid Integration Enable & Disable' %}{% endblock %}
+{% block heading %}{% trans 'Grid Integration Enable & Disable' %}{% endblock %}
+
+{% block extra_script %}
+<script src="{% static 'gnmgridintegration/grid_meta_admin.js' %}"></script>
+<link rel="stylesheet" href="{% static 'gnmgridintegration/grid_admin.css' %}">
+{% endblock %}
+{% block content %}
+<span><a href='{% url gnmgridintegration_new_profile %}'>New...</a></span>
+<table>
+    <tr>
+        <td>Vidispine Field Name</td>
+        <td>Matching Pattern</td>
+        <td>Enabled</td>
+    </tr>
+    {% for entry in object_list %}
+    <tr>
+        <td><strong>{{ entry.vs_field }}</strong></td>
+        <td>{{ entry.field_value_regex }}</td>
+        <td>{{ entry.active }}</td>
+        <td><a href='{% url gnmgridintegration_edit_profile pk=entry.pk %}'><img src='{% static "img/icon-metadata-editor.png" %}' style="width: 16px"></a></td>
+        <td><a href='{% url gnmgridintegration_delete_profile pk=entry.pk %}'><img src='{% static "delete.png" %}' style="width: 16px"></a></td>
+    </tr>
+    {% endfor %}
+</table>
+{% if object_list|length == 0 %}
+<p style="text-align: center; font-size: 1.2em"><strong>No profiles currently present</strong></p>
+{% endif %}
+
+{% endblock %}

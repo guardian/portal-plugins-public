@@ -1,0 +1,40 @@
+    .item_meta_text {
+        display: inline-block;
+        vertical-align: top;
+        //margin-top: 1em;
+        margin-left: 1em;
+    }
+    .item_meta_image {
+        width: 240px;
+        display:inline-block;
+    }
+    .item_container {
+        border: 1px solid black;
+        border-radius: 1em;
+        padding: 0.5em;
+        background-color: white;
+        display: inline-block;
+        margin-top: 1em;
+    }
+    .error {
+        color: red;
+        margin-top: 1em;
+    }
+
+    .result_data_panel {
+        display: inline-block;
+        margin-top: 1em;
+        margin-left: 0.5em;
+        margin-right: 0.5em;
+        //border-right: 1px solid black;
+    }
+    .item_meta_container {
+
+    }
+    span.result_subheader {
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+    .data_field_name {
+        font-weight: bold;
+    }

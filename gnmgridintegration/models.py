@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 class GridMetadataFields(models.Model):
     grid_field_name = models.CharField(max_length=255, help_text=html.escape('The name of the metadata field to set in The Grid'))
     format_string = models.CharField(max_length=4096,
-                                     help_text=html.escape('''The value to set.  {vs_field_value} and {frame_number} will be substituted.''')
+                                     help_text=html.escape('''The value to set.  {vs_field_data} and {frame_number} will be substituted.''')
                                      )
     vs_field = models.CharField(max_length=255, blank=True,
                                 help_text=html.escape('Read the value of this metadata field and substitute it in to format_string as {vs_field_value}'))

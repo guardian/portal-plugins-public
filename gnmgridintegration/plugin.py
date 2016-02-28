@@ -12,6 +12,7 @@ from portal.generic.plugin_interfaces import (IPluginURL, IPluginBlock, IAppRegi
 
 log = logging.getLogger(__name__)
 
+
 class GnmgridintegrationPluginURL(Plugin):
     """ Adds a plugin handler which creates url handler for the index page """
     implements(IPluginURL)
@@ -40,7 +41,7 @@ class GnmgridintegrationAdminNavigationPlugin(Plugin):
     # Returns the template file navigation.html
     # Change navigation.html to the string that you want to use
     def return_string(self, tagname, *args):
-        return {'guid': self.plugin_guid, 'template': 'gnmgridintegration/navigation.html'}
+        return {'guid': self.plugin_guid, 'template': 'gnmgridintegration/menu_nav.html'}
 
 navplug = GnmgridintegrationAdminNavigationPlugin()
 
@@ -67,3 +68,16 @@ class GnmgridintegrationRegister(Plugin):
 
 gnmgridintegrationplugin = GnmgridintegrationRegister()
 
+class GnmgridintegrationAdminPlugin(Plugin):
+    implements(IPluginBlock)
+
+    def __init__(self):
+        self.name = "AdminLeftPanelBottomPanePlugin"
+        self.plugin_guid = '285f1224-de4a-11e5-99ff-60030890043a'
+        log.debug('initiated GNMPurgeMeister admin panel')
+
+    def return_string(self,tagname,*args):
+        #raise StandardError("testing")
+        return {'guid': self.plugin_guid, 'template': 'gnmgridintegration/navigation.html'}
+
+adminplug = GnmgridintegrationAdminPlugin()

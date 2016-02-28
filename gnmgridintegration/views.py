@@ -17,7 +17,7 @@ from portal.vidispine.iexception import NotFoundError
 from rest_framework.views import APIView
 from rest_framework import viewsets
 from rest_framework.response import Response
-from models import GridMetadataFields
+from models import GridMetadataFields, GridCapturePreset
 log = logging.getLogger(__name__)
 
 
@@ -155,3 +155,26 @@ class MDItemInfoView(APIView):
             meta[f] = item.get(f, allowArray=True)
         meta[VIDISPINE_GRID_REF_FIELD] = item.get(VIDISPINE_GRID_REF_FIELD, allowArray=True)
         return Response({'status': 'success', 'item': vs_item_id, 'metadata': meta})
+
+### Views for admin enable profile editor
+class ProfileListView(ListView):
+    model = GridCapturePreset
+    template_name = "gnmgridintegration/admin_enable_disable.html"
+
+
+class ProfileEditView(UpdateView):
+    model = GridCapturePreset
+    template_name = "gnmgridintegration/profile_edit.html"
+    success_url = reverse_lazy('gnmgridintegration_admin_profile')
+
+
+class ProfileDeleteView(DeleteView):
+    model = GridCapturePreset
+    template_name = "gnmgridintegration/profile_delete.html"
+    success_url = reverse_lazy('gnmgridintegration_admin_profile')
+
+
+class ProfileCreateView(CreateView):
+    model = GridCapturePreset
+    template_name = "gnmgridintegration/profile_edit.html"
+    success_url = reverse_lazy('gnmgridintegration_admin_profile')

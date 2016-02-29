@@ -1,3 +1,18 @@
+var entityMap = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': '&quot;',
+    "'": '&#39;',
+    "/": '&#x2F;'
+};
+
+function escapeHtml(string) {
+return String(string).replace(/[&<>"'\/]/g, function (s) {
+    return entityMap[s];
+});
+}
+
 function test_itemid_changed(){
     var value = $('#id_test_itemid').val();
     console.log("Getting info for item ID " + value);
@@ -11,8 +26,8 @@ function test_itemid_changed(){
         var containerDiv = $('<div>', {'class': 'item_container'});
         var textDiv = $('<div>', {'class': 'item_meta_text'});
 
-        var htmlstring = '<span style="font-size: 1.1em"><a target="_blank" href="/vs/item/' + data['item'] + '">'+ data['item'] + "</a></span><br>"
-        htmlstring += 'Title: <strong>' + data['metadata']['title'] + '</strong><br>'
+        var htmlstring = '<span style="font-size: 1.1em"><a target="_blank" href="/vs/item/' + escapeHtml(data['item']) + '">'+ escapeHtml(data['item']) + "</a></span><br>"
+        htmlstring += 'Title: <strong>' + escapeHtml(data['metadata']['title']) + '</strong><br>'
         /*htmlstring += "GNM Type: " + data['metadata']['gnm_type'] + '<br>'
         htmlstring += "Asset Category: " + data['metadata']['gnm_asset_category'] + '<br>'
         */
@@ -20,7 +35,7 @@ function test_itemid_changed(){
             if(key=='representativeThumbnailNoAuth') return;
             if(key=='title') return;
             if(key=='gnm_grid_image_refs') return;
-            htmlstring += key + ": " + value + "<br>";
+            htmlstring += escapeHtml(key) + ": " + escapeHtml(value) + "<br>";
         });
 
         var numGridImgs = 0;
@@ -48,43 +63,5 @@ function test_itemid_changed(){
         $('#testitem').append(errorText);
     }).always(function(jqXHR){
         $('#testitem_loading').hide();
-    });
-}
-
-function test_go_clicked(itemid)
-{
-    console.log("Testing Grid output for item ID " + itemid);
-
-    $('.result_container').remove();
-    $('#result_error_message').remove();
-    $('#testresult_loading').show();
-
-    $.getJSON('test/' + itemid, function(data){
-        console.log(data);
-        var containerDiv = $('<div>', {'class': 'result_container'});
-
-        $.each(['item_meta','rights_meta'], function(idx,ptr){
-            var container = $('<div>', {'id': ptr + '_container', 'class': 'result_data_panel'});
-            container.append($('<span>', {'class': 'result_subheader'}).html(ptr));
-            var dataTable = $('<table>', {'class': 'result_table'});
-            $.each(data[ptr], function(idx, ent){
-                var row = $('<tr>');
-                row.append($('<td>', {'class': 'data_field_name'}).html(idx));
-                row.append($('<td>', {'class': 'data_field_content'}).html(ent));
-                dataTable.append(row);
-            });
-            container.append(dataTable);
-            containerDiv.append(container);
-        })
-
-        $('#testresult_loading').hide();
-        $('#testresults').append(containerDiv);
-    }).fail(function(jqXHR, textStatus,errorDetail){
-        $('#testresult_loading').hide();
-        var errorText = $('<p>', {'class': 'error', 'id': 'testitem_error_message'});
-        errorText.html('Unable to load item information: ' + errorDetail);
-        $('#testresult').append(errorText);
-    }).always(function(jqXHR){
-        $('#testresult_loading').hide();
     });
 }

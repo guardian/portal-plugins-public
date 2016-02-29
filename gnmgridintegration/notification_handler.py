@@ -142,9 +142,7 @@ class VidispineResponseWrapper(VSApi):
 #             {u'key': u'transcodeDone', u'value': u'true'}]}
 
 
-def get_and_upload_image(item_id, thumbpath, identifiers):
-    from notification_handler import VSMiniThumb
-    from vidispine.vs_item import VSItem
+def get_and_upload_image(item, thumbpath, identifiers):
     from grid_api import GridLoader
     from django.conf import settings
     import traceback
@@ -163,11 +161,6 @@ def get_and_upload_image(item_id, thumbpath, identifiers):
         logger.error(traceback.format_exc())
         return
     logger.info("Image {0} uploaded as {1}".format(thumbpath, gridimage.uri))
-
-    item = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
-                  user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
-    logger.info("Looking up associated item {0}".format(item_id))
-    item.populate(item_id,specificFields = [VIDISPINE_GRID_REF_FIELD])
 
     current_value = item.get(VIDISPINE_GRID_REF_FIELD, allowArray=True)
     if current_value is None or current_value == "":
@@ -203,12 +196,17 @@ def do_meta_substitution(item, frame_number, type):
 
 
 def vs_field_list():
-    from models import GridMetadataFields
+    from models import GridMetadataFields, GridCapturePreset
     out = []
 
     for rec in GridMetadataFields.objects.all():
         if rec.vs_field != "" and rec.vs_field is not None:
             out.append(rec.vs_field)
+
+    for rec in GridCapturePreset.objects.all():
+        if rec.vs_field != "" and rec.vs_field is not None:
+            out.append(rec.vs_field)
+    out.append(VIDISPINE_GRID_REF_FIELD)
     return out
 
 
@@ -228,11 +226,20 @@ def setup_image_metadata(item_id, grid_image, frame_number=None):
     grid_image.set_usage_rights(category=output_meta['category'], source=output_meta['source'])
 
 
+def should_trigger(item):
+    from models import GridCapturePreset
+
+    for rec in GridCapturePreset.objects.filter(active=True):
+        if rec.should_trigger(item):
+            return rec.pk
+    return False
+
+
 def get_new_thumbnail(notification_data):
     from django.conf import settings
     import os.path
     #from tasks import get_and_upload_image
-
+    from vidispine.vs_item import VSItem
     tempdir = "/tmp"
 
     resp = VidispineResponseWrapper(notification_data,url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,
@@ -240,6 +247,17 @@ def get_new_thumbnail(notification_data):
     logger.info("Notified of new thumbnail for {0}".format(resp.get('itemId')))
 
     total = 0
+    item = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
+                  user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+    logger.info("Looking up associated item {0}".format(resp.get('itemId')))
+    item.populate(resp.get('itemId'),specificFields=vs_field_list())
+
+    n=should_trigger(item)
+    if not n:
+        logger.info("Not triggering on item {0} because it does not match enabling profiles. Go to Grid Integration in the Portal admin panel if you think this is incorrect.".format(item.name))
+        return
+    logger.info("Item {0} matched profile id {1} so continuing".format(item.name,n))
+
     #FIXME: need to get largest frame size for each target frame.  Can we do that here or can we do it when we set up
     #the notification?
     for t in resp.thumbs().each():
@@ -248,7 +266,7 @@ def get_new_thumbnail(notification_data):
         logger.debug("Outputting to {0}".format(outpath))
         with open(outpath,'w') as f:
             f.write(t.download())
-        img = get_and_upload_image(resp.get('itemId'), outpath, [])
+        img = get_and_upload_image(item, outpath, [])
         setup_image_metadata(resp.get('itemId'), img, frame_number = t.target_frame)
         total +=1
 

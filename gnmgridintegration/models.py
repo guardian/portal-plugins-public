@@ -67,3 +67,28 @@ class GridCapturePreset(models.Model):
 
     class Meta:
         ordering = ['vs_field', 'field_value_regex']
+
+    def should_trigger(self, item):
+        """
+        Returns TRUE if the given populated VSItem object matches this preset
+        :param item: populated VSItem
+        :return: True or False
+        """
+        import re
+        if re.search(unicode(self.field_value_regex),
+                     item.get(self.vs_field),
+                     re.IGNORECASE|re.UNICODE) is not None:
+            return True
+        return False
+
+    def info(self):
+        """
+        Returns a dict of json-friendly information about this profile
+        :return: dict
+        """
+        return {
+            'pk': self.pk,
+            'field': unicode(self.vs_field),
+            'value_regex': unicode(self.field_value_regex),
+            'active': self.active
+        }

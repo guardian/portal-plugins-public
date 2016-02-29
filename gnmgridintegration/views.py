@@ -165,16 +165,58 @@ class ProfileListView(ListView):
 class ProfileEditView(UpdateView):
     model = GridCapturePreset
     template_name = "gnmgridintegration/profile_edit.html"
-    success_url = reverse_lazy('gnmgridintegration_admin_profile')
+    success_url = reverse_lazy('gnmgridintegration_admin_enable')
 
 
 class ProfileDeleteView(DeleteView):
     model = GridCapturePreset
     template_name = "gnmgridintegration/profile_delete.html"
-    success_url = reverse_lazy('gnmgridintegration_admin_profile')
+    success_url = reverse_lazy('gnmgridintegration_admin_enable')
 
 
 class ProfileCreateView(CreateView):
     model = GridCapturePreset
     template_name = "gnmgridintegration/profile_edit.html"
-    success_url = reverse_lazy('gnmgridintegration_admin_profile')
+    success_url = reverse_lazy('gnmgridintegration_admin_enable')
+
+
+class ProfileTestView(APIView):
+    from rest_framework.parsers import JSONParser
+    from rest_framework.renderers import JSONRenderer
+    from rest_framework import permissions
+
+    #permission_classes = (permissions.AllowAny, )
+    parser_classes = (JSONParser, )
+    renderer_classes = (JSONRenderer, )
+
+    def get(self, request, vs_item_id=None):
+        from django.conf import settings
+        from vidispine.vs_item import VSItem, VSNotFound, VSException
+        from traceback import format_exc
+        from models import GridCapturePreset
+        from traceback import format_exc
+        from notification_handler import should_trigger, vs_field_list
+
+        item = VSItem(url=settings.VIDISPINE_URL, port=settings.VIDISPINE_PORT,
+              user=settings.VIDISPINE_USERNAME, passwd=settings.VIDISPINE_PASSWORD)
+
+        try:
+            item.populate(vs_item_id, specificFields=vs_field_list())
+            n=should_trigger(item)
+            if n:
+                ps = GridCapturePreset.objects.get(pk=n)
+                return Response({'status': 'ok', 'result': True, 'because': ps.info()})
+            else:
+                return Response({'status': 'ok', 'result': False})
+        except VSNotFound as e:
+            return Response({'status': 'error', 'exception': 'Vidispine item {0} not found'.format(vs_item_id)},status=404)
+        except VSException as e:
+            return Response({'status': 'error', 'exception': 'Vidispine error {0}'.format(e.__class__.__name__),
+                             'detail': {
+                                 'type': e.exceptionType,
+                                 'context': e.exceptionContext,
+                                 'what': e.exceptionWhat,
+                                 'id': e.exceptionID
+                             }}, status=500)
+        except Exception as e:
+            return Response({'status': 'error', 'exception': unicode(e), 'trace': format_exc()}, status=500)

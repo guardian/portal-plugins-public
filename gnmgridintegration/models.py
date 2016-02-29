@@ -65,6 +65,9 @@ class GridCapturePreset(models.Model):
     field_value_regex = models.CharField(max_length=2048)
     active = models.BooleanField(default=True)
 
+    def __unicode__(self):
+        return u'{0} matches {1}'.format(self.vs_field,self.field_value_regex)
+
     class Meta:
         ordering = ['vs_field', 'field_value_regex']
 
@@ -88,6 +91,7 @@ class GridCapturePreset(models.Model):
         """
         return {
             'pk': self.pk,
+            'desc': unicode(self),
             'field': unicode(self.vs_field),
             'value_regex': unicode(self.field_value_regex),
             'active': self.active

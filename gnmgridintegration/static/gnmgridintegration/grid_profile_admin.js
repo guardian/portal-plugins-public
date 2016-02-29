@@ -23,3 +23,4 @@ function regex_test_string()
         $('#test_result_area').append($('<p>').html('Result: Did not match'));
     }
 }
+

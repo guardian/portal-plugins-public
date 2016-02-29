@@ -13,6 +13,30 @@ return String(string).replace(/[&<>"'\/]/g, function (s) {
 });
 }
 
+function expanderMouseOver(exp)
+{
+exp.setAttribute('src','/sitemedia/gnmgridintegration/arrow_sel.svg');
+
+}
+
+function expanderMouseOut(exp)
+{
+exp.setAttribute('src','/sitemedia/gnmgridintegration/arrow_unsel.svg');
+}
+
+var expanded = false;
+
+function expanderClicked(exp)
+{
+if(expanded){
+    $('#grid_info_area').fadeOut();
+    expanded = false;
+} else {
+    $('#grid_info_area').fadeIn();
+    expanded = true;
+}
+}
+
 function test_itemid_changed(){
     var value = $('#id_test_itemid').val();
     console.log("Getting info for item ID " + value);
@@ -45,14 +69,28 @@ function test_itemid_changed(){
             numGridImgs = 1;
         }
 
-        htmlstring += "<hr>" + numGridImgs + " images already in the Grid<br>";
+        htmlstring += "<hr>" + numGridImgs + " images already in the Grid";
         //htmlstring += "<br><button type=\"button\" onClicked=\"test_go_clicked('" + data['item'] + "');\">Test</button>";
 
         textDiv.html(htmlstring)
+        textDiv.append($('<img>', {'class': 'simple_expander', 'onMouseOver': 'expanderMouseOver(this);',
+                                   'onMouseOut': 'expanderMouseOut(this);', 'onClick': 'expanderClicked(this);',
+                                   'src': '/sitemedia/gnmgridintegration/arrow_unsel.svg'}));
+
+        var gridInfo = $('<div>', {'id': 'grid_info_area', 'style': 'display: none;'});
+        //var gridInfo = $('#grid_info_area');
+        $.each(data['metadata']['gnm_grid_image_refs'],function(idx,value){
+            var fronturl = value.replace(/\/\/api\./,'//');
+            gridInfo.append($('<p>', {'class': 'grid_image_ref'}).html('<a href="' + fronturl + '" target="_blank">' + fronturl + '</a>'));
+        });
+
+        //textDiv.append(gridInfo);
+
         containerDiv.append($('<img>', {'class': 'item_meta_image', 'src': data['metadata']['representativeThumbnailNoAuth']}))
         $(containerDiv).append(textDiv)
 
         $(containerDiv).append($('<button>', {'type': 'button', 'onClick': 'test_go_clicked("' + data['item'] + '");'}).html('Test'));
+        $(containerDiv).append(gridInfo);
 
         $('#testitem_loading').hide();
         $('#testitem').append(containerDiv);

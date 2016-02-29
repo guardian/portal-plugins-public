@@ -38,3 +38,28 @@
     .data_field_name {
         font-weight: bold;
     }
+
+    .text_result_matched {
+        font-weight: bold;
+        color: green;
+    }
+
+    .text_result_unmatched {
+        font-weight: bold;
+        color: blue;
+    }
+
+    .text_subresult {
+        font-size: 0.8em;
+    }
+
+    .simple_expander {
+        width: 16px;
+        padding-left: 1.2em;
+        margin-top: 6px;
+    }
+
+    p.grid_image_ref {
+        margin-left: 1em;
+        font-size: 0.8em;
+    }

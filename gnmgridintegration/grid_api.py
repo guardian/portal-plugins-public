@@ -156,6 +156,11 @@ class GridImage(GridBase):
         data=self.info()
         return data['data']['userMetadata']['data']['usageRights']['uri']
 
+    @property
+    def labels_link(self):
+        data=self.info()
+        return data['data']['userMetadata']['data']['labels']['uri']
+
     def info(self):
         import time
         if self._info_cache is not None:
@@ -186,6 +191,16 @@ class GridImage(GridBase):
 
         self.request(self.usage_rights_link,method="PUT",body=md,extra_headers={'Content-Type': 'application/json'})
 
+    def add_labels(self, label_list):
+        import json
+        if not isinstance(label_list, list):
+            label_list = [label_list]
+
+        data = {'data': []}
+        for x in label_list:
+            data['data'].append(unicode(x))
+
+        self.request(self.labels_link,method="POST",body=json.dumps(data),extra_headers={'Content-Type': 'application/json'})
 if __name__ == '__main__':
     import sys
     import time
@@ -198,7 +213,7 @@ if __name__ == '__main__':
     l = GridLoader('pluto_grid_api_test','pluto-35495dd119156ab447ab8719e1218983a33d3952')
 
     with open(sys.argv[1]) as fp:
-        image = l.upload_image(fp, ['testimage'])
+        image = l.upload_image(fp)
     #pprint(image)
     #pprint(image.info())
     time.sleep(1)
@@ -206,4 +221,5 @@ if __name__ == '__main__':
     image.set_metadata({'credit': 'Andy Gallagher', 'description': 'Test image'})
     time.sleep(1)
     print "Image supports: {0} and {1}".format(image.actions, image.links)
+    image.add_labels(['cabbage','rhubarb','fish'])
     #image.delete()

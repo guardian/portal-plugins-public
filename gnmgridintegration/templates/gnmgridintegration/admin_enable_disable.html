@@ -12,6 +12,25 @@ function test_go_clicked(itemid)
 {
     console.log("Testing enable/disable for item ID " + itemid);
 
+    $('.result_container').remove();
+    $('#testresult_loading').show();
+    $.getJSON('test/' + itemid, function(data){
+        var containerDiv = $('<div>', {'class': 'result_container'});
+
+        if(data['result']){
+            containerDiv.append($('<p>', {'class': 'text_result_matched'}).text('Upload to Grid would be triggered'));
+            containerDiv.append($('<p>', {'class': 'text_subresult'}).text('Rule "' + data['because']['desc'] + '" matched.'));
+        } else {
+            containerDiv.append($('<p>', {'class': 'text_result_unmatched'}).text('Upload to Grid would NOT be triggered'));
+        }
+        $('#testresults').append(containerDiv);
+    }).fail(function(jqXHR,status,detail){
+        var errorText = $('<p>', {'class': 'error', 'id': 'testitem_error_message'});
+        errorText.html('Unable to load item information: ' + errorDetail);
+        $('#testresult').append(errorText);
+    }).always(function(){
+        $('#testresult_loading').hide();
+    });
 }
 </script>
 {% endblock %}

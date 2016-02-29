@@ -210,21 +210,22 @@ def vs_field_list():
     return out
 
 
-def setup_image_metadata(item_id, grid_image, frame_number=None):
+def setup_image_metadata(item, grid_image, frame_number=None):
     from vidispine.vs_item import VSItem
     from django.conf import settings
 
-    item = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
-                  user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
-
-    fieldnames = vs_field_list()
-    item.populate(item_id, specificFields=fieldnames)
+    # item = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
+    #               user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+    #
+    # fieldnames = vs_field_list()
+    # item.populate(item_id, specificFields=fieldnames)
     output_meta = do_meta_substitution(item,frame_number,1)
     grid_image.set_metadata(output_meta)
 
     output_meta = do_meta_substitution(item, frame_number,2)
     grid_image.set_usage_rights(category=output_meta['category'], source=output_meta['source'])
 
+    grid_image.add_labels(item.name)
 
 def should_trigger(item):
     from models import GridCapturePreset
@@ -267,7 +268,7 @@ def get_new_thumbnail(notification_data):
         with open(outpath,'w') as f:
             f.write(t.download())
         img = get_and_upload_image(item, outpath, [])
-        setup_image_metadata(resp.get('itemId'), img, frame_number = t.target_frame)
+        setup_image_metadata(item, img, frame_number = t.target_frame)
         total +=1
 
     logger.info("Handler completed for {0}, processed {1} thumbs".format(resp.get('itemId'), total))

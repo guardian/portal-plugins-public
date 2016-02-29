@@ -6,3 +6,4 @@ class Command(ManagementMixin, BaseCommand):
 
     def handle(self, *args, **options):
         self.remove_notification()
+        self.update_config_file({}, remove=True)

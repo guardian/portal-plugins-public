@@ -102,13 +102,6 @@ GNM_GRID_API_KEY = {grid_api_key}
             print "Removed {0} relevant notifications".format(i)
 
     def add_config_lines(self,dest,params):
-#         dest.write("""### Purgemeister installation config
-# if not 'CELERY_IMPORTS' in globals():
-#     CELERY_IMPORTS = []
-#
-# CELERY_IMPORTS  += ['portal.plugins.gnmpurgemeister.tasks']
-# ### END Purgemeister installation config
-# """)
         dest.write(self.CONFIG_STARTING_LINE)
         dest.write("\n")
         dest.write(self.CONFIG_BLOCK.format(**params))
@@ -117,7 +110,7 @@ GNM_GRID_API_KEY = {grid_api_key}
         dest.write(self.CONFIG_ENDING_LINE)
         dest.write("\n")
 
-    def update_config_file(self,params):
+    def update_config_file(self,params, remove=False):
         import shutil
         import os
         import sys
@@ -150,8 +143,12 @@ GNM_GRID_API_KEY = {grid_api_key}
                         else:
                             #swallow all in-block lines then replace them
                             if ending_line.match(lines):
-                                print "Over-writing existing configuration with current version"
-                                self.add_config_lines(dest,params)
+                                if remove:
+                                    print "Removing existing configuration"
+                                    pass
+                                else:
+                                    print "Over-writing existing configuration with current version"
+                                    self.add_config_lines(dest,params)
                                 in_block = False
 
                     if not block_found:

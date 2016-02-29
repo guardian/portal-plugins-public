@@ -6,6 +6,45 @@
 {% block extra_script %}
 <script src="{% static 'gnmgridintegration/grid_meta_admin.js' %}"></script>
 <link rel="stylesheet" href="{% static 'gnmgridintegration/grid_admin.css' %}">
+<script>
+function test_go_clicked(itemid)
+{
+    console.log("Testing Grid output for item ID " + itemid);
+
+    $('.result_container').remove();
+    $('#result_error_message').remove();
+    $('#testresult_loading').show();
+
+    $.getJSON('test/' + itemid, function(data){
+        console.log(data);
+        var containerDiv = $('<div>', {'class': 'result_container'});
+
+        $.each(['item_meta','rights_meta'], function(idx,ptr){
+            var container = $('<div>', {'id': ptr + '_container', 'class': 'result_data_panel'});
+            container.append($('<span>', {'class': 'result_subheader'}).html(ptr));
+            var dataTable = $('<table>', {'class': 'result_table'});
+            $.each(data[ptr], function(idx, ent){
+                var row = $('<tr>');
+                row.append($('<td>', {'class': 'data_field_name'}).html(idx));
+                row.append($('<td>', {'class': 'data_field_content'}).html(ent));
+                dataTable.append(row);
+            });
+            container.append(dataTable);
+            containerDiv.append(container);
+        })
+
+        $('#testresult_loading').hide();
+        $('#testresults').append(containerDiv);
+    }).fail(function(jqXHR, textStatus,errorDetail){
+        $('#testresult_loading').hide();
+        var errorText = $('<p>', {'class': 'error', 'id': 'testitem_error_message'});
+        errorText.html('Unable to load item information: ' + errorDetail);
+        $('#testresult').append(errorText);
+    }).always(function(jqXHR){
+        $('#testresult_loading').hide();
+    });
+}
+</script>
 {% endblock %}
 {% block content %}
 <span><a href='{% url gnmgridintegration_new_meta %}'>New...</a></span>
@@ -31,23 +70,5 @@
 <p style="text-align: center; font-size: 1.2em"><strong>No metadata fields currently present</strong></p>
 {% endif %}
 
-<hr>
-<div id="testarea">
-    <h2>Test</h2>
-    <label for="id_test_itemid">Item ID to test with: </label>
-    <input type="text" id="id_test_itemid" name="test_itemid" onchange="test_itemid_changed();">
-    <!--<button type="button" onclick="test_go">Go!</button>-->
-    <div id="testitem">
-        <div style="display: none;" id="testitem_loading">
-            <img src="{% static 'gnmgridintegration/load.gif' %}" alt="loading"><br>
-            <span class="loading_text">Loading item information...</span>
-        </div>
-    </div>
-    <div id="testresults">
-        <div style="display: none;" id="testresult_loading">
-            <img src="{% static 'gnmgridintegration/load.gif' %}" alt="loading"><br>
-            <span class="loading_text">Loading test result...</span>
-        </div>
-    </div>
-</div>
+{% include 'gnmgridintegration/itemtest.html' %}
 {% endblock %}

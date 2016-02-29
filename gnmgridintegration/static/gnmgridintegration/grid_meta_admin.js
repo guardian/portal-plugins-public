@@ -63,10 +63,12 @@ function test_itemid_changed(){
         });
 
         var numGridImgs = 0;
-        if(Array.isArray(data['metadata']['gnm_grid_image_refs'])){
-            numGridImgs = data['metadata']['gnm_grid_image_refs'].length;
-        } else if(data['metadata']['gnm_grid_image_refs']!=null){
-            numGridImgs = 1;
+        if(data['metadata']['gnm_grid_image_refs']!=null){
+            if(Array.isArray(data['metadata']['gnm_grid_image_refs'])){
+                numGridImgs = data['metadata']['gnm_grid_image_refs'].length;
+            } else {
+                numGridImgs = 1;
+            }
         }
 
         htmlstring += "<hr>" + numGridImgs + " images already in the Grid";
@@ -79,11 +81,12 @@ function test_itemid_changed(){
 
         var gridInfo = $('<div>', {'id': 'grid_info_area', 'style': 'display: none;'});
         //var gridInfo = $('#grid_info_area');
-        $.each(data['metadata']['gnm_grid_image_refs'],function(idx,value){
-            var fronturl = value.replace(/\/\/api\./,'//');
-            gridInfo.append($('<p>', {'class': 'grid_image_ref'}).html('<a href="' + fronturl + '" target="_blank">' + fronturl + '</a>'));
-        });
-
+        if(data['metadata']['gnm_grid_image_refs']!=null){
+            $.each(data['metadata']['gnm_grid_image_refs'],function(idx,value){
+                var fronturl = value.replace(/\/\/api\./,'//');
+                gridInfo.append($('<p>', {'class': 'grid_image_ref'}).html('<a href="' + fronturl + '" target="_blank">' + fronturl + '</a>'));
+            });
+        }
         //textDiv.append(gridInfo);
 
         containerDiv.append($('<img>', {'class': 'item_meta_image', 'src': data['metadata']['representativeThumbnailNoAuth']}))

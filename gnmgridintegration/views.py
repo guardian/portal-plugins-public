@@ -100,9 +100,9 @@ class MDTestView(APIView):
               user=settings.VIDISPINE_USERNAME, passwd=settings.VIDISPINE_PASSWORD)
 
         try:
-            log.debug("Looking up item {0}".format(vs_item_id))
+            #log.debug("Looking up item {0}".format(vs_item_id))
             fieldnames = vs_field_list()
-            log.debug("Field list: {0}".format(fieldnames))
+            #log.debug("Field list: {0}".format(fieldnames))
             try:
                 item.populate(vs_item_id, specificFields=fieldnames)
             except VSNotFound as e:
@@ -136,14 +136,14 @@ class MDItemInfoView(APIView):
         from notification_handler import VIDISPINE_GRID_REF_FIELD
         from notification_handler import vs_field_list
         from pprint import pformat
-        log.debug("Request data: {0}".format(pformat(request.__dict__)))
-        log.debug("Request user: {0}".format(request.user))
+        #log.debug("Request data: {0}".format(pformat(request.__dict__)))
+        #log.debug("Request user: {0}".format(request.user))
 
         item = VSItem(url=settings.VIDISPINE_URL, port=settings.VIDISPINE_PORT,
               user=settings.VIDISPINE_USERNAME, passwd=settings.VIDISPINE_PASSWORD)
 
         try:
-            log.debug("Looking up item {0}".format(vs_item_id))
+            #log.debug("Looking up item {0}".format(vs_item_id))
             item.populate(vs_item_id, specificFields = self.interesting_fields)
         except VSNotFound as e:
             return Response({'status': 'error', 'problem': 'Item not found', 'exception': e}, status=404)

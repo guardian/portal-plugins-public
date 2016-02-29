@@ -174,7 +174,7 @@ def get_and_upload_image(item, thumbpath, identifiers):
     logger.debug("Setting new value {0} to {1}".format(current_value,VIDISPINE_GRID_REF_FIELD))
     item.set_metadata({VIDISPINE_GRID_REF_FIELD: current_value})
 
-    logger.info("Completed get_and_upload_image for {0} from {1}".format(thumbpath,item_id))
+    logger.info("Completed get_and_upload_image for {0} from {1}".format(thumbpath,item.name))
     return gridimage
 
 
@@ -226,6 +226,7 @@ def setup_image_metadata(item, grid_image, frame_number=None):
     grid_image.set_usage_rights(category=output_meta['category'], source=output_meta['source'])
 
     grid_image.add_labels(item.name)
+
 
 def should_trigger(item):
     from models import GridCapturePreset

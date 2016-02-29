@@ -4,8 +4,16 @@
 {% block heading %}{% trans 'Grid Integration Enable & Disable' %}{% endblock %}
 
 {% block extra_script %}
+<script src="{% static 'gnmgridintegration/grid_profile_admin.js' %}"></script>
 <script src="{% static 'gnmgridintegration/grid_meta_admin.js' %}"></script>
 <link rel="stylesheet" href="{% static 'gnmgridintegration/grid_admin.css' %}">
+<script>
+function test_go_clicked(itemid)
+{
+    console.log("Testing enable/disable for item ID " + itemid);
+
+}
+</script>
 {% endblock %}
 {% block content %}
 <span><a href='{% url gnmgridintegration_new_profile %}'>New...</a></span>
@@ -29,4 +37,5 @@
 <p style="text-align: center; font-size: 1.2em"><strong>No profiles currently present</strong></p>
 {% endif %}
 
+{% include 'gnmgridintegration/itemtest.html' %}
 {% endblock %}

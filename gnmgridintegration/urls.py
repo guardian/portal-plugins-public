@@ -26,6 +26,7 @@ urlpatterns = patterns('portal.plugins.gnmgridintegration.views',
     url(r'^admin/metadata$', RedirectView.as_view(url=reverse_lazy('gnmgridintegration_admin_meta'), permanent=True)),
 
     url(r'^admin/enable/new$', ProfileCreateView.as_view(), name='gnmgridintegration_new_profile'),
+    url(r'^admin/enable/test/(?P<vs_item_id>\w{2}-\d+)/iteminfo$', MDItemInfoView.as_view(), name='gnmgridintegration_item_meta'),
     url(r'^admin/enable/test/(?P<vs_item_id>\w{2}-\d+)$', ProfileTestView.as_view(), name='gnmgridintegation_test_profile'),
     url(r'^admin/enable/(?P<pk>\d+)/edit$', ProfileEditView.as_view(), name='gnmgridintegration_edit_profile'),
     url(r'^admin/enable/(?P<pk>\d+)/delete$', ProfileDeleteView.as_view(), name='gnmgridintegration_delete_profile'),

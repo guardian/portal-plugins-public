@@ -244,6 +244,7 @@ def do_glacier_restore(request_id,itemid,path):
 
     except KeyError:
         logger.error("Item {0} ({1}) does not appear to have gnm_external_archive_external_archive_device set".format(itemid,item_meta.get('title')))
+        rq.failure_reason = "Item {0} ({1}) does not appear to have gnm_external_archive_external_archive_device set".format(itemid,item_meta.get('title'))
         rq.status = 'FAILED'
         rq.completed_at = datetime.now()
         rq.save()

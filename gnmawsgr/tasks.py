@@ -260,6 +260,7 @@ def do_glacier_restore(request_id,itemid,path):
             rq.file_size_check = "Expected: {0} bytes. Actual: {1} bytes.".format(rq.file_size,os.path.getsize(filename))
             if (os.path.getsize(filename) + 20000) < rq.file_size:
                 rq.status = "FAILED"
+                rq.failure_reason = "File size check failed"
                 rq.save()
                 break
             rq.save()

@@ -5,6 +5,7 @@ logger = logging.getLogger(__name__)
 
 VIDISPINE_GRID_REF_FIELD = 'gnm_grid_image_refs'
 
+
 class VSMiniThumb(VSApi):
     def __init__(self,target_frame,framerate,uri,*args,**kwargs):
         self.target_frame = target_frame
@@ -211,14 +212,6 @@ def vs_field_list():
 
 
 def setup_image_metadata(item, grid_image, frame_number=None):
-    from vidispine.vs_item import VSItem
-    from django.conf import settings
-
-    # item = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
-    #               user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
-    #
-    # fieldnames = vs_field_list()
-    # item.populate(item_id, specificFields=fieldnames)
     output_meta = do_meta_substitution(item,frame_number,1)
     grid_image.set_metadata(output_meta)
 
@@ -240,7 +233,6 @@ def should_trigger(item):
 def get_new_thumbnail(notification_data):
     from django.conf import settings
     import os.path
-    #from tasks import get_and_upload_image
     from vidispine.vs_item import VSItem
     tempdir = "/tmp"
 
@@ -248,6 +240,7 @@ def get_new_thumbnail(notification_data):
                                     passwd=settings.VIDISPINE_PASSWORD)
     logger.info("Notified of new thumbnail for {0}".format(resp.get('itemId')))
     if resp.get('createThumbnails') != 'false':
+        #if we don't filter this out, we get crappy small thumbnails as well, but we only want nice big poster frames
         logger.info("Got createThumbnails={0} (expecting false, i.e. Poster frame was created). Not continuing.".format(resp.get('createThumbnails')))
         return
 
@@ -263,8 +256,6 @@ def get_new_thumbnail(notification_data):
         return
     logger.info("Item {0} matched profile id {1} so continuing".format(item.name,n))
 
-    #FIXME: need to get largest frame size for each target frame.  Can we do that here or can we do it when we set up
-    #the notification?
     for t in resp.thumbs().each():
         filename = "{item}_{frm}.jpg".format(item=resp.get('itemId'),frm=str(t.target_frame))
         outpath = os.path.join(tempdir,filename)

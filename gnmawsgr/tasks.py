@@ -307,6 +307,7 @@ def do_glacier_restore(request_id,itemid,path):
 
             except S3ResponseError as e:
                 #restore request failed, so there's something wrong with the object
+                rq.failure_reason = "Restore request failed"
                 rq.status = 'FAILED'
                 rq.completed_at = datetime.now()
                 rq.save()

@@ -201,6 +201,8 @@ class GridImage(GridBase):
             data['data'].append(unicode(x))
 
         self.request(self.labels_link,method="POST",body=json.dumps(data),extra_headers={'Content-Type': 'application/json'})
+
+        
 if __name__ == '__main__':
     import sys
     import time

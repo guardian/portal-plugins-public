@@ -8,7 +8,7 @@ that serves up index.html file
 import logging
 
 from portal.pluginbase.core import Plugin, implements
-from portal.generic.plugin_interfaces import (IPluginURL, IPluginBlock, IAppRegister)
+from portal.generic.plugin_interfaces import (IPluginURL, IPluginBlock, IAppRegister,)
 
 log = logging.getLogger(__name__)
 
@@ -45,6 +45,21 @@ class GnmgridintegrationAdminNavigationPlugin(Plugin):
 
 navplug = GnmgridintegrationAdminNavigationPlugin()
 
+
+# class GnmgridintegrationItemPanelPlugin(Plugin):
+#     """
+#     Plugin for the item view.  See p. 202 of Portal Plugin Developers Guide
+#     """
+#     implements(IPluginBlock)
+#
+#     def __init__(self):
+#         self.name = "MediaViewLeftPanelMenu"
+#         self.plugin_guid = '5d022c84-7f33-4ce7-919f-c153494a1443'
+#
+#     def return_string(self, tagname, *args):
+#         return {'guid': self.plugin_guid, 'string': '<li>Grid Images</li>'}
+#
+# pbnewmenuitem = GnmgridintegrationItemPanelPlugin()
 
 class GnmgridintegrationRegister(Plugin):
     # This adds it to the list of installed Apps

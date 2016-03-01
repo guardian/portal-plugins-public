@@ -34,6 +34,9 @@ class GridBase(object):
         def __str__(self):
             return self.__unicode__().encode('ASCII')
 
+    class ElementNotAvailable(StandardError):
+        pass
+
     def __init__(self, api_key):
         self._api_key=api_key
 
@@ -122,10 +125,19 @@ class GridLoader(GridBase):
         return response
 
 
+class GridCrop(GridBase):
+    def __init__(self,data,*args,**kwargs):
+        super(GridCrop,self).__init__(*args,**kwargs)
+        self._content = data
+
+
 class GridImage(GridBase):
     logger = logging.getLogger('grid_api.GridImage')
     _base_uri = 'https://api.media.test.dev-gutools.co.uk/images'
     max_cache_time = 30 #in seconds
+
+    class CropsNotAvailable(GridBase.ElementNotAvailable):
+        pass
 
     def __init__(self,uri_or_id,*args,**kwargs):
         import re
@@ -148,8 +160,16 @@ class GridImage(GridBase):
 
     @property
     def links(self):
+        """
+        Returns a dictionary of URL links relevant to this image
+        :return: dict with type name as key and URL as value
+        """
         data=self.info()
-        return map(lambda x:x['rel'], data['links'])
+        rtn = {}
+        #return map(lambda x:x['rel'], data['links'])
+        for x in data['links']:
+            rtn[x['rel']] = x['href']
+        return rtn
 
     @property
     def usage_rights_link(self):
@@ -202,7 +222,35 @@ class GridImage(GridBase):
 
         self.request(self.labels_link,method="POST",body=json.dumps(data),extra_headers={'Content-Type': 'application/json'})
 
-        
+    def make_crop(self, x, y, w, h, defined_aspect= None):
+        #https://cropper.media.test.dev-gutools.co.uk/crops
+        #{"type":"crop","source":"https://api.media.test.dev-gutools.co.uk/images/0ce84c50b59b1278b22d31d47447c8c1f1f04e80",
+        # "x":0,"y":0,"width":1920,"height":1079,"aspectRatio":"16:9"}
+        import json
+        try:
+            req_url = self.links['crops']
+        except KeyError:
+            raise self.CropsNotAvailable
+
+        data = {
+            'type': 'crop',
+            'source': self.uri,
+            'x': int(x),
+            'y': int(y),
+            'w': int(w),
+            'h': int(h)
+        }
+        if defined_aspect is not None:
+            data['aspectRatio'] = defined_aspect
+        #request_body = json.dumps(data)
+        self.logger.debug("Requesting an image crop with the following parameters: {0}".format(unicode(data)))
+
+        rtn = self.request(req_url, method="POST", body= json.dumps(data), extra_headers={'Content-Type': 'application/json'})
+        if isinstance(rtn, dict): #.request should parse out JSON response for us
+            self.logger.debug("Grid returned success: {0}".format(rtn))
+            return GridCrop(rtn, self._api_key)
+        raise StandardError("Invalid data returned by the Grid: {0}".format(rtn))
+
 if __name__ == '__main__':
     import sys
     import time

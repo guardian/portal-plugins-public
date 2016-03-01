@@ -48,7 +48,8 @@ navplug = GnmgridintegrationAdminNavigationPlugin()
 
 # class GnmgridintegrationItemPanelPlugin(Plugin):
 #     """
-#     Plugin for the item view.  See p. 202 of Portal Plugin Developers Guide
+#     Plugin for the item view menu item.  This works with two other panel plugins to show the item page panel.
+# See p. 202 of Portal Plugin Developers Guide
 #     """
 #     implements(IPluginBlock)
 #

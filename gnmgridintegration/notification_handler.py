@@ -247,6 +247,9 @@ def get_new_thumbnail(notification_data):
     resp = VidispineResponseWrapper(notification_data,url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,
                                     passwd=settings.VIDISPINE_PASSWORD)
     logger.info("Notified of new thumbnail for {0}".format(resp.get('itemId')))
+    if resp.get('createThumbnails') != 'false':
+        logger.info("Got createThumbnails={0} (expecting false, i.e. Poster frame was created). Not continuing.".format(resp.get('createThumbnails')))
+        return
 
     total = 0
     item = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,

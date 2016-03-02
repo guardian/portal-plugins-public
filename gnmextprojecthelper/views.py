@@ -39,7 +39,7 @@ GenericAppView = GenericAppView._decorate(login_required)
 
 class ProjectTemplateFileView(View):
     exclude_extensions = ['.lst','.pl','.py','.txt']
-
+    #FIXME: need to check authenticated
     def get(self,request,project_type=None):
         from django.conf import settings
         from django.http import HttpResponse, Http404
@@ -118,7 +118,9 @@ class ProjectDefaultInformationView(ProjectNewView):
 class ProjectMakeView(APIView):
     from rest_framework.parsers import JSONParser
     from rest_framework.renderers import JSONRenderer
+    from rest_framework.permissions import IsAuthenticated
 
+    permission_classes= (IsAuthenticated, )
     parser_classes = (JSONParser, )
     renderer_classes = (JSONRenderer, )
 
@@ -192,7 +194,9 @@ class CachedViewMixin(object):
 class GenericGroupListView(CachedViewMixin, APIView):
     from rest_framework.parsers import JSONParser
     from rest_framework.renderers import JSONRenderer
+    from rest_framework.permissions import IsAuthenticated
 
+    permission_classes= (IsAuthenticated, )
     parser_classes = (JSONParser, )
     renderer_classes = (JSONRenderer, )
 
@@ -247,7 +251,7 @@ class ProjectSubTypeListView(GenericGroupListView):
         from django.conf import settings
         from pprint import pprint
         md = VSGlobalMetadata(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
-                              user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+                              user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD, run_as=self.request.user.username)
 
         md.populate()
         grp = md.get_group(self.group_name)
@@ -266,7 +270,9 @@ class ProjectSubTypeListView(GenericGroupListView):
 class GenericListView(APIView):
     from rest_framework.parsers import JSONParser
     from rest_framework.renderers import JSONRenderer
+    from rest_framework.permissions import IsAuthenticated
 
+    permission_classes= (IsAuthenticated, )
     parser_classes = (JSONParser, )
     renderer_classes = (JSONRenderer, )
 

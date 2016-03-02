@@ -112,7 +112,7 @@ class MDTestView(APIView):
         from traceback import format_exc
         from notification_handler import do_meta_substitution, vs_field_list
         item = VSItem(url=settings.VIDISPINE_URL, port=settings.VIDISPINE_PORT,
-              user=settings.VIDISPINE_USERNAME, passwd=settings.VIDISPINE_PASSWORD)
+              user=settings.VIDISPINE_USERNAME, passwd=settings.VIDISPINE_PASSWORD,run_as=request.user.username)
 
         try:
             #log.debug("Looking up item {0}".format(vs_item_id))
@@ -155,7 +155,7 @@ class MDItemInfoView(APIView):
         #log.debug("Request user: {0}".format(request.user))
 
         item = VSItem(url=settings.VIDISPINE_URL, port=settings.VIDISPINE_PORT,
-              user=settings.VIDISPINE_USERNAME, passwd=settings.VIDISPINE_PASSWORD)
+              user=settings.VIDISPINE_USERNAME, passwd=settings.VIDISPINE_PASSWORD,run_as=request.user.username)
 
         try:
             #log.debug("Looking up item {0}".format(vs_item_id))
@@ -227,7 +227,7 @@ class ProfileTestView(APIView):
         from notification_handler import should_trigger, vs_field_list
 
         item = VSItem(url=settings.VIDISPINE_URL, port=settings.VIDISPINE_PORT,
-              user=settings.VIDISPINE_USERNAME, passwd=settings.VIDISPINE_PASSWORD)
+              user=settings.VIDISPINE_USERNAME, passwd=settings.VIDISPINE_PASSWORD,run_as=request.user.username)
 
         try:
             item.populate(vs_item_id, specificFields=vs_field_list())

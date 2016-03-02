@@ -10,6 +10,8 @@ import logging
 
 from django.contrib.auth.decorators import login_required
 from portal.generic.baseviews import ClassView
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import permission_required, login_required
 from django.views.generic import ListView, CreateView, DeleteView, UpdateView
 from django.core.urlresolvers import reverse_lazy
 from portal.vidispine.iitem import ItemHelper
@@ -51,31 +53,44 @@ class VSCallbackView(APIView):
         from notification_handler import get_new_thumbnail
         from pprint import pprint
         #try:
-        pprint(request.DATA)
+        #pprint(request.DATA)
         get_new_thumbnail(request.DATA)
-        return Response({'status': 'ok', 'information': 'Not implemented', 'sent': request.DATA}, status=200)
+        return Response({'status': 'ok'}, status=200)
         # except TypeError as e:
         #     return Response({'status': 'error', 'exception': str(e)},status=400)
 
+
 ### Views for admin metadata editor
 class ConfigListView(ListView):
+    @method_decorator(permission_required('change_gridmetadatafields', login_url='/authentication/login', raise_exception=True))
+    def dispatch(self, request, *args, **kwargs):
+        return super(ConfigListView,self).dispatch(request,*args,**kwargs)
     model = GridMetadataFields
     template_name = "gnmgridintegration/admin_list.html"
 
 
 class MDEditView(UpdateView):
+    @method_decorator(permission_required('change_gridmetadatafields', login_url='/authentication/login', raise_exception=True))
+    def dispatch(self, request, *args, **kwargs):
+        return super(MDEditView,self).dispatch(request,*args,**kwargs)
     model = GridMetadataFields
     template_name = "gnmgridintegration/meta_edit.html"
     success_url = reverse_lazy('gnmgridintegration_admin_meta')
 
 
 class MDDeleteView(DeleteView):
+    @method_decorator(permission_required('delete_gridmetadatafields', login_url='/authentication/login', raise_exception=True))
+    def dispatch(self, request, *args, **kwargs):
+        return super(MDDeleteView,self).dispatch(request,*args,**kwargs)
     model = GridMetadataFields
     template_name = "gnmgridintegration/meta_delete.html"
     success_url = reverse_lazy('gnmgridintegration_admin_meta')
 
 
 class MDCreateView(CreateView):
+    @method_decorator(permission_required('create_gridmetadatafields', login_url='/authentication/login', raise_exception=True))
+    def dispatch(self, request, *args, **kwargs):
+        return super(MDCreateView,self).dispatch(request,*args,**kwargs)
     model = GridMetadataFields
     template_name = "gnmgridintegration/meta_edit.html"
     success_url = reverse_lazy('gnmgridintegration_admin_meta')
@@ -86,7 +101,7 @@ class MDTestView(APIView):
     from rest_framework.renderers import JSONRenderer
     from rest_framework import permissions
 
-    #permission_classes = (permissions.AllowAny, )
+    permission_classes = (permissions.IsAdminUser, )
     parser_classes = (JSONParser, )
     renderer_classes = (JSONRenderer, )
 
@@ -124,7 +139,7 @@ class MDItemInfoView(APIView):
     from rest_framework.renderers import JSONRenderer
     from rest_framework import permissions
 
-    #permission_classes = (permissions.AllowAny, )
+    permission_classes = (permissions.IsAdminUser, )
     parser_classes = (JSONParser, )
     renderer_classes = (JSONRenderer, )
 
@@ -158,23 +173,37 @@ class MDItemInfoView(APIView):
 
 ### Views for admin enable profile editor
 class ProfileListView(ListView):
+    @method_decorator(permission_required('change_gridcapturepreset', login_url='/authentication/login', raise_exception=True))
+    def dispatch(self, request, *args, **kwargs):
+        return super(ProfileListView,self).dispatch(request,*args,**kwargs)
     model = GridCapturePreset
     template_name = "gnmgridintegration/admin_enable_disable.html"
 
 
 class ProfileEditView(UpdateView):
+    @method_decorator(permission_required('change_gridcapturepreset', login_url='/authentication/login', raise_exception=True))
+    def dispatch(self, request, *args, **kwargs):
+        return super(ProfileEditView,self).dispatch(request,*args,**kwargs)
+
     model = GridCapturePreset
     template_name = "gnmgridintegration/profile_edit.html"
     success_url = reverse_lazy('gnmgridintegration_admin_enable')
 
 
 class ProfileDeleteView(DeleteView):
+    @method_decorator(permission_required('delete_gridcapturepreset', login_url='/authentication/login', raise_exception=True))
+    def dispatch(self, request, *args, **kwargs):
+        return super(ProfileDeleteView,self).dispatch(request,*args,**kwargs)
     model = GridCapturePreset
     template_name = "gnmgridintegration/profile_delete.html"
     success_url = reverse_lazy('gnmgridintegration_admin_enable')
 
 
 class ProfileCreateView(CreateView):
+    @method_decorator(permission_required('create_gridcapturepreset', login_url='/authentication/login', raise_exception=True))
+    def dispatch(self, request, *args, **kwargs):
+        return super(ProfileCreateView,self).dispatch(request,*args,**kwargs)
+
     model = GridCapturePreset
     template_name = "gnmgridintegration/profile_edit.html"
     success_url = reverse_lazy('gnmgridintegration_admin_enable')
@@ -185,7 +214,7 @@ class ProfileTestView(APIView):
     from rest_framework.renderers import JSONRenderer
     from rest_framework import permissions
 
-    #permission_classes = (permissions.AllowAny, )
+    permission_classes = (permissions.IsAdminUser, )
     parser_classes = (JSONParser, )
     renderer_classes = (JSONRenderer, )
 

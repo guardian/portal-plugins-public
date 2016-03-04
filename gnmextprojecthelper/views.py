@@ -16,6 +16,7 @@ from django.views.generic import View
 from portal.plugins.gnm_projects.views import ProjectNewView
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 
 log = logging.getLogger(__name__)
 
@@ -276,6 +277,7 @@ class ProjectSubTypeListView(GenericGroupListView):
         self.data_desc = "pluto:project_sub_types:{0}".format(kwargs['project_type'])
         return super(ProjectSubTypeListView,self).get(request,**kwargs)
 
+
 class GenericListView(APIView):
     from rest_framework.parsers import JSONParser
     from rest_framework.renderers import JSONRenderer
@@ -377,3 +379,110 @@ class CommissionListView(GenericListView):
                     'gnm_type': 'Commission'}
         pprint(criteria)
         return super(CommissionListView,self).get(request,search_criteria=criteria,**kwargs)
+
+
+class CsrfExemptSessionAuthentication(SessionAuthentication):
+    def enforce_csrf(self, request):
+        return  # To not perform the csrf check previously happening
+
+
+class AssetFolderCreatorView(APIView):
+    from rest_framework.parsers import JSONParser
+    from rest_framework.renderers import JSONRenderer
+    from rest_framework.permissions import IsAuthenticated
+
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    permission_classes= (IsAuthenticated, )
+    parser_classes = (JSONParser, )
+    renderer_classes = (JSONRenderer, )
+
+    required_args = [
+        'working_group_name',
+        'commission_name',
+        'user_name',
+        'project_name',
+        'project_id',
+    ]
+
+    required_settings = [
+        'PLUTO_ASSET_FOLDER_BASEPATH',
+        'WORKFLOW_EXEC_KEY',
+        'WORKFLOW_EXEC_USER',
+        'WORKFLOW_EXEC_HOSTS',
+        'PLUTO_ASSETFOLDER_USER',
+        'PLUTO_ASSETFOLDER_GROUP',
+        'PROJECT_FILE_CREATION_SCRIPT_FINAL_OUTPUT'
+    ]
+
+    def __init__(self,*args,**kwargs):
+        #super(self,AssetFolderCreatorView).__init__(*args,**kwargs)
+        import re
+        self.validation_expr = re.compile(r'[^\w\d]')
+
+    def validate_field(self,value):
+        return self.validation_expr.sub('_',value)
+
+    def post(self, request):
+        import os.path
+        import re
+        import subprocess
+        from django.conf import settings
+
+        #$base_path,$safe_working_group,$safe_commission,$safe_user."_".$safe_project
+        for a in self.required_settings:
+            if not hasattr(settings,a):
+                return Response({'status': 'error', 'error': 'Server not configured properly, missing {0}'.format(a)},status=500)
+
+        for a in self.required_args:
+            if not a in request.DATA:
+                return Response({'status': 'error', 'error': 'You must specify {0}'.format(a)},status=400)
+
+        if not re.match(r'^\w{2}-\d+$',request.DATA['project_id']):
+            return Response({'status': 'error', 'error': 'Invalid vidispine ID: {0}'.format(request.DATA['project_id'])},status=400)
+
+        path = os.path.join(settings.PLUTO_ASSET_FOLDER_BASEPATH,
+                            self.validate_field(request.DATA['working_group_name']),
+                            self.validate_field(request.DATA['commission_name']),
+                            "{0}_{1}".format(
+                                self.validate_field(request.DATA['user_name']),
+                                self.validate_field(request.DATA['project_name'])
+                            )
+                            )
+        log.info("Built requested path {0} from {1}".format(path,str(request.DATA)))
+
+        #send request to workflow server
+        if isinstance(settings.WORKFLOW_EXEC_HOSTS, list):
+            hosts = settings.WORKFLOW_EXEC_HOSTS
+        else:
+            hosts = [settings.WORKFLOW_EXEC_HOSTS]
+
+        success=False
+        for rexec_host in hosts:
+            remote_command = "/usr/local/bin/mkdir_on_behalf_of \"{pathname}\" \"{username}\" \"{groupname}\"".format(
+                pathname=path,
+                groupname=settings.PLUTO_ASSETFOLDER_GROUP,
+                username=settings.PLUTO_ASSETFOLDER_USER,
+            )
+            proc = subprocess.Popen([
+                '/usr/bin/ssh',
+                '-i',
+                settings.WORKFLOW_EXEC_KEY,
+                "{0}@{1}".format(settings.WOKRFLOW_EXEC_USER,rexec_host),
+                remote_command
+            ],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            (command_stdout, command_stderr) = proc.communicate()
+            if proc.returncode!=0:
+                log.error("Error executing remote command on {0}: {1}".format(rexec_host,command_stderr))
+            else:
+                success=True
+                break
+        if not success:
+            log.error("Unable to execute remote command on any host specified({0}). Aborting",settings.WORKFLOW_EXEC_HOSTS)
+            return Response({'status': 'error', 'error': 'Internal command error'},status=500)
+
+        ptrfile = os.path.join(settings.PROJECT_FILE_CREATION_SCRIPT_FINAL_OUTPUT, str(request.DATA['project_id']) + '.ptr')
+        log.info("Creating asset folder pointer at %s" % ptrfile)
+        f = open(ptrfile,"w")
+        f.writelines(path)
+        f.close()
+        log.info("Output asset folder location %s to %s" % (path, ptrfile))

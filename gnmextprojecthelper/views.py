@@ -57,8 +57,11 @@ class ProjectTemplateFileView(View):
 
         desired_extensions = None
 
+        file_index = 0
         if 'xtn' in request.GET:
             desired_extensions = request.GET['xtn'].split(',')
+        if 'n' in request.GET:
+            file_index = request.GET['n']
 
         file_list = []
 
@@ -92,10 +95,15 @@ class ProjectTemplateFileView(View):
             ))
             raise Http404
 
-        full_path = os.path.join(filepath,file_list[0])
+        if file_index>len(file_list):
+            log.error("Client requested file index {0} but there are only {1} to choose from",file_index,len(file_list))
+        full_path = os.path.join(filepath,file_list[file_index])
         log.info("Sending file {0}".format(full_path))
         with open(full_path) as fp:
-            return HttpResponse(fp.read(),content_type='application/octet-stream',status=200)
+            rsp = HttpResponse(fp.read(),content_type='application/octet-stream',status=200)
+            rsp['X-Pluto-Filename'] = os.path.basename(fp.name)
+            rsp['X-Pluto-Filecount'] = len(file_list)
+            return rsp
 
 
 #this view requires login as it derives from another that does

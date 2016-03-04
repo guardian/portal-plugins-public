@@ -130,7 +130,7 @@ class ProjectMakeView(APIView):
         from portal.plugins.gnm_commissions.exceptions import NotACommissionError
         from portal.plugins.gnm_vidispine_utils.models import Reference
         from portal.plugins.gnm_vidispine_utils import constants as const
-        from portal.plugins.gnm_projects.forms import ProjectForm
+        from forms import CustomisedProjectForm
         from pprint import pprint
         from django.http import Http404
         from tasks import complete_project_setup
@@ -148,7 +148,7 @@ class ProjectMakeView(APIView):
             '''
             raise Http404
 
-        form = ProjectForm(request.DATA)
+        form = CustomisedProjectForm(request.DATA)
         if form.is_valid():
             data = form.cleaned_data
             references = []
@@ -208,7 +208,8 @@ class GenericGroupListView(CachedViewMixin, APIView):
         from vidispine.vs_globalmetadata import VSGlobalMetadata
         from django.conf import settings
         md = VSGlobalMetadata(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
-                              user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+                              user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,
+                              run_as=self.request.user.username)
 
         md.populate()
         grp = md.get_group(self.group_name)

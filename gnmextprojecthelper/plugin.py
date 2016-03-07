@@ -10,6 +10,7 @@ import logging
 from portal.pluginbase.core import Plugin, implements
 from portal.generic.plugin_interfaces import (IPluginURL, IPluginBlock, IAppRegister)
 
+VERSION = "1.0DEV"
 log = logging.getLogger(__name__)
 
 class GnmextprojecthelperPluginURL(Plugin):
@@ -58,7 +59,7 @@ class GnmextprojecthelperRegister(Plugin):
         from __init__ import __version__ as versionnumber
         _app_dict = {
                 'name': 'GNM External Projects Helper App',
-                'version': '0.0.1',
+                'version': VERSION,
                 'author': 'Andy Gallagher',
                 'author_url': '',
                 'notes': '(C) GNM'}

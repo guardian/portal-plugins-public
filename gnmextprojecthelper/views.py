@@ -386,24 +386,7 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
         return  # To not perform the csrf check previously happening
 
 
-class AssetFolderCreatorView(APIView):
-    from rest_framework.parsers import JSONParser
-    from rest_framework.renderers import JSONRenderer, XMLRenderer, YAMLRenderer
-    from rest_framework.permissions import IsAuthenticated
-
-    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
-    permission_classes= (IsAuthenticated, )
-    parser_classes = (JSONParser, )
-    renderer_classes = (JSONRenderer, XMLRenderer, YAMLRenderer)
-
-    required_args = [
-        'working_group_name',
-        'commission_name',
-        'user_name',
-        'project_name',
-        'project_id',
-    ]
-
+class InstallationCheckMixin(object):
     required_settings = [
         'PLUTO_ASSET_FOLDER_BASEPATH',
         'WORKFLOW_EXEC_KEY',
@@ -416,6 +399,38 @@ class AssetFolderCreatorView(APIView):
 
     required_directories = [
     ]
+
+    def check_directories(self):
+        import os.path
+        for d in self.required_directories:
+            if not os.path.isdir(d):
+                return Response({'status': 'error', 'error': 'Server not configured properly, missing path {0}'.format(d)}, status=500)
+        return None
+
+    def check_settings(self):
+        from django.conf import settings
+        for a in self.required_settings:
+            if not hasattr(settings,a):
+                return Response({'status': 'error', 'error': 'Server not configured properly, missing {0}'.format(a)},status=500)
+        return None
+
+class AssetFolderCreatorView(InstallationCheckMixin, APIView):
+    from rest_framework.parsers import JSONParser
+    from rest_framework.renderers import JSONRenderer, XMLRenderer, YAMLRenderer
+    from rest_framework.permissions import IsAuthenticated
+
+    required_args = [
+        'working_group_name',
+        'commission_name',
+        'user_name',
+        'project_name',
+        'project_id',
+    ]
+
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    permission_classes= (IsAuthenticated, )
+    parser_classes = (JSONParser, )
+    renderer_classes = (JSONRenderer, XMLRenderer, YAMLRenderer)
 
     def __init__(self,*args,**kwargs):
         #super(self,AssetFolderCreatorView).__init__(*args,**kwargs)
@@ -433,13 +448,13 @@ class AssetFolderCreatorView(APIView):
 
         self.required_directories.append(settings.PROJECT_FILE_CREATION_SCRIPT_FINAL_OUTPUT)
         #$base_path,$safe_working_group,$safe_commission,$safe_user."_".$safe_project
-        for d in self.required_directories:
-            if not os.path.isdir(d):
-                return Response({'status': 'error', 'error': 'Server not configured properly, missing path {0}'.format(d)}, status=500)
+        rsp = self.check_directories()
+        if rsp is not None:
+            return rsp
 
-        for a in self.required_settings:
-            if not hasattr(settings,a):
-                return Response({'status': 'error', 'error': 'Server not configured properly, missing {0}'.format(a)},status=500)
+        rsp = self.check_settings()
+        if rsp is not None:
+            return rsp
 
         for a in self.required_args:
             if not a in request.DATA:
@@ -505,3 +520,26 @@ class AssetFolderCreatorView(APIView):
 
         return Response({'status': 'ok', 'asset_folder': rel_path, 'pointer_file': ptrfile,
                          'project': request.DATA['project_id'], 'helper': helper},status=200)
+
+
+class InstallationCheckView(InstallationCheckMixin, APIView):
+    from rest_framework.parsers import JSONParser
+    from rest_framework.renderers import JSONRenderer, XMLRenderer, YAMLRenderer
+    from rest_framework.permissions import IsAuthenticated
+
+    authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
+    permission_classes= (IsAuthenticated, )
+    parser_classes = (JSONParser, )
+    renderer_classes = (JSONRenderer, XMLRenderer, YAMLRenderer)
+
+    def get(self,request):
+        from plugin import VERSION
+        rsp = self.check_directories()
+        if rsp is not None:
+            return rsp
+
+        rsp = self.check_settings()
+        if rsp is not None:
+            return rsp
+
+        return Response({'status': 'ok', 'version': VERSION})

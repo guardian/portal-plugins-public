@@ -280,12 +280,12 @@ class ProjectSubTypeListView(GenericGroupListView):
 
 class GenericListView(APIView):
     from rest_framework.parsers import JSONParser
-    from rest_framework.renderers import JSONRenderer
+    from rest_framework.renderers import JSONRenderer, XMLRenderer, YAMLRenderer
     from rest_framework.permissions import IsAuthenticated
 
     permission_classes= (IsAuthenticated, )
     parser_classes = (JSONParser, )
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer, XMLRenderer, YAMLRenderer)
 
     interesting_fields = [
         'title',
@@ -388,13 +388,13 @@ class CsrfExemptSessionAuthentication(SessionAuthentication):
 
 class AssetFolderCreatorView(APIView):
     from rest_framework.parsers import JSONParser
-    from rest_framework.renderers import JSONRenderer
+    from rest_framework.renderers import JSONRenderer, XMLRenderer, YAMLRenderer
     from rest_framework.permissions import IsAuthenticated
 
     authentication_classes = (CsrfExemptSessionAuthentication, BasicAuthentication)
     permission_classes= (IsAuthenticated, )
     parser_classes = (JSONParser, )
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer, XMLRenderer, YAMLRenderer)
 
     required_args = [
         'working_group_name',
@@ -414,6 +414,9 @@ class AssetFolderCreatorView(APIView):
         'PROJECT_FILE_CREATION_SCRIPT_FINAL_OUTPUT'
     ]
 
+    required_directories = [
+    ]
+
     def __init__(self,*args,**kwargs):
         #super(self,AssetFolderCreatorView).__init__(*args,**kwargs)
         import re
@@ -428,7 +431,12 @@ class AssetFolderCreatorView(APIView):
         import subprocess
         from django.conf import settings
 
+        self.required_directories.append(settings.PROJECT_FILE_CREATION_SCRIPT_FINAL_OUTPUT)
         #$base_path,$safe_working_group,$safe_commission,$safe_user."_".$safe_project
+        for d in self.required_directories:
+            if not os.path.isdir(d):
+                return Response({'status': 'error', 'error': 'Server not configured properly, missing path {0}'.format(d)}, status=500)
+
         for a in self.required_settings:
             if not hasattr(settings,a):
                 return Response({'status': 'error', 'error': 'Server not configured properly, missing {0}'.format(a)},status=500)
@@ -440,6 +448,7 @@ class AssetFolderCreatorView(APIView):
         if not re.match(r'^\w{2}-\d+$',request.DATA['project_id']):
             return Response({'status': 'error', 'error': 'Invalid vidispine ID: {0}'.format(request.DATA['project_id'])},status=400)
 
+        #generate the actual asset folder path
         path = os.path.join(settings.PLUTO_ASSET_FOLDER_BASEPATH,
                             self.validate_field(request.DATA['working_group_name']),
                             self.validate_field(request.DATA['commission_name']),
@@ -457,8 +466,9 @@ class AssetFolderCreatorView(APIView):
             hosts = [settings.WORKFLOW_EXEC_HOSTS]
 
         success=False
+        helper = ""
         for rexec_host in hosts:
-            remote_command = "/usr/local/bin/mkdir_on_behalf_of \"{pathname}\" \"{username}\" \"{groupname}\"".format(
+            remote_command = "/usr/local/bin/mkdir_on_behalf_of.pl \"{pathname}\" \"{username}\" \"{groupname}\"".format(
                 pathname=path,
                 groupname=settings.PLUTO_ASSETFOLDER_GROUP,
                 username=settings.PLUTO_ASSETFOLDER_USER,
@@ -467,7 +477,7 @@ class AssetFolderCreatorView(APIView):
                 '/usr/bin/ssh',
                 '-i',
                 settings.WORKFLOW_EXEC_KEY,
-                "{0}@{1}".format(settings.WOKRFLOW_EXEC_USER,rexec_host),
+                "{0}@{1}".format(settings.WORKFLOW_EXEC_USER,rexec_host),
                 remote_command
             ],stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             (command_stdout, command_stderr) = proc.communicate()
@@ -475,10 +485,11 @@ class AssetFolderCreatorView(APIView):
                 log.error("Error executing remote command on {0}: {1}".format(rexec_host,command_stderr))
             else:
                 success=True
+                helper = rexec_host
                 break
         if not success:
-            log.error("Unable to execute remote command on any host specified({0}). Aborting",settings.WORKFLOW_EXEC_HOSTS)
-            return Response({'status': 'error', 'error': 'Internal command error'},status=500)
+            log.error("Unable to execute remote command on any host specified({0}). Aborting".format(settings.WORKFLOW_EXEC_HOSTS))
+            return Response({'status': 'error', 'error': 'Internal command error'}, status=500)
 
         ptrfile = os.path.join(settings.PROJECT_FILE_CREATION_SCRIPT_FINAL_OUTPUT, str(request.DATA['project_id']) + '.ptr')
         log.info("Creating asset folder pointer at %s" % ptrfile)
@@ -486,3 +497,11 @@ class AssetFolderCreatorView(APIView):
         f.writelines(path)
         f.close()
         log.info("Output asset folder location %s to %s" % (path, ptrfile))
+
+        l = len(settings.PLUTO_ASSET_FOLDER_BASEPATH)
+        rel_path = path[l:]
+        if rel_path.startswith('/'):
+            rel_path=rel_path[1:]
+
+        return Response({'status': 'ok', 'asset_folder': rel_path, 'pointer_file': ptrfile,
+                         'project': request.DATA['project_id'], 'helper': helper},status=200)

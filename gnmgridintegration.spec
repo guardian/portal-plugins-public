@@ -1,7 +1,7 @@
 %define name portal-gnmgridintegration
 %define version 1.0
 %define unmangled_version 1.0
-%define release 2
+%define release 3
 
 Summary: Integration to allow image snapshots to be directly sent to The Grid
 Name: %{name}
@@ -14,7 +14,7 @@ BuildRoot: %{_tmppath}/gnmgridintegration
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: Andy Gallagher <andy.gallagher@theguardian.com>
-Requires: Portal portal-gnmvidispine>=1.0-2
+Requires: Portal portal_gnm_vidispine>=1.0-2
 
 %description
 Plugin for Cantemo Portal that allows snapshots taken with the camera icon function to be directly sent on to The Grid
@@ -38,7 +38,7 @@ rm -rf $RPM_BUILD_ROOT
 %post
 /opt/cantemo/portal/manage.py collectstatic --noinput
 /opt/cantemo/portal/manage.py migrate gnmgridintegration --noinput
-echo "Now you must run /opt/cantemo/portal/manage.py install_gnmgridintegration --key {your_key} where {your_key} is a working API key for The Grid"
+echo "Now you must run /opt/cantemo/portal/manage.py install_gridintegration --key {your_key} where {your_key} is a working API key for The Grid"
 
 %preun
-/opt/cantemo/portal/manage.py uninstall_gnmgridintegration
+/opt/cantemo/portal/manage.py uninstall_gridintegration

@@ -14,7 +14,7 @@ class Command(ManagementMixin, BaseCommand):
 
     def handle(self, *args, **options):
         from portal.plugins.gnmgridintegration.models import GridMetadataFields
-        from vidispine.vs_field import VSField, VSNotFound
+        from gnmvidispine.vs_field import VSField, VSNotFound
         from django.conf import settings
         from portal.plugins.gnmgridintegration.notification_handler import VIDISPINE_GRID_REF_FIELD
         from pprint import pprint

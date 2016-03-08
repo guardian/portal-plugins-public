@@ -14,7 +14,7 @@ from views import ProjectTemplateFileView,ProjectDefaultInformationView,ProjectL
 
 urlpatterns = patterns('portal.plugins.gnmextprojecthelper.views',
     url(r'^$', 'GenericAppView', kwargs={'template': 'gnmextprojecthelper/index.html'}, name='index'),
-    url(r'^get_template/(?P<project_type>[A-Za-z0-9/]+)', ProjectTemplateFileView.as_view(), name='project_template_download'),
+    url(r'^get_template/(?P<project_type>.+)$', ProjectTemplateFileView.as_view(), name='project_template_download'),
     url(r'^default_info/(?P<parent_commission>\w{2}-\d+)/*$', ProjectDefaultInformationView, name='new_project_defaults'),
     url(r'^project_list/(?P<commission_id>\w{2}-\d+)/*$', ProjectListView.as_view(), name='projects_for_commission'),
     url(r'^commission_list/(?P<working_group>[\w\d]{8}-[\w\d]{4}-[\w\d]{4}-[\w\d]{4}-[\w\d]+)/*$',CommissionListView.as_view(), name='commissions_for_group'),

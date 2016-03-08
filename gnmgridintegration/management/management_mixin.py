@@ -35,8 +35,8 @@ GNM_GRID_API_KEY = {grid_api_key}
         return "http://{host}{path}".format(host=socket.getfqdn(),path=reverse('gridintegration_callback_url'))
 
     def setup_notification(self):
-        from vidispine.vs_notifications import VSNotification, HttpNotification, VSTriggerEntry
-        from vidispine.vidispine_api import VSBadRequest
+        from gnmvidispine.vs_notifications import VSNotification, HttpNotification, VSTriggerEntry
+        from gnmvidispine.vidispine_api import VSBadRequest
         from django.conf import settings
 
         #my_notification = HttpNotification(None).new()
@@ -62,7 +62,7 @@ GNM_GRID_API_KEY = {grid_api_key}
         n.trigger = my_trigger
         n.objectclass = 'job'
 
-        print "Installing notification in Vidispine..."
+        print "Installing notification in vidispine..."
         try:
             n.save()
         except VSBadRequest:
@@ -72,7 +72,7 @@ GNM_GRID_API_KEY = {grid_api_key}
         #print n.as_xml()
 
     def remove_notification(self):
-        from vidispine.vs_notifications import VSNotificationCollection
+        from gnmvidispine.vs_notifications import VSNotificationCollection
         from django.conf import settings
         import re
         c = VSNotificationCollection(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)

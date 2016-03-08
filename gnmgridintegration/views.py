@@ -107,7 +107,7 @@ class MDTestView(APIView):
 
     def get(self, request, vs_item_id=None):
         from django.conf import settings
-        from vidispine.vs_item import VSItem, VSNotFound
+        from gnmvidispine.vs_item import VSItem, VSNotFound
         from models import GridMetadataFields
         from traceback import format_exc
         from notification_handler import do_meta_substitution, vs_field_list
@@ -147,7 +147,7 @@ class MDItemInfoView(APIView):
 
     def get(self, request, vs_item_id=None):
         from django.conf import settings
-        from vidispine.vs_item import VSItem, VSNotFound
+        from gnmvidispine.vs_item import VSItem, VSNotFound
         from notification_handler import VIDISPINE_GRID_REF_FIELD
         from notification_handler import vs_field_list
         from pprint import pformat
@@ -220,7 +220,7 @@ class ProfileTestView(APIView):
 
     def get(self, request, vs_item_id=None):
         from django.conf import settings
-        from vidispine.vs_item import VSItem, VSNotFound, VSException
+        from gnmvidispine.vs_item import VSItem, VSNotFound, VSException
         from traceback import format_exc
         from models import GridCapturePreset
         from traceback import format_exc

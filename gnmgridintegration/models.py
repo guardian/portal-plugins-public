@@ -37,7 +37,7 @@ class GridMetadataFields(models.Model):
         :param kwargs: Other format parameters to apply to the string
         :return: Formatted string
         """
-        from vidispine.vs_item import VSItem
+        from gnmvidispine.vs_item import VSItem
         from pprint import pformat
         format_params = {}
         format_params.update(kwargs)

@@ -15,7 +15,7 @@ class GNMPropagationRegister(Plugin):
   def __call__(self):
     _app_dict = {
       'name': self.name,
-      'version': "0.0.1",
+      'version': "1.0",
       'author': 'Dave Allison and Andy Gallagher',
       'author_url': 'www.theguardian.com/',
       'notes': 'Propagates meta data fields.'

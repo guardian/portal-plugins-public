@@ -233,7 +233,7 @@
             <td>{{ row.fileStateOnFailure }}</td>
             {% endif %}
             {% if columnsettings.filePathMap == 'true' %}
-            <td>{{ row.filePathMap }}</td>
+            <td>{{ row.filePathMap|filepathmap }}</td>
             {% endif %}
             {% if columnsettings.replicatedFileInfo == 'true' %}
             <td>{{ row.replicatedFileInfo }}</td>

@@ -1,0 +1,31 @@
+{% themeextends "base.html" %}
+{% load i18n compress %}
+{% block extra_script %}{% compress js inline %}
+<script type="text/javascript" src="{{ STATIC_URL }}js/app/media/mediabox.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/libs/select2/select2.js"></script>
+<script type="text/javascript" src="{{ STATIC_URL }}js/app/metadata/metadataform.js"></script>
+<script type="text/javascript" charset="utf-8">
+    var url_delete_items = '{% url vs_items_delete %}';
+</script>
+{% endcompress %}
+{% endblock extra_script %}
+{% block body %}
+<div id="searchheader" class="searchheader">
+{% block heading %}
+
+{% endblock heading %}
+</div>
+<div id="content" class="content searchcontent">
+{% block content %}
+{% endblock content %}
+</div>
+{% endblock body %}
+{% block inlinejs %}
+{% themeinclude "search/search_results_footer.html" %}
+{% endblock inlinejs %}
+{% docstring %}
+base_search.html is a container for search pages. The results pages have another template.
+
+Context:
+ * theme - Current theme for the user. Can be overridden to have "ajax.html".
+{% enddocstring %}

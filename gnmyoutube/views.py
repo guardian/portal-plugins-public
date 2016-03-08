@@ -1,7 +1,7 @@
-from portal.generic.baseviews import ClassView
 from django.views.generic import View
 from django.http import HttpResponse
 from django.shortcuts import render
+from rest_framework.views import APIView, Response
 import logging
 import re
 from forms import *
@@ -11,13 +11,20 @@ from youtube_interface import YoutubeInterface
 from tasks import update_categories_list
 from traceback import format_exc
 #from djcelery.models.schedules import crontab
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required, permission_required
 
 class YoutubeIndexView(View):
     def get(self,request):
         return render(request,'gnmyoutube/index.html')
 
+
 #This view displays the main admin configuration form
 class YoutubeAdminView(View):
+    @method_decorator(permission_required('change_settings', login_url='/authentication/login', raise_exception=True))
+    def dispatch(self, request, *args, **kwargs):
+        return super(YoutubeAdminView,self).dispatch(request,*args,**kwargs)
+
     def get(self,request):
         clientID = ""
         privateKey=""
@@ -68,8 +75,23 @@ class YoutubeAdminView(View):
             return render(request,'gnmyoutube/admin/adminmain.html',{'settingsform': f})
 
 #POST to this view to make a test call, to list categories
-class YoutubeTestConnectionView(View):
+class YoutubeTestConnectionView(APIView):
+    from rest_framework.parsers import JSONParser
+    from rest_framework.renderers import JSONRenderer
+
+    parser_classes = (JSONParser, )
+    renderer_classes = (JSONRenderer, )
+
+    @method_decorator(permission_required('change_settings', login_url='/authentication/login', raise_exception=True))
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            return super(YoutubeTestConnectionView,self).dispatch(request,*args,**kwargs)
+        except StandardError as e:
+            return Response({'status': 'error', 'error': str(e)}, status=500)
+
     def post(self,request):
+        from oauth2client.client import AccessTokenRefreshError, Error as OAuthError
+
         from pprint import pprint
         f = SettingsForm(request.POST)
 
@@ -77,7 +99,8 @@ class YoutubeTestConnectionView(View):
             #pprint(f.__dict__)
             logging.warning("Invalid form data sent to YoutubeTestConnectionView")
             logging.warning(str(f.__dict__))
-            return HttpResponse(json.dumps({'status': 'error','errors': f.errors}),status=400)
+            return Response({'status': 'error','errors': f.errors}, status=400)
+            #return HttpResponse(json.dumps({'status': 'error','errors': f.errors}),status=400)
 
         cd = f.cleaned_data
 
@@ -85,13 +108,22 @@ class YoutubeTestConnectionView(View):
             i = YoutubeInterface()
             i.authorize_pki(cd['clientID'],cd['privateKey'])
             c = i.list_categories()
+        except OAuthError as e:
+            return Response({'status': 'error', 'type': 'OAuth', 'error': str(e), 'info': e.__dict__},status=500)
         except StandardError as e:
-            return HttpResponse(json.dumps({'status': 'error', 'error': str(e)}), status=500)
+            return Response({'status': 'error', 'error': str(e)}, status=500)
+            #return HttpResponse(json.dumps({'status': 'error', 'error': str(e)}), status=500)
 
-        return HttpResponse(json.dumps({'status': 'unknown','error': 'Still testing', 'data': c}),status=200)
+        return Response({'status': 'unknown','error': 'Still testing', 'data': c},status=200)
+        #return HttpResponse(json.dumps({'status': 'unknown','error': 'Still testing', 'data': c}),status=200)
+
 
 #perform actions, for testing
 class YoutubeTestAction(View):
+    @method_decorator(permission_required('change_settings', login_url='/authentication/login', raise_exception=True))
+    def dispatch(self, request, *args, **kwargs):
+        return super(YoutubeTestAction,self).dispatch(request,*args,**kwargs)
+
     def get(self,request,verb):
         if verb=="update_categories":
             try:

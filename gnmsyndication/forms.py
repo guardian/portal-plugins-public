@@ -8,7 +8,7 @@ class TimePeriodSelector(Form):
 
     #@staticmethod
     def month_list(self):
-        for n in range(1,12):
+        for n in range(1,13):
             d=self.date(2010,n,1)
             yield (n, d.strftime("%B")) #should also convert into the server's locale
 

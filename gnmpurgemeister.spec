@@ -1,7 +1,7 @@
 %define name portal-purgemeister
 %define version 1.0
 %define unmangled_version 1.0
-%define release 6
+%define release 7
 
 #%signature gpg
 #%_gpg_name Andy Gallagher <andy.gallagher@theguardian.com>

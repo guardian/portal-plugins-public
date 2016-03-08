@@ -1,0 +1,33 @@
+{% themeextends "search/base_search.html" %}
+{% load i18n paginator %}
+{% block title %}{% trans "Search" %}{{ searchquery }}{% endblock title %}
+{% block heading %}
+{% themeinclude "search/search_results_form.html" %}
+
+<script type="text/javascript" charset="utf-8">
+$(document).ready(function() {
+    $('#searchform').center().submit(function(){
+        $('#searchinputfield').autocomplete('close');
+    });
+    $('#searchinputfield').autocomplete({
+        source: '{% url search_autocomplete %}'
+    }).bind('autocompleteopen', function(event, ui){
+        $(this).autocomplete('widget').addClass('searchinputfieldautocomplete');
+    });
+});
+</script>
+
+{% endblock heading %}
+{% docstring search.html %}
+search.html - Basic search page for the site.
+
+Context:
+ * searchquery - The current search query if there has been one.
+ * search_advanced - True or false on whether this is an advanced search query or not.
+
+PluginBlock:
+ * search_form_pluginblock - inject things in to the current search block.
+ * search_form_afterinput_pluginblock - inject after the large input block.
+ * search_form_afteradvanced_pluginblock - inject after the advanced search form if that is shown.
+
+{% enddocstring %}

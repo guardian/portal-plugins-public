@@ -29,3 +29,6 @@ class RestoreRequest(Model):
     def __unicode__(self):
         return u'{u} restoring {i} at {t}, status {s}'.format(u=self.username,i=self.item_id,t=self.requested_at,
                                                               s=self.status)
+
+    class Meta:
+        ordering = ['-requested_at','-completed_at','username','-item_id']

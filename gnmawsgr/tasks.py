@@ -159,7 +159,7 @@ def glacier_restore(request_id,itemid,path):
             raven_client.user_context({'request_id': request_id, 'item_id': itemid, 'path': path})
             try:
                 from django.conf import settings
-                from vidispine.vs_item import VSItem
+                from vs_item import VSItem
                 item_obj = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
                 item_obj.populate(itemid,specificFields=['title','gnm_asset_category'])
                 rq = RestoreRequest.objects.get(pk=request_id)
@@ -234,7 +234,8 @@ def do_glacier_restore(request_id,itemid,path):
     if hasattr(settings, 'AWS_ACCESS_KEY_ID') and hasattr(settings, 'AWS_SECRET_ACCESS_KEY'):
         conn = S3Connection(settings.AWS_ACCESS_KEY_ID, settings.AWS_SECRET_ACCESS_KEY)
     else:
-        raise StandardError("No credentials in settings")
+        logger.warning("No credentials present in settings file.  Falling back to defaults via environment variables, expect trouble")
+        #raise StandardError("No credentials in settings")
         conn = S3Connection()
 
     checksum = "(not found)"
@@ -244,6 +245,7 @@ def do_glacier_restore(request_id,itemid,path):
 
     except KeyError:
         logger.error("Item {0} ({1}) does not appear to have gnm_external_archive_external_archive_device set".format(itemid,item_meta.get('title')))
+        rq.failure_reason = "Item {0} ({1}) does not appear to have gnm_external_archive_external_archive_device set".format(itemid,item_meta.get('title'))
         rq.status = 'FAILED'
         rq.completed_at = datetime.now()
         rq.save()
@@ -260,6 +262,7 @@ def do_glacier_restore(request_id,itemid,path):
             rq.file_size_check = "Expected: {0} bytes. Actual: {1} bytes.".format(rq.file_size,os.path.getsize(filename))
             if (os.path.getsize(filename) + 20000) < rq.file_size:
                 rq.status = "FAILED"
+                rq.failure_reason = "File size check failed"
                 rq.save()
                 break
             rq.save()
@@ -305,6 +308,7 @@ def do_glacier_restore(request_id,itemid,path):
 
             except S3ResponseError as e:
                 #restore request failed, so there's something wrong with the object
+                rq.failure_reason = "Restore request failed"
                 rq.status = 'FAILED'
                 rq.completed_at = datetime.now()
                 rq.save()

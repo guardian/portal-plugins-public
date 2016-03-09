@@ -39,6 +39,13 @@ if(expanded){
 
 function test_itemid_changed(){
     var value = $('#id_test_itemid').val();
+
+    parts = value.match(/http:\/\/.*\/(\w{2}-\d+)$/);
+    console.log(parts)
+    if(parts){
+        value = parts.pop()
+    }
+
     console.log("Getting info for item ID " + value);
 
     $('.item_container').remove();
@@ -83,8 +90,10 @@ function test_itemid_changed(){
         //var gridInfo = $('#grid_info_area');
         if(data['metadata']['gnm_grid_image_refs']!=null){
             $.each(data['metadata']['gnm_grid_image_refs'],function(idx,value){
-                var fronturl = value.replace(/\/\/api\./,'//');
-                gridInfo.append($('<p>', {'class': 'grid_image_ref'}).html('<a href="' + fronturl + '" target="_blank">' + fronturl + '</a>'));
+                if(value!=null){
+                    var fronturl = value.replace(/\/\/api\./,'//');
+                    gridInfo.append($('<p>', {'class': 'grid_image_ref'}).html('<a href="' + fronturl + '" target="_blank">' + fronturl + '</a>'));
+                }
             });
         }
         //textDiv.append(gridInfo);

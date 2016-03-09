@@ -181,6 +181,16 @@ class GridImage(GridBase):
         data=self.info()
         return data['data']['userMetadata']['data']['labels']['uri']
 
+    @property
+    def width(self):
+        data=self.info()
+        return data['data']['source']['dimensions']['width']
+
+    @property
+    def height(self):
+        data=self.info()
+        return data['data']['source']['dimensions']['height']
+
     def info(self):
         import time
         if self._info_cache is not None:
@@ -227,8 +237,11 @@ class GridImage(GridBase):
         #{"type":"crop","source":"https://api.media.test.dev-gutools.co.uk/images/0ce84c50b59b1278b22d31d47447c8c1f1f04e80",
         # "x":0,"y":0,"width":1920,"height":1079,"aspectRatio":"16:9"}
         import json
+        import re
         try:
             req_url = self.links['crops']
+            parts = re.match(r'^(.*)\/[^\/]+$',req_url)
+            req_url = parts.group(1)
         except KeyError:
             raise self.CropsNotAvailable
 
@@ -237,8 +250,8 @@ class GridImage(GridBase):
             'source': self.uri,
             'x': int(x),
             'y': int(y),
-            'w': int(w),
-            'h': int(h)
+            'width': int(w),
+            'height': int(h)
         }
         if defined_aspect is not None:
             data['aspectRatio'] = defined_aspect
@@ -271,5 +284,11 @@ if __name__ == '__main__':
     image.set_metadata({'credit': 'Andy Gallagher', 'description': 'Test image'})
     time.sleep(1)
     print "Image supports: {0} and {1}".format(image.actions, image.links)
-    image.add_labels(['cabbage','rhubarb','fish'])
+    print "Image is {0}x{1}px".format(image.width,image.height)
+
+    #image.add_labels(['cabbage','rhubarb','fish'])
+    print "Trying to make small crop..."
+    image.make_crop(20,20,60,60)
+    print "Trying to make big crop..."
+    image.make_crop(0,0,image.width,image.height)
     #image.delete()

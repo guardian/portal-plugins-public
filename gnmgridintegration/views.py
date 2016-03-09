@@ -39,6 +39,7 @@ class GenericAppView(ClassView):
 # setup the object, and decorate so that only logged in users can see it
 GenericAppView = GenericAppView._decorate(login_required)
 
+
 ### Views for Vidispine callback
 class VSCallbackView(APIView):
     from rest_framework.parsers import JSONParser
@@ -168,7 +169,10 @@ class MDItemInfoView(APIView):
             meta[f] = item.get(f, allowArray=True)
         for f in vs_field_list():
             meta[f] = item.get(f, allowArray=True)
-        meta[VIDISPINE_GRID_REF_FIELD] = item.get(VIDISPINE_GRID_REF_FIELD, allowArray=True)
+        gridrefs = item.get(VIDISPINE_GRID_REF_FIELD, allowArray=True)
+        if not isinstance(gridrefs,list):
+            gridrefs=[gridrefs]
+        meta[VIDISPINE_GRID_REF_FIELD] = gridrefs
         return Response({'status': 'success', 'item': vs_item_id, 'metadata': meta})
 
 ### Views for admin enable profile editor

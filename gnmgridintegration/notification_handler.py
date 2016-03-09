@@ -297,6 +297,9 @@ def get_new_thumbnail(notification_data):
                 logger.error(traceback.format_exc())
                 break
         total +=1
-        os.unlink(outpath)
+        try:
+            os.unlink(outpath)
+        except StandardError as e:
+            logger.warning(unicode(e))
 
     logger.info("Handler completed for {0}, processed {1} thumbs".format(resp.get('itemId'), total))

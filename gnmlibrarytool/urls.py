@@ -27,6 +27,6 @@ urlpatterns = patterns('portal.plugins.gnmlibrarytool.views',
     url(r'^endpoint/savestorage$', login_required(SaveStorageRuleView.as_view()), name="libtool_savestorage"),
     url(r'^endpoint/deletestorage$', login_required(DeleteStorageRuleView.as_view()), name="libtool_deletestorage"),
     url(r'^diagram/library/(?P<lib>\w{2}[\-\*]\d+)$', login_required(RuleDiagramDataView.as_view()), name="libtool_diagram_data"),
-    url(r'^diagram', login_required(DiagramMainView.as_view())),
+    url(r'^diagram$', login_required(DiagramMainView.as_view())),
     url(r'^endpoint/', include(router.urls)),
 )

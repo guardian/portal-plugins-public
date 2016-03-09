@@ -20,7 +20,7 @@ class UnknownFieldError(StandardError):
 
 @celery.task
 def propagate(collectionid,field,current_value):
-    from vidispine.vs_collection import VSCollection, VSItem
+    from gnmvidispine.vs_collection import VSCollection, VSItem
     import traceback
     #from pprint import pprint
     try:
@@ -31,33 +31,6 @@ def propagate(collectionid,field,current_value):
     except StandardError as e:
         logger.error("Raven client either not installed (pip install raven) or set up (RAVEN_CONFIG in localsettings.py).  Unable to report errors to Sentry")
         raven_client = None
-
-    #print collectionid
-    #print field
-    #print switch
-
-    #setswitch = None
-
-    # if (field == 'gnm_storage_rule_sensitive') and (switch == '1'):
-    #     setswitch = 'storage_rule_sensitive'
-    #
-    # if (field == 'gnm_storage_rule_deletable') and (switch == '1'):
-    #     setswitch = 'storage_rule_deletable'
-    #
-    # if (field == 'gnm_storage_rule_deep_archive') and (switch == '1'):
-    #     setswitch = 'storage_rule_deep_archive'
-
-    # try:
-    #     if current_value is None or not current_value or current_value == "":
-    #         setswitch = rule_value_table[field]
-    #     else:
-    #         setswitch = ""
-    # except KeyError:
-    #     logger.error("I can't propagate the value of {0} as I do not have the string value to set it to.  Check rule_value_table in gnmproparation:tasks.py")
-    #     raise UnknownFieldError(field)
-    #
-    # if (switch != '1') and (switch != '0'):
-    #     setswitch = switch
 
     from django.conf import settings
 

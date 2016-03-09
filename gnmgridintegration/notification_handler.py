@@ -234,8 +234,17 @@ def get_new_thumbnail(notification_data):
     from django.conf import settings
     import os.path
     import traceback
+    import time
     from gnmvidispine.vs_item import VSItem
+    from grid_api import GridImage
     tempdir = "/tmp"
+
+    retry_delay = 5
+    if hasattr(settings,'GRID_RETRY_DELAY'):
+        retry_delay = int(settings.GRID_RETRY_DELAY)
+    max_retries=10
+    if hasattr(settings,'GRID_MAX_RETRIES'):
+        max_retries = int(settings.GRID_MAX_RETRIES)
 
     resp = VidispineResponseWrapper(notification_data,url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,
                                     passwd=settings.VIDISPINE_PASSWORD)
@@ -265,15 +274,29 @@ def get_new_thumbnail(notification_data):
             f.write(t.download())
         img = get_and_upload_image(item, outpath, [])
         setup_image_metadata(item, img, frame_number = t.target_frame)
-        try:
-            #if it's a 'recognised' 16x9 video size then supply a crop as a convenience
-            if img.width ==1920 and img.height==1080:
-                img.make_crop(0,0,1920,1080)
-            elif img.width==1280 and img.height==720:
-                img.make_crop(0,0,1280,720)
-        except StandardError as e:
-            logger.error(unicode(e))
-            logger.error(traceback.format_exc())
+        retries = 0
+
+        while True:
+            try:
+                #if it's a 'recognised' 16x9 video size then supply a crop as a convenience
+                if img.width ==1920 and img.height==1080:
+                    img.make_crop(0,0,1920,1080)
+                elif img.width==1280 and img.height==720:
+                    img.make_crop(0,0,1280,720)
+                break
+            except GridImage.CropsNotAvailable as e:
+                logger.warning(e)
+                retries+=1
+                if retries>= max_retries:
+                    logger.error("Could not crop after {0} attempts, giving up".format(retries))
+                    break
+                time.sleep(retry_delay)
+
+            except StandardError as e:
+                logger.error(unicode(e))
+                logger.error(traceback.format_exc())
+                break
         total +=1
+        os.unlink(outpath)
 
     logger.info("Handler completed for {0}, processed {1} thumbs".format(resp.get('itemId'), total))

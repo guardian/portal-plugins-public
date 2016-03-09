@@ -27,6 +27,8 @@ class ManagementMixin(object):
     CONFIG_ENDING_LINE = "### END Grid installation config"
     CONFIG_BLOCK = """
 GNM_GRID_API_KEY = {grid_api_key}
+GRID_RETRY_DELAY = 5
+GRID_MAX_RETRIES = 10
 """
 
     def get_notification_url(self):

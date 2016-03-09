@@ -40,7 +40,7 @@ if(expanded){
 function test_itemid_changed(){
     var value = $('#id_test_itemid').val();
 
-    parts = value.match(/http:\/\/.*\/(\w{2}-\d+)$/);
+    parts = value.match(/http:\/\/.*\/(\w{2}-\d+)\/*$/);
     console.log(parts)
     if(parts){
         value = parts.pop()

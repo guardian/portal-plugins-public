@@ -84,10 +84,15 @@ class GridBase(object):
 
 class GridLoader(GridBase):
     logger = logging.getLogger('grid_api.GridLoader')
-    _base_uri = 'https://loader.media.test.dev-gutools.co.uk'
+    #_base_uri = 'https://loader.media.test.dev-gutools.co.uk'
 
     def __init__(self,client_name,*args,**kwargs):
+        from django.conf import settings
         super(GridLoader,self).__init__(*args,**kwargs)
+        self._base_uri = 'https://loader.media.test.dev-gutools.co.uk'
+        if hasattr(settings,'GNM_GRID_DOMAIN'):
+            self._base_uri = 'https://loader.{0}'.format(settings.GNM_GRID_DOMAIN)
+
         self._client_name = client_name
 
     def upload_image(self, fp, identifiers=None, filename=None):
@@ -133,7 +138,7 @@ class GridCrop(GridBase):
 
 class GridImage(GridBase):
     logger = logging.getLogger('grid_api.GridImage')
-    _base_uri = 'https://api.media.test.dev-gutools.co.uk/images'
+    #_base_uri = 'https://api.media.test.dev-gutools.co.uk/images'
     max_cache_time = 30 #in seconds
 
     class CropsNotAvailable(GridBase.ElementNotAvailable):
@@ -141,7 +146,12 @@ class GridImage(GridBase):
 
     def __init__(self,uri_or_id,*args,**kwargs):
         import re
+        from django.conf import settings
+
         super(GridImage,self).__init__(*args,**kwargs)
+        self._base_uri = 'https://api.media.test.dev-gutools.co.uk/images'
+        if hasattr(settings,'GNM_GRID_DOMAIN'):
+            self._base_uri = 'https://api.{0}/images'.format(settings.GNM_GRID_DOMAIN)
 
         if re.match(r'^https*://',uri_or_id):
             self.uri = uri_or_id

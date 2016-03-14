@@ -214,7 +214,7 @@ class GenericGroupListView(CachedViewMixin, APIView):
     expiry_time=21600 #default: 6 hours
 
     def get_data(self,**kwargs):
-        from vidispine.vs_globalmetadata import VSGlobalMetadata
+        from gnmvidispine.vs_globalmetadata import VSGlobalMetadata
         from django.conf import settings
         md = VSGlobalMetadata(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
                               user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,
@@ -257,7 +257,7 @@ class ProjectSubTypeListView(GenericGroupListView):
 
     def get_data(self,**kwargs):
         #kwargs are passed through from the request
-        from vidispine.vs_globalmetadata import VSGlobalMetadata
+        from gnmvidispine.vs_globalmetadata import VSGlobalMetadata
         from django.conf import settings
         from pprint import pprint
         md = VSGlobalMetadata(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
@@ -296,7 +296,7 @@ class GenericListView(APIView):
     ]
 
     def get(self, request, search_criteria={}, response_extra={},*args,**kwargs):
-        from vidispine.vs_search import VSSearch
+        from gnmvidispine.vs_search import VSSearch
         from django.conf import settings
         from django.http import HttpResponseBadRequest
         import traceback

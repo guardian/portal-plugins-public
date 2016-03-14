@@ -27,6 +27,38 @@ class ReutersAggregation(object):
         return rtn
 
 
+class ReutersEntry(object):
+    def __init__(self,content):
+        self.content = content
+
+    def __unicode__(self):
+        return u"{0}: ({1}) {2}".format(self.content['_source']['start'],self.content['_source']['usn_id'],
+                                        self.content['_source']['slugword'])
+
+    @staticmethod
+    def datetime_values(dt):
+        if not isinstance(dt,datetime): raise TypeError
+        return {
+            'year': dt.year,
+            'month': dt.month,
+            'day': dt.day,
+            'hour': dt.hour,
+            'minute': dt.minute,
+            'second': dt.second,
+        }
+
+    def for_timelinejs(self):
+        #build a 'slide object': http://timeline.knightlab.com/docs/json-format.html
+        rtn = {
+            'start_date': self.datetime_values(self.content['_source']['start']),
+            'end_date': self.datetime_values(self.content['_source']['end']),
+            'text': {'headline': self.content['_source']['slugword'], 'text': self.content['_source']['description']},
+            'group': self.content['_source']['usn_id'], #group by content ID
+            'autolink': False,
+        }
+        return rtn
+
+
 class ReutersIndex(object):
     indexname = "reuters"
     doctype = "advisory"
@@ -90,7 +122,7 @@ class ReutersIndex(object):
                 include_aggregations = False    #don't include aggregations the next time around
 
             for r in result['hits']['hits']:
-                yield r
+                yield ReutersEntry(r)
             if one_page or len(result['hits']['hits'])<page_length:
                 break
             page+=1
@@ -108,6 +140,8 @@ if __name__ == '__main__':
         if isinstance(r,int):
             print "Got {0} results".format(r)
         elif isinstance(r,ReutersAggregation):
+            print unicode(r)
+        elif isinstance(r,ReutersEntry):
             print unicode(r)
         else:
             print "{0}: ({1}) {2}".format(r['_source']['start'],r['_source']['usn_id'],r['_source']['slugword'])

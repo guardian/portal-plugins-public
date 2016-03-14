@@ -47,7 +47,7 @@ class ByDateRangeView(APIView):
     def get(self, request):
         from datetime import datetime
         from dateutil.parser import parse
-        from reutersindex import ReutersAggregation,ReutersIndex
+        from reutersindex import ReutersAggregation,ReutersIndex,ReutersEntry
         from pprint import pprint
 
         end_time = datetime.now()
@@ -87,6 +87,8 @@ class ByDateRangeView(APIView):
                 rtn['total'] = r
             elif isinstance(r,ReutersAggregation):
                 rtn['aggregations'][r.name] = r.for_wordcloud()
+            elif isinstance(r,ReutersEntry):
+                rtn['data'].append(r.for_timelinejs())
             else:
                 rtn['data'].append(r)
 

@@ -3,6 +3,14 @@
 {% block title %}Newshound{% endblock %}
 
 {% block head %}
+<!---http://timeline.knightlab.com/docs/instantiate-a-timeline.html-->
+    <!-- 1 -->
+    <link title="timeline-styles" rel="stylesheet" href="//cdn.knightlab.com/libs/timeline3/latest/css/timeline.css">
+
+    <!-- 2 -->
+    <script src="//cdn.knightlab.com/libs/timeline3/latest/js/timeline.js"></script>
+
+
 <script type="text/javascript" src="{% static 'gnmnewshound/js/wordcloud2.js'%}"></script>
 <script language="JavaScript">
 function load_aggregations()
@@ -39,7 +47,7 @@ function load_aggregations()
                 }
             });
         });
-        draw_outline();
+        //draw_outline();
     }).fail(function (jqXHR, textStatus, errorThrown){
         $('#master_tag_area').empty();
         $('#master_tag_area').html('<p class="error">Unable to load data: '+ errorThrown + '</p>');
@@ -74,7 +82,20 @@ function draw_outline()
     }
 
 }
+function make_timeline()
+{
+      // The TL.Timeline constructor takes at least two arguments:
+      // the id of the Timeline container (no '#'), and
+      // the URL to your JSON data file or Google spreadsheet.
+      // the id must refer to an element "above" this code,
+      // and the element must have CSS styling to give it width and height
+      // optionally, a third argument with configuration options can be passed.
+      // See below for more about options.
+      timeline = new TL.Timeline('timeline-embed',
+        'https://docs.google.com/spreadsheets/d/1cWqQBZCkX9GpzFtxCWHoqFXCHg-ylTVUWlnrdYMzKUI/pubhtml');
 
+      //data formatting: http://timeline.knightlab.com/docs/json-format.html
+}
 $(document).ready(function(){
     load_aggregations();
 
@@ -110,8 +131,9 @@ $(document).ready(function(){
 
 </div>
 <div id="outline_container" class="outline_container">
-    <canvas id="outline_area" class="outline_area">
+    <!--<canvas id="outline_area" class="outline_area">-->
 
-    </canvas>
+    <!--</canvas>-->
+    <div id='timeline-embed' style="width: 100%; height: 600px"></div>
 </div>
 {% endblock %}

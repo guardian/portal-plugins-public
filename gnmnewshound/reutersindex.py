@@ -2,6 +2,7 @@ import elasticsearch
 from django.conf import settings
 from datetime import datetime
 
+
 class ReutersAggregation(object):
     def __init__(self,name,content):
         self.name = name
@@ -131,6 +132,8 @@ class ReutersIndex(object):
                 break
             page+=1
 
+    def specific_id(self,docid):
+        return self._client.get(self.indexname,docid,self.doctype)
 
 if __name__ == '__main__':
     import sys

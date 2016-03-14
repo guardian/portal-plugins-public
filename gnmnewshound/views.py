@@ -94,3 +94,55 @@ class ByDateRangeView(APIView):
                 rtn['data']['events'].append(r)
 
         return Response(rtn,status=200)
+
+
+class GetVSClipView(APIView):
+    from rest_framework.parsers import JSONParser
+    from rest_framework.renderers import JSONRenderer
+    from rest_framework import permissions
+
+    permission_classes = (permissions.IsAuthenticated, )
+    parser_classes = (JSONParser, )
+    renderer_classes = (JSONRenderer, )
+
+    def get(self, request, category=None, es_id=None):
+        from reutersindex import ReutersIndex
+        from gnmvidispine.vs_search import VSItemSearch, VSSearchRange
+        from gnmvidispine.vs_timecode import VSTimecode
+        from django.conf import settings
+        from dateutil.parser import parse
+
+        i = ReutersIndex()
+        data = i.specific_id(es_id)
+        if data is None:
+            return Response({'status': 'error','error': '{0} not found'.format(es_id)},status=404)
+
+        s = VSItemSearch(url="http://dc1-mmmw-05.dc1.gnm.int",#url=settings.VIDISPINE_URL,
+                         user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,
+                         run_as=self.request.user.pk)
+
+        start_time = parse(data['_source']['start'])
+        end_time = parse(data['_source']['end'])
+
+        day_start = start_time.replace(hour=0,minute=0,second=0,microsecond=0)
+        day_end = end_time.replace(hour=23,minute=59,second=59,microsecond=999)
+
+        #s.debug=1
+        #THOUGHT - this is getting messy. it would be better to put proper 'start' and 'end' fields on the VS records,
+        #and then to search for them directly.
+        s.addCriterion({'startTimeCode': VSSearchRange(start=VSTimecode(start_time,25), end=VSTimecode(end_time,25)),
+                        'gnm_asset_category': category,
+                        'created': VSSearchRange(start=day_start,end=day_end)})
+        s.addSort('created','descending')
+
+        print s._makeXML()
+        result = s.execute()
+
+        rtn = []
+
+        print "Got a total of {0} results".format(result.totalItems)
+        for r in result.results(shouldPopulate=False):
+            print "Got {0}".format(r.name)
+            rtn.append(r.name)
+
+        return Response({'status': 'ok', 'results': rtn})

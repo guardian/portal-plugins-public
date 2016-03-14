@@ -1,6 +1,6 @@
 import elasticsearch
 from django.conf import settings
-
+from datetime import datetime
 
 class ReutersAggregation(object):
     def __init__(self,name,content):
@@ -37,7 +37,10 @@ class ReutersEntry(object):
 
     @staticmethod
     def datetime_values(dt):
-        if not isinstance(dt,datetime): raise TypeError
+        from dateutil.parser import parse
+        if isinstance(dt,basestring):
+            dt = parse(dt)
+        if not isinstance(dt,datetime): raise TypeError("supplied value {dt} is not a datetime")
         return {
             'year': dt.year,
             'month': dt.month,
@@ -53,7 +56,8 @@ class ReutersEntry(object):
             'start_date': self.datetime_values(self.content['_source']['start']),
             'end_date': self.datetime_values(self.content['_source']['end']),
             'text': {'headline': self.content['_source']['slugword'], 'text': self.content['_source']['description']},
-            'group': self.content['_source']['usn_id'], #group by content ID
+            #'group': self.content['_source']['usn_id'], #group by content ID
+            'group': self.content['_source']['location'],
             'autolink': False,
         }
         return rtn

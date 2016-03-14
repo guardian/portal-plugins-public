@@ -77,7 +77,8 @@ class ByDateRangeView(APIView):
             get_aggregations = True
             page_length=0
 
-        rtn = {'status': 'ok', 'data': [], 'aggregations': {}, 'start_time': start_time, 'end_time': end_time, 'include_aggregations': get_aggregations}
+        rtn = {'status': 'ok', 'data': {'events': []}, 'aggregations': {},
+               'start_time': start_time, 'end_time': end_time, 'include_aggregations': get_aggregations}
 
         i = ReutersIndex() #use settings value for cluster name
         for r in i.results_for_daterange(start_time,end_time,include_aggregations=get_aggregations,page=page,
@@ -88,8 +89,8 @@ class ByDateRangeView(APIView):
             elif isinstance(r,ReutersAggregation):
                 rtn['aggregations'][r.name] = r.for_wordcloud()
             elif isinstance(r,ReutersEntry):
-                rtn['data'].append(r.for_timelinejs())
+                rtn['data']['events'].append(r.for_timelinejs())
             else:
-                rtn['data'].append(r)
+                rtn['data']['events'].append(r)
 
         return Response(rtn,status=200)

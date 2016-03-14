@@ -91,14 +91,20 @@ function make_timeline()
       // and the element must have CSS styling to give it width and height
       // optionally, a third argument with configuration options can be passed.
       // See below for more about options.
-      timeline = new TL.Timeline('timeline-embed',
-        'https://docs.google.com/spreadsheets/d/1cWqQBZCkX9GpzFtxCWHoqFXCHg-ylTVUWlnrdYMzKUI/pubhtml');
+      //timeline = new TL.Timeline('timeline-embed',
+      //  'https://docs.google.com/spreadsheets/d/1cWqQBZCkX9GpzFtxCWHoqFXCHg-ylTVUWlnrdYMzKUI/pubhtml');
 
       //data formatting: http://timeline.knightlab.com/docs/json-format.html
+      $.getJSON('{% url by_date_range %}', function(data){
+        console.log(data['data']);
+        timeline = new TL.Timeline('timeline-embed', data['data']);
+      }).fail(function(jqXHR,errorText,details){
+        console.log("download of story data failed: " + details);
+      });
 }
 $(document).ready(function(){
     load_aggregations();
-
+    make_timeline();
 });
 </script>
 <style>

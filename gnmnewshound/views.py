@@ -48,6 +48,7 @@ class ByDateRangeView(APIView):
         from datetime import datetime
         from dateutil.parser import parse
         from reutersindex import ReutersAggregation,ReutersIndex
+        from pprint import pprint
 
         end_time = datetime.now()
         if 'end' in request.GET:
@@ -67,7 +68,7 @@ class ByDateRangeView(APIView):
         if 'p' in request.GET:
             page=int(request.GET['p'])
 
-        page_length=0
+        page_length=100
         if 'l' in request.GET:
             page_length=int(request.get['l'])
 
@@ -76,15 +77,16 @@ class ByDateRangeView(APIView):
             get_aggregations = True
             page_length=0
 
-        rtn = {'status': 'ok', 'data': []}
+        rtn = {'status': 'ok', 'data': [], 'aggregations': {}, 'start_time': start_time, 'end_time': end_time, 'include_aggregations': get_aggregations}
 
         i = ReutersIndex() #use settings value for cluster name
         for r in i.results_for_daterange(start_time,end_time,include_aggregations=get_aggregations,page=page,
                                          page_length=page_length,one_page=True):
+            pprint(r)
             if isinstance(r,int):
                 rtn['total'] = r
             elif isinstance(r,ReutersAggregation):
-                rtn['aggregations'][r.name] = r.data
+                rtn['aggregations'][r.name] = r.for_wordcloud()
             else:
                 rtn['data'].append(r)
 

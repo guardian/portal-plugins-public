@@ -1,1 +1,117 @@
-<h1>hello Gnmnewshound</h1>
+{% themeextends "base.html" %}
+{% load staticfiles %}
+{% block title %}Newshound{% endblock %}
+
+{% block head %}
+<script type="text/javascript" src="{% static 'gnmnewshound/js/wordcloud2.js'%}"></script>
+<script language="JavaScript">
+function load_aggregations()
+{
+    $('#master_tag_area').html('<img src="{% static 'gnmnewshound/img/load.gif' %}">');
+
+    $.getJSON('{% url by_date_range %}?agg=true', function(data){
+        $('#master_tag_area').empty();
+        console.log(data);
+        $.each(data['aggregations'], function(idx,data){
+            var container = $("<div>", {"id": idx + "_tag_container", "class": "tagarea" });
+            container.append($("<h3>", {class: 'aggregation_heading'}).html(idx));
+            var canvas = $("<canvas>",{ "id": idx + "_tag_area", "class": "tagarea" });
+            container.append(canvas);
+            $('#master_tag_area').append(container);
+            console.log(data);
+            //WordCloud(document.getElementById('tagarea'),{
+            WordCloud(canvas[0], {
+                list: data,
+                fontFamily: "Sans",
+                fontWeight: "normal",
+                color: '#1F4385',
+                minSize: 8,
+                weightFactor: 4,
+                clearCanvas: true,
+                minRotation: -3.14159265,
+                maxRotation: +3.14159265,
+                shape: 'square',
+                backgroundColor: '#F6F6F6',
+                click: function(item, dimension, event){
+                    console.log("word clicked: " + item[0]);
+                    console.log(dimension);
+                    console.log(event);
+                }
+            });
+        });
+        draw_outline();
+    }).fail(function (jqXHR, textStatus, errorThrown){
+        $('#master_tag_area').empty();
+        $('#master_tag_area').html('<p class="error">Unable to load data: '+ errorThrown + '</p>');
+    });
+}
+
+function draw_outline()
+{
+    var divisions=24;
+    var margin = 10;
+
+    var canvas = $('#outline_area')[0];
+    var ctx = canvas.getContext('2d');
+    canvas.height = $(window).height();
+    canvas.width = $(window).width() * 0.8;
+    console.log("Canvas width: " + canvas.width + ", canvas height: " + canvas.height);
+
+    ctx.moveTo(0.1*canvas.width, 0);
+    ctx.lineTo(0.1*canvas.width, canvas.height);
+    ctx.stroke();
+
+    ctx.font = "15px Arial";
+    for(var i=0; i<divisions; ++i){
+        var text = i + ":00";
+
+        var textDims = ctx.measureText(text);
+
+        ctx.fillText(text,(0.1*canvas.width)-textDims.width-margin, i*(canvas.height/divisions));
+        ctx.moveTo(margin,(i*(canvas.height/divisions)));
+        ctx.lineTo(canvas.width,(i*(canvas.height/divisions)));
+        ctx.stroke();
+    }
+
+}
+
+$(document).ready(function(){
+    load_aggregations();
+
+});
+</script>
+<style>
+    canvas.tagarea {
+        display: inline-block;
+    }
+    div.master_tagarea {
+        display: inline-block;
+        width: 15%;
+        overflow: none;
+    }
+    div.outline_container {
+        display: inline-block;
+        width: 80%;
+        overflow: hidden;
+    }
+    canvas.outline_area {
+        width: 100%;
+        height: 100%;
+    }
+    h3.aggregation_heading {
+        margin-bottom: 0;
+        margin-top:0.2em;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div id='master_tag_area' class="master_tagarea">
+
+</div>
+<div id="outline_container" class="outline_container">
+    <canvas id="outline_area" class="outline_area">
+
+    </canvas>
+</div>
+{% endblock %}

@@ -15,6 +15,17 @@ class ReutersAggregation(object):
             str += '\n\t{0}: {1}'.format(k,v)
         return str
 
+    def for_wordcloud(self):
+        """
+        Returns the contents of the aggregation as a list of lists, suitable for wordcloud
+        https://github.com/timdream/wordcloud2.js
+        :return: list of lists
+        """
+        rtn = []
+        for k,v in self.data.items():
+            rtn.append([k,v])
+        return rtn
+
 
 class ReutersIndex(object):
     indexname = "reuters"

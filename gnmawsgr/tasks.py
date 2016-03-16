@@ -187,7 +187,7 @@ def do_glacier_restore(request_id,itemid,path):
     from boto.exception import S3ResponseError
     from models import RestoreRequest
     from datetime import datetime
-    from vidispine.vs_item import VSItem
+    from gnmvidispine.vs_item import VSItem
     import httplib2
     import traceback
     from functools import partial

@@ -185,7 +185,7 @@ def do_meta_substitution(item, frame_number, type):
     output_meta = {}
 
     for rec in GridMetadataFields.objects.filter(type=type):
-        logger.debug("Setting up field {0}".format(unicode(rec)))
+        logger.debug(u"Setting up field {0}".format(unicode(rec)))
         try:
             output_meta[rec.grid_field_name] = rec.real_value(item, frame_number=frame_number)
         except StandardError as e:

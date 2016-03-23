@@ -46,9 +46,9 @@ class GridMetadataFields(models.Model):
                 raise TypeError("GridMetadataFields.real_value must be passed a populated VSItem")
             if self.vs_field != "":
                 format_params['vs_field_data'] = vsitem.get(self.vs_field)
-                logger.debug("got value {0} for field {1}".format(format_params['vs_field_data'], self.vs_field))
+                logger.debug(u"got value {0} for field {1}".format(unicode(format_params['vs_field_data']), self.vs_field))
             else:
-                logger.warning("No vs_field set for '{0}'".format(unicode(self)))
+                logger.warning(u"No vs_field set for '{0}'".format(unicode(self)))
         logger.debug(pformat(format_params))
         return self.format_string.format(**format_params)
 

@@ -1,0 +1,44 @@
+<html>
+{% load videopreview compress jsi18n %}
+<head>
+    <!--[if IE 8]><link rel="stylesheet" href="{{ STATIC_URL }}css/portal-core-IE8.css" type="text/css" media="screen" charset="utf-8" /><![endif]-->
+    <!--[if IE 7]><link rel="stylesheet" href="{{ STATIC_URL }}css/portal-core-IE7.css" type="text/css" media="screen" charset="utf-8" /><![endif]-->
+    <script type="text/javascript" charset="utf-8">
+    {% jsi18n LANGUAGE_CODE %}
+    </script>
+    {% compress js %}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/labjs/LAB.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/jquery/jquery.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/jquery-ui/jquery-ui.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/underscore/lodash.underscore.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/backbone/backbone.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/jquery-tools/jquery.tools.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/supersubs/supersubs.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/jquery-form/jquery.form.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/jquery-cookie/jquery.cookie.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/jquery-growl/jquery.growl.js" charset="utf-8"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/app/admin/SelectFilter2-min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/jquery-validation/jquery.validate.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/jquery-dataTables/jquery.dataTables.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/app/common/prototypes.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/app/common/pubsub.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/app/common/useful.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/app/common/jquery_plugins.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/app/portal/eyecandy.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/app/mediabin/app.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/app/media/models.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/app/portal/initialize.js"></script>
+    <script type="text/javascript" src="/sitemedia/js/player/player.min.js"></script>
+    <script type="text/javascript" src="/sitemedia/js/libs/player/player.min.js"></script>
+    {% endcompress %}
+</head>
+
+<body>
+{% for i in items %}
+<video poster="{{ i.preview_media_thumbnail }}" controls>
+    <source src="{{ i.preview_media_url }}">
+</video>
+{% endfor %}
+</body>
+
+</html>

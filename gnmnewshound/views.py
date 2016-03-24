@@ -14,6 +14,7 @@ from portal.vidispine.iitem import ItemHelper
 from portal.vidispine.iexception import NotFoundError
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.views.generic import TemplateView
 
 log = logging.getLogger(__name__)
 
@@ -98,12 +99,12 @@ class ByDateRangeView(APIView):
 
 class GetVSClipView(APIView):
     from rest_framework.parsers import JSONParser
-    from rest_framework.renderers import JSONRenderer
+    from rest_framework.renderers import JSONRenderer, XMLRenderer, YAMLRenderer
     from rest_framework import permissions
 
     permission_classes = (permissions.IsAuthenticated, )
     parser_classes = (JSONParser, )
-    renderer_classes = (JSONRenderer, )
+    renderer_classes = (JSONRenderer, XMLRenderer, YAMLRenderer)
 
     def get(self, request, category=None, es_id=None):
         from reutersindex import ReutersIndex
@@ -111,6 +112,8 @@ class GetVSClipView(APIView):
         from gnmvidispine.vs_timecode import VSTimecode
         from django.conf import settings
         from dateutil.parser import parse
+        from datetime import timedelta
+        from portal.vidispine.iitem import ItemHelper
 
         i = ReutersIndex()
         data = i.specific_id(es_id)
@@ -123,16 +126,20 @@ class GetVSClipView(APIView):
 
         start_time = parse(data['_source']['start'])
         end_time = parse(data['_source']['end'])
-
-        day_start = start_time.replace(hour=0,minute=0,second=0,microsecond=0)
-        day_end = end_time.replace(hour=23,minute=59,second=59,microsecond=999)
+        chunk_len = timedelta(minutes=30) #FIXME: shouldn't be hardcoded
+        #day_start = start_time.replace(hour=0,minute=0,second=0,microsecond=0)
+        #day_end = end_time.replace(hour=23,minute=59,second=59,microsecond=999)
 
         #s.debug=1
         #THOUGHT - this is getting messy. it would be better to put proper 'start' and 'end' fields on the VS records,
         #and then to search for them directly.
-        s.addCriterion({'startTimeCode': VSSearchRange(start=VSTimecode(start_time,25), end=VSTimecode(end_time,25)),
-                        'gnm_asset_category': category,
-                        'created': VSSearchRange(start=day_start,end=day_end)})
+        # s.addCriterion({'startTimeCode': VSSearchRange(start=VSTimecode(start_time,25), end=VSTimecode(end_time,25)),
+        #                 'gnm_asset_category': category,
+        #                 'created': VSSearchRange(start=day_start,end=day_end)})
+        #'created' actually seems to mark the END of the clip, i.e. when all the metadata got on there
+        #this one does work, if inaccurate
+        s.addCriterion({'created': VSSearchRange(start=start_time,end=end_time+chunk_len),
+                        'gnm_asset_category': category})
         s.addSort('created','descending')
 
         print s._makeXML()
@@ -143,6 +150,60 @@ class GetVSClipView(APIView):
         print "Got a total of {0} results".format(result.totalItems)
         for r in result.results(shouldPopulate=False):
             print "Got {0}".format(r.name)
+            #r.populate(r.name,specificFields=)
             rtn.append(r.name)
 
         return Response({'status': 'ok', 'results': rtn})
+
+
+class TestPlayerView(TemplateView):
+    template_name = "gnmnewshound/preview.html"
+
+    def get_context_data(self, category=None, es_id=None, **kwargs):
+        from reutersindex import ReutersIndex
+        from gnmvidispine.vs_search import VSItemSearch, VSSearchRange
+        from gnmvidispine.vs_timecode import VSTimecode
+        from django.conf import settings
+        from dateutil.parser import parse
+        from datetime import timedelta
+        from portal.vidispine.iitem import ItemHelper
+        from pprint import pprint
+
+        i = ReutersIndex()
+        data = i.specific_id(es_id)
+        if data is None:
+            return Response({'status': 'error','error': '{0} not found'.format(es_id)},status=404)
+
+        s = VSItemSearch(url="http://dc1-mmmw-05.dc1.gnm.int",#url=settings.VIDISPINE_URL,
+                         user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,
+                         run_as=self.request.user.pk)
+
+        start_time = parse(data['_source']['start'])
+        end_time = parse(data['_source']['end'])
+        chunk_len = timedelta(minutes=30) #FIXME: shouldn't be hardcoded
+
+        s.addCriterion({'created': VSSearchRange(start=start_time,end=end_time+chunk_len),
+                        'gnm_asset_category': category})
+        s.addSort('created','descending')
+
+        print s._makeXML()
+        result = s.execute()
+
+        rtn = []
+
+        ith = ItemHelper(runas=self.request.user,)
+
+        print "Got a total of {0} results".format(result.totalItems)
+        for r in result.results(shouldPopulate=False):
+            print "Got {0}".format(r.name)
+            i = ith.getItem(r.name)
+            rtn.append({'item': i,
+                        'preview_media_url': i.json_object['files']['uri'][-1],
+                        'preview_media_thumbnail': i.json_object['thumbnails']['uri'][0]})
+
+        #pprint(rtn[0].json_object)
+        #return {'item': rtn[0], 'preview_media_url': rtn[0].json_object['files']['uri'][-1],
+        #        'preview_media_thumbnail': rtn[0].json_object['thumbnails']['uri'][0]}
+        return {'items': rtn}
+
+        #return Response({'status': 'ok', 'results': rtn})

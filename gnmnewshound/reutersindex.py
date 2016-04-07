@@ -52,11 +52,20 @@ class ReutersEntry(object):
         }
 
     def for_timelinejs(self):
+        from django.core.urlresolvers import reverse_lazy
         #build a 'slide object': http://timeline.knightlab.com/docs/json-format.html
         rtn = {
             'start_date': self.datetime_values(self.content['_source']['start']),
             'end_date': self.datetime_values(self.content['_source']['end']),
             'text': {'headline': self.content['_source']['slugword'], 'text': self.content['_source']['description']},
+            'media': {
+                'url': '<iframe src="{0}"></iframe>'.format(
+                    reverse_lazy('test_player', kwargs={'category': 'ReutersLive', 'es_id': self.content['_id']})
+                ),
+                #'thumbnail': '{0}'.format(reverse('thumbnail_view',kwargs={'category': 'ReutersLive', 'es_id': self.content['_id']}))
+                'credit': 'Reuters',
+            },
+
             #'group': self.content['_source']['usn_id'], #group by content ID
             'group': self.content['_source']['location'],
             'autolink': False,

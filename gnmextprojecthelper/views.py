@@ -483,7 +483,7 @@ class AssetFolderCreatorView(InstallationCheckMixin, APIView):
         success=False
         helper = ""
         for rexec_host in hosts:
-            remote_command = "/usr/local/bin/mkdir_on_behalf_of.pl \"{pathname}\" \"{username}\" \"{groupname}\"".format(
+            remote_command = "/usr/local/bin/mkdir_on_behalf_of \"{pathname}\" \"{username}\" \"{groupname}\"".format(
                 pathname=path,
                 groupname=settings.PLUTO_ASSETFOLDER_GROUP,
                 username=settings.PLUTO_ASSETFOLDER_USER,
@@ -504,7 +504,7 @@ class AssetFolderCreatorView(InstallationCheckMixin, APIView):
                 break
         if not success:
             log.error("Unable to execute remote command on any host specified({0}). Aborting".format(settings.WORKFLOW_EXEC_HOSTS))
-            return Response({'status': 'error', 'error': 'Internal command error'}, status=500)
+            return Response({'status': 'error', 'error': 'Internal command error', 'detail': command_stderr}, status=500)
 
         ptrfile = os.path.join(settings.PROJECT_FILE_CREATION_SCRIPT_FINAL_OUTPUT, str(request.DATA['project_id']) + '.ptr')
         log.info("Creating asset folder pointer at %s" % ptrfile)

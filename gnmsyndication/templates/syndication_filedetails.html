@@ -1,5 +1,9 @@
 {% load syndicationstats_customfilters %}
 
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
 <table class="details">
     <tr class="header">
         {% if scope == 'masters' %}

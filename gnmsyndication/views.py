@@ -81,11 +81,22 @@ def make_facet_xml(fieldname,start_time=None,number=30,intervalTime=datetime.tim
 
 
 class HttpError(StandardError):
-    pass
+    def to_json(self):
+        from django.conf import settings
+        import json
+        from traceback import format_exc
+
+        if settings.DEBUG:
+            info = json.dumps({'status': 'error', 'error': str(self), 'traceback': format_exc()})
+        else:
+            info = json.dumps({'status': 'error', 'error': str(self)})
+
+        return info
 
 
 def make_vidispine_request(agent,method,urlpath,body,headers,content_type='application/xml'):
     import base64
+    from vsexception import VSException
     auth = base64.encodestring('%s:%s' % (settings.VIDISPINE_USERNAME, settings.VIDISPINE_PASSWORD)).replace('\n', '')
 
     headers['Authorization']="Basic %s" % auth
@@ -118,8 +129,12 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
                 'content': content,
             })
             try:
-                raise HttpError("Vidispine error: %s" % headers['status'])
-            except HttpError:
+                e=VSException()
+                try:
+                    e.fromJSON(content)
+                except StandardError: #if we did not get valid XML
+                    raise HttpError("Vidispine error: %s" % headers['status'])
+            except StandardError:
                 c.captureException()
                 c.context.clear()
                 raise
@@ -141,7 +156,9 @@ def mktimestamp(timestring):
 def platforms_by_day(request):
     import httplib2
     import json
-
+    from vsexception import VSException
+    from django.conf import settings
+    from traceback import format_exc
     units="days"
     interval=1
     number=30
@@ -181,8 +198,6 @@ def platforms_by_day(request):
     if start_time is None:
         start_time = datetime.datetime.now().replace(hour=0,minute=0,second=0,microsecond=0) - number * intervalTime
 
-
-
     requeststring = "<ItemSearchDocument xmlns=\"http://xml.vidispine.com/schema/vidispine\">"
 
     for fieldname in date_fields():
@@ -194,7 +209,12 @@ def platforms_by_day(request):
     agent = httplib2.Http()
 
     #this now raises an HttpError if the request fails
-    (headers,content) = make_vidispine_request(agent,"PUT","/API/item;number=0",requeststring,{'Accept': 'application/json'})
+    try:
+        (headers,content) = make_vidispine_request(agent,"PUT","/API/item;number=0",requeststring,{'Accept': 'application/json'})
+    except VSException as e:
+        return HttpResponse(e.to_json(),content_type='application/json',status=500)
+    except HttpError as e:
+        return HttpResponse(e.to_json(), content_type='application/json',status=500)
 
     data=json.loads(content)
 

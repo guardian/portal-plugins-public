@@ -40,7 +40,7 @@ def index(request):
       if 'selected_year' in request.GET:
           y = int(request.GET['selected_year'])
   except ValueError as e:
-      logging.error(str(e))
+      logger.error(str(e))
 
   selectorform = TimePeriodSelector(initial={'selected_month': m,'selected_year': y})
   start = current_date
@@ -65,8 +65,8 @@ def make_facet_xml(fieldname,start_time=None,number=30,intervalTime=datetime.tim
     else:
         startTime = dateutil.parser.parse(start_time)
 
-    logging.debug("Starting at {0} with {1} buckets".format(str(startTime),number))
-    logging.debug("Interval time is {0}".format(str(intervalTime)))
+    logger.debug("Starting at {0} with {1} buckets".format(str(startTime),number))
+    logger.debug("Interval time is {0}".format(str(intervalTime)))
     timeformat = "%Y-%m-%dT%H:%M:%SZ"
 
     #rtn = ""
@@ -79,8 +79,10 @@ def make_facet_xml(fieldname,start_time=None,number=30,intervalTime=datetime.tim
 
     return rtn
 
+
 class HttpError(StandardError):
     pass
+
 
 def make_vidispine_request(agent,method,urlpath,body,headers,content_type='application/xml'):
     import base64
@@ -93,8 +95,8 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
         urlpath = '/' + urlpath
 
     url = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
-    #url = "http://dc1-mmmw-05.dc1.gnm.int:8080{0}".format(urlpath)
-    logging.debug("URL is %s" % url)
+    print("URL is %s" % url)
+    print(body)
     (headers,content) = agent.request(url,method=method,body=body,headers=headers)
 
     if int(headers['status']) < 200 or int(headers['status']) > 299:
@@ -174,7 +176,7 @@ def platforms_by_day(request):
             temp = datetime.datetime.now()
             start_time = datetime.datetime(temp.year,int(request.GET['selected_month'])+1,1) - number * intervalTime
     except ValueError as e:
-        logging.error(str(e))
+        logger.error(str(e))
 
     if start_time is None:
         start_time = datetime.datetime.now().replace(hour=0,minute=0,second=0,microsecond=0) - number * intervalTime
@@ -187,7 +189,7 @@ def platforms_by_day(request):
         requeststring += make_facet_xml(fieldname,start_time=start_time)
     requeststring += "</ItemSearchDocument>"
 
-    logging.debug(requeststring)
+    logger.debug(requeststring)
 
     agent = httplib2.Http()
 
@@ -301,7 +303,7 @@ def asset_list_by_day(request,date):
         fieldname.text = "master"
 
         requeststring = tostring(requestroot)
-        logging.debug(requeststring)
+        logger.debug(requeststring)
 
         agent = httplib2.Http()
 
@@ -345,7 +347,7 @@ def asset_list_by_day(request,date):
 
         (headers,content) = make_vidispine_request(agent,"PUT","/API/item?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
         if int(headers['status']) < 200 or int(headers['status']) > 299:
-            logging.error(content)
+            logger.error(content)
             raise StandardError("Vidispine error: %s" % headers['status'])
 
         data=json.loads(content)
@@ -407,7 +409,7 @@ def asset_list_by_day(request,date):
 
         requeststring = tostring(requestroot)
 
-        logging.debug(requeststring)
+        logger.debug(requeststring)
 
         agent = httplib2.Http()
 
@@ -453,7 +455,7 @@ def asset_list_by_day(request,date):
 
         (headers,content) = make_vidispine_request(agent,"PUT","/API/search?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
         if int(headers['status']) < 200 or int(headers['status']) > 299:
-            logging.error(content)
+            logger.error(content)
             raise StandardError("Vidispine error: %s" % headers['status'])
 
         data=json.loads(content)
@@ -518,7 +520,7 @@ def asset_list_by_day(request,date):
 
                 requeststring = tostring(requestroot)
 
-                logging.debug(requeststring)
+                logger.debug(requeststring)
 
                 agent = httplib2.Http()
 
@@ -581,7 +583,7 @@ def asset_list_by_day(request,date):
 
         requeststring = tostring(requestroot)
 
-        logging.debug(requeststring)
+        logger.debug(requeststring)
 
         agent = httplib2.Http()
 
@@ -592,7 +594,7 @@ def asset_list_by_day(request,date):
 
         (headers,content) = make_vidispine_request(agent,"PUT","/API/item?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
         if int(headers['status']) < 200 or int(headers['status']) > 299:
-            logging.error(content)
+            logger.error(content)
             raise StandardError("Vidispine error: %s" % headers['status'])
 
         data=json.loads(content)

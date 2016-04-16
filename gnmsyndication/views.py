@@ -134,7 +134,11 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
                     e.fromJSON(content)
                 except StandardError: #if we did not get valid XML
                     raise HttpError("Vidispine error: %s" % headers['status'])
-            except StandardError:
+            except HttpError:
+                c.captureException()
+                c.context.clear()
+                raise
+            except VSException:
                 c.captureException()
                 c.context.clear()
                 raise
@@ -219,7 +223,8 @@ def platforms_by_day(request):
     data=json.loads(content)
 
     if not 'facet' in data:
-        raise StandardError("Vidispine did not return faceted data when requested")
+        return HttpResponse(json.dumps({'status': 'error','error': 'Vidispine did not return facet data', 'returned': data}))
+        #raise StandardError("Vidispine did not return faceted data when requested")
 
     rtn = {'totals': {},'data': []}
     reformatted_data = {}
@@ -250,11 +255,12 @@ def platforms_by_day(request):
     #rtn = sorted(rtn,key=lambda x: x['timestamp'])
     return HttpResponse(json.dumps(rtn),content_type="application/json",status=200)
 
+
 def asset_list_by_day(request,date):
     from xml.etree.ElementTree import Element, SubElement, Comment, tostring
     import httplib2
     import json
-
+    from vsexception import VSException
     scopesetting = request.GET.get('scope', '')
 
     interesting_fields = [
@@ -365,10 +371,13 @@ def asset_list_by_day(request,date):
         if 'limit' in request.GET:
             limit=int(request.GET['limit'])
 
-        (headers,content) = make_vidispine_request(agent,"PUT","/API/item?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
-        if int(headers['status']) < 200 or int(headers['status']) > 299:
-            logger.error(content)
-            raise StandardError("Vidispine error: %s" % headers['status'])
+        try:
+            (headers,content) = make_vidispine_request(agent,"PUT","/API/item?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
+        except VSException as e:
+            return HttpResponse(e.to_json(), content_type='application/json', status=500)
+        except HttpError as e:
+            return HttpResponse(e.to_json(), content_type='application/json', status=500)
+
 
         data=json.loads(content)
 
@@ -473,24 +482,14 @@ def asset_list_by_day(request,date):
         if 'limit' in request.GET:
             limit=int(request.GET['limit'])
 
-        (headers,content) = make_vidispine_request(agent,"PUT","/API/search?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
-        if int(headers['status']) < 200 or int(headers['status']) > 299:
-            logger.error(content)
-            raise StandardError("Vidispine error: %s" % headers['status'])
+        try:
+            (headers,content) = make_vidispine_request(agent,"PUT","/API/search?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
+        except VSException as e:
+            return HttpResponse(e.to_json(), content_type='application/json', status=500)
+        except HttpError as e:
+            return HttpResponse(e.to_json(), content_type='application/json', status=500)
 
         data=json.loads(content)
-
-        # assets = []
-        #
-        # ref = {'jack': 4098, 'sape': 4139}
-        #
-        # ref['alldata'] = data
-        #
-        # #assets.append(ref)
-        #
-        # assets = ref
-        #
-        # return assets
 
         assets = []
         for itemdata in data['entry']:
@@ -544,10 +543,15 @@ def asset_list_by_day(request,date):
 
                 agent = httplib2.Http()
 
-                (headers,content) = make_vidispine_request(agent,"PUT","/API/collection/"+itemdata['collection']['id']+"/item",requeststring,{'Accept': 'application/json'})
+                try:
+                    (headers,content) = make_vidispine_request(agent,"PUT","/API/collection/"+itemdata['collection']['id']+"/item",requeststring,{'Accept': 'application/json'})
   #              if int(headers['status']) < 200 or int(headers['status']) > 299:
   #                  logging.error(content)
   #                  raise StandardError("Vidispine error: %s" % headers['status'])
+                except VSException as e:
+                    return HttpResponse(e.to_json(), content_type='application/json', status=500)
+                except HttpError as e:
+                    return HttpResponse(e.to_json(), content_type='application/json', status=500)
 
                 dataoutput=json.loads(content)
 
@@ -612,10 +616,13 @@ def asset_list_by_day(request,date):
         if 'limit' in request.GET:
             limit=int(request.GET['limit'])
 
-        (headers,content) = make_vidispine_request(agent,"PUT","/API/item?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
-        if int(headers['status']) < 200 or int(headers['status']) > 299:
-            logger.error(content)
-            raise StandardError("Vidispine error: %s" % headers['status'])
+        try:
+            (headers,content) = make_vidispine_request(agent,"PUT","/API/item?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
+        except VSException as e:
+            return HttpResponse(e.to_json(), content_type='application/json', status=500)
+        except HttpError as e:
+            return HttpResponse(e.to_json(), content_type='application/json', status=500)
+
 
         data=json.loads(content)
 

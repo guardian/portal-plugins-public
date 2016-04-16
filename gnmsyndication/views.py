@@ -623,20 +623,7 @@ def asset_list_by_day(request,date):
         except HttpError as e:
             return HttpResponse(e.to_json(), content_type='application/json', status=500)
 
-
         data=json.loads(content)
-
-        # assets = []
-        #
-        # ref = {'jack': 4098, 'sape': 4139}
-        #
-        # ref['alldata'] = data
-        #
-        # #assets.append(ref)
-        #
-        # assets = ref
-        #
-        # return assets
 
         assets = []
         for itemdata in data['item']:
@@ -670,15 +657,22 @@ def asset_list_by_day(request,date):
 
 #date is string, dd/mm/yyyy
 def assets_by_day(request,date):
-    (assets, scope) = asset_list_by_day(request,date)
+    try:
+        (assets, scope) = asset_list_by_day(request,date)
+    except KeyError as e:
+        return render(request,"syndication_filedetails.html",{"error": "Did not get back the right data: {0}".format(unicode(e))})
+    except StandardError as e:
+        return render(request,"syndication_filedetails.html",{"error": unicode(e)})
     #return HttpResponse(json.dumps(assets),content_type='application/json',status=200)
     return render(request,"syndication_filedetails.html",{"items": assets, "scope": scope})
+
 
 def seconds_to_duration(nsec):
     m, s = divmod(float(nsec), 60)
     h, m = divmod(m, 60)
     #print "%d:%02d:%02d" % (h, m, s)
     return u"%02d:%02d:%02d" % (h,m,s)
+
 
 def csv_report(request):
     from StringIO import StringIO

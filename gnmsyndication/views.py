@@ -96,6 +96,7 @@ class HttpError(StandardError):
 
 def make_vidispine_request(agent,method,urlpath,body,headers,content_type='application/xml'):
     import base64
+    from pprint import pprint
     from vsexception import VSException
     auth = base64.encodestring('%s:%s' % (settings.VIDISPINE_USERNAME, settings.VIDISPINE_PASSWORD)).replace('\n', '')
 
@@ -109,7 +110,8 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
     print("URL is %s" % url)
     print(body)
     (headers,content) = agent.request(url,method=method,body=body,headers=headers)
-
+    print(content)
+    pprint(headers)
     if int(headers['status']) < 200 or int(headers['status']) > 299:
         try:
             from raven import Client as RavenClient
@@ -130,10 +132,11 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
             })
             try:
                 e=VSException()
-                try:
-                    e.fromJSON(content)
-                except StandardError: #if we did not get valid XML
-                    raise HttpError("Vidispine error: %s" % headers['status'])
+                #try:
+                e.fromJSON(content)
+                print(content)
+                #except StandardError: #if we did not get valid XML
+                #    raise HttpError("Vidispine error: %s" % headers['status'])
             except HttpError:
                 c.captureException()
                 c.context.clear()
@@ -223,7 +226,13 @@ def platforms_by_day(request):
     data=json.loads(content)
 
     if not 'facet' in data:
-        return HttpResponse(json.dumps({'status': 'error','error': 'Vidispine did not return facet data', 'returned': data}))
+        try: #see if this was an error code that slipped through
+            e=VSException()
+            e.fromJSON(content)
+            return HttpResponse(e.to_json(),status=500)
+        except StandardError:
+            pass #if it doesn't work just raise the normal error
+        return HttpResponse(json.dumps({'status': 'error','error': 'Vidispine did not return facet data', 'returned': data}),status=500)
         #raise StandardError("Vidispine did not return faceted data when requested")
 
     rtn = {'totals': {},'data': []}
@@ -295,6 +304,7 @@ def asset_list_by_day(request,date):
         'gnm_master_mainstreamsyndication_keywords',
         'gnm_master_youtube_keywords'
     ]
+
     if isinstance(date,datetime.datetime):
         dt = date
     else:
@@ -333,51 +343,12 @@ def asset_list_by_day(request,date):
 
         agent = httplib2.Http()
 
-        interesting_fields = [
-            'title',
-            'durationSeconds',
-            'gnm_master_website_headline',
-            'gnm_master_website_uploadstatus',
-            'gnm_master_mainstreamsyndication_uploadstatus',
-            'gnm_master_dailymotion_uploadstatus',
-            'gnm_master_youtube_uploadstatus',
-            'gnm_master_facebook_uploadstatus',
-            'gnm_master_spotify_uploadstatus',
-            'gnm_master_publication_time',
-            'gnm_master_mainstreamsyndication_publication_time',
-            'gnm_master_dailymotion_publication_time',
-            'gnm_masterfacebook_publication_date_and_time',
-            'gnm_masterspotify_publication_date_and_time',
-            'gnm_masteryoutube_publication_date_and_time',
-            'gnm_master_generic_intendeduploadplatforms',
-            'gnm_commission_title',
-            'gnm_project_headline',
-            'gnm_master_pacdata_status',
-            'gnm_master_website_keyword_ids',
-            'gnm_mastergeneric_syndication_rule_applied',
-            'gnm_mastergeneric_syndication_rules',
-            #===========
-            'gnm_master_generic_whollyowned',
-            'gnm_master_generic_ukonly',
-            'gnm_master_generic_containsadultcontent',
-            'gnm_master_generic_preventmobileupload',
-            'gnm_master_generic_source',
-            'gnm_master_mainstreamsyndication_keywords',
-            'gnm_master_youtube_keywords'
-        ]
-
         fields = ",".join(interesting_fields)
         limit = 50
         if 'limit' in request.GET:
             limit=int(request.GET['limit'])
 
-        try:
-            (headers,content) = make_vidispine_request(agent,"PUT","/API/item?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
-        except VSException as e:
-            return HttpResponse(e.to_json(), content_type='application/json', status=500)
-        except HttpError as e:
-            return HttpResponse(e.to_json(), content_type='application/json', status=500)
-
+        (headers,content) = make_vidispine_request(agent,"PUT","/API/item?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
 
         data=json.loads(content)
 
@@ -442,53 +413,16 @@ def asset_list_by_day(request,date):
 
         agent = httplib2.Http()
 
-        interesting_fields = [
-            'title',
-            'durationSeconds',
-            'gnm_master_website_headline',
-            'gnm_master_website_uploadstatus',
-            'gnm_master_mainstreamsyndication_uploadstatus',
-            'gnm_master_dailymotion_uploadstatus',
-            'gnm_master_youtube_uploadstatus',
-            'gnm_master_facebook_uploadstatus',
-            'gnm_master_spotify_uploadstatus',
-            'gnm_master_publication_time',
-            'gnm_master_mainstreamsyndication_publication_time',
-            'gnm_master_dailymotion_publication_time',
-            'gnm_masterfacebook_publication_date_and_time',
-            'gnm_masterspotify_publication_date_and_time',
-            'gnm_masteryoutube_publication_date_and_time',
-            'gnm_master_generic_intendeduploadplatforms',
-            'gnm_commission_title',
-            'gnm_project_headline',
-            'gnm_master_pacdata_status',
-            'gnm_master_website_keyword_ids',
-            'gnm_mastergeneric_syndication_rule_applied',
-            'gnm_mastergeneric_syndication_rules',
-            #===========
-            'gnm_master_generic_whollyowned',
-            'gnm_master_generic_ukonly',
-            'gnm_master_generic_containsadultcontent',
-            'gnm_master_generic_preventmobileupload',
-            'gnm_master_generic_source',
-            'gnm_master_mainstreamsyndication_keywords',
-            'gnm_master_youtube_keywords',
-            'gnm_type',
-            'gnm_project_intendeduploadplatforms',
-        ]
+        interesting_fields += ['gnm_type',
+                             'gnm_project_intendeduploadplatforms',
+                             ]
 
         fields = ",".join(interesting_fields)
         limit = 50
         if 'limit' in request.GET:
             limit=int(request.GET['limit'])
 
-        try:
-            (headers,content) = make_vidispine_request(agent,"PUT","/API/search?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
-        except VSException as e:
-            return HttpResponse(e.to_json(), content_type='application/json', status=500)
-        except HttpError as e:
-            return HttpResponse(e.to_json(), content_type='application/json', status=500)
-
+        (headers,content) = make_vidispine_request(agent,"PUT","/API/search?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
         data=json.loads(content)
 
         assets = []
@@ -543,15 +477,7 @@ def asset_list_by_day(request,date):
 
                 agent = httplib2.Http()
 
-                try:
-                    (headers,content) = make_vidispine_request(agent,"PUT","/API/collection/"+itemdata['collection']['id']+"/item",requeststring,{'Accept': 'application/json'})
-  #              if int(headers['status']) < 200 or int(headers['status']) > 299:
-  #                  logging.error(content)
-  #                  raise StandardError("Vidispine error: %s" % headers['status'])
-                except VSException as e:
-                    return HttpResponse(e.to_json(), content_type='application/json', status=500)
-                except HttpError as e:
-                    return HttpResponse(e.to_json(), content_type='application/json', status=500)
+                (headers,content) = make_vidispine_request(agent,"PUT","/API/collection/"+itemdata['collection']['id']+"/item",requeststring,{'Accept': 'application/json'})
 
                 dataoutput=json.loads(content)
 
@@ -616,13 +542,7 @@ def asset_list_by_day(request,date):
         if 'limit' in request.GET:
             limit=int(request.GET['limit'])
 
-        try:
-            (headers,content) = make_vidispine_request(agent,"PUT","/API/item?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
-        except VSException as e:
-            return HttpResponse(e.to_json(), content_type='application/json', status=500)
-        except HttpError as e:
-            return HttpResponse(e.to_json(), content_type='application/json', status=500)
-
+        (headers,content) = make_vidispine_request(agent,"PUT","/API/item?content=metadata&field={0}&n=".format(fields,limit),requeststring,{'Accept': 'application/json'})
         data=json.loads(content)
 
         assets = []
@@ -657,12 +577,17 @@ def asset_list_by_day(request,date):
 
 #date is string, dd/mm/yyyy
 def assets_by_day(request,date):
+    from vsexception import VSException
     try:
         (assets, scope) = asset_list_by_day(request,date)
     except KeyError as e:
         return render(request,"syndication_filedetails.html",{"error": "Did not get back the right data: {0}".format(unicode(e))})
-    except StandardError as e:
-        return render(request,"syndication_filedetails.html",{"error": unicode(e)})
+    except VSException as e:
+        return HttpResponse(e.to_json(), content_type='application/json', status=500)
+    except HttpError as e:
+        return HttpResponse(e.to_json(), content_type='application/json', status=500)
+    #except StandardError as e:
+    #    return render(request,"syndication_filedetails.html",{"error": unicode(e)})
     #return HttpResponse(json.dumps(assets),content_type='application/json',status=200)
     return render(request,"syndication_filedetails.html",{"items": assets, "scope": scope})
 

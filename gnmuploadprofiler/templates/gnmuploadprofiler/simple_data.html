@@ -13,9 +13,13 @@
 <table style="padding: 2em;">
     <thead>
         <tr>
-            <td>Master</td><td>Duration</td><td>Created</td><td>Proxy interval</td>
-            <td>Upload trigger interval</td><td>Page created interval</td>
-            <td>Final transcode completed interval</td><td>Page launch interval (guess)</td>
+            <td>Master</td><td><a href="?sort=item_duration">Duration</a></td>
+            <td><a href="?sort=created_time">Created</a></td>
+            <td><a href="?sort=proxy_completed_interval">Proxy interval</a></td>
+            <td><a href="?sort=upload_trigger_interval">Upload trigger interval</a></td>
+            <td><a href="?sort=page_created_interval">Page created interval</a></td>
+            <td><a href="?sort=final_transcode_completed_interval">Final transcode completed interval</a></td>
+            <td><a href="?sort=page_launch_guess_interval">Page launch interval (guess)</a></td>
             <td><b>Completed time</b></td>
         </tr>
     </thead>
@@ -59,11 +63,11 @@
         <td><a href="/master/{{ entry.item_id }}" target="_blank">{{ entry.item_id }}</a></td>
         <td>{{ entry.item_duration|time_display }}</td>
         <td>{{ entry.created_time }}</td>
-        <td>{{ entry.proxy_completed_interval|time_display }}</td>
-        <td>{{ entry.upload_trigger_interval|time_display }}</td>
-        <td>{{ entry.page_created_interval|time_display }}</td>
-        <td>{{ entry.final_transcode_completed_interval|time_display }}</td>
-        <td>{{ entry.page_launch_guess_interval|time_display }}</td>
+        <td>{{ entry.proxy_completed_interval|time_display }}<br>{{ entry.proxy_completed_interval_ratio|floatformat:"1" }}x</td>
+        <td>{{ entry.upload_trigger_interval|time_display }}<br>{{ entry.upload_trigger_interval_ratio|floatformat:"1" }}x</td>
+        <td>{{ entry.page_created_interval|time_display }}<br>{{ entry.page_created_interval_ratio|floatformat:"1" }}x</td>
+        <td>{{ entry.final_transcode_completed_interval|time_display }}<br>{{ entry.final_transcode_completed_interval_ratio|floatformat:"1" }}x</td>
+        <td>{{ entry.page_launch_guess_interval|time_display }}<br>{{ entry.page_launch_guess_interval_ratio|floatformat:"1" }}x</td>
         <td><strong>{{ entry.completed_time }}</strong></td>
     </tr>
     {% endfor %}

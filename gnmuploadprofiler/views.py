@@ -45,17 +45,19 @@ class BasicDataView(ListView):
     def get_queryset(self):
         qs = super(BasicDataView,self).get_queryset()
 
-        # if 'date' in self.request.GET:
-        #     parts = re.match(r'(\d{4})(\d{2})(\d{2})',self.request.GET['date'])
-        #     starting_time = datetime(year=int(parts.group(1)),
-        #                              month=int(parts.group(2)),
-        #                              day=int(parts.group(3)),)
-        #     ending_time = datetime(year=int(parts.group(1)),
-        #                              month=int(parts.group(2)),
-        #                              day=int(parts.group(3)),
-        #                            hour=23,minute=59,second=59,microsecond=999999)
-        #
-        #     qs = qs.filter(completed_time__gte=starting_time,completed_time__lt=ending_time)
+        if 'date' in self.request.GET:
+            parts = re.match(r'(\d{4})(\d{2})(\d{2})',self.request.GET['date'])
+            starting_time = datetime(year=int(parts.group(1)),
+                                     month=int(parts.group(2)),
+                                     day=int(parts.group(3)),)
+            ending_time = datetime(year=int(parts.group(1)),
+                                     month=int(parts.group(2)),
+                                     day=int(parts.group(3)),
+                                   hour=23,minute=59,second=59,microsecond=999999)
+
+            qs = qs.filter(completed_time__gte=starting_time,completed_time__lt=ending_time)
+        if 'sort' in self.request.GET:
+            qs = qs.order_by(self.request.GET['sort'])
 
         return qs
 

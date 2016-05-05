@@ -18,3 +18,23 @@ class OutputTimings(models.Model):
 
     class Meta:
         ordering = ['-completed_time','-created_time']
+
+    @property
+    def proxy_completed_interval_ratio(self):
+        return float(self.proxy_completed_interval)/float(self.item_duration)
+
+    @property
+    def upload_trigger_interval_ratio(self):
+        return float(self.upload_trigger_interval) / float(self.item_duration)
+
+    @property
+    def page_created_interval_ratio(self):
+        return float(self.page_created_interval) / float(self.item_duration)
+
+    @property
+    def final_transcode_completed_interval_ratio(self):
+        return float(self.final_transcode_completed_interval) / float(self.item_duration)
+
+    @property
+    def page_launch_guess_interval_ratio(self):
+        return float(self.page_launch_guess_interval) / float(self.item_duration)

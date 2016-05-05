@@ -1,0 +1,71 @@
+{% themeextends "base.html" %}
+{% load i18n datetimeformatting compress staticfiles uploadprofiler_customfilters %}
+{% block title %}{% trans 'Upload Speed Profiler' %}{% endblock %}
+{% block heading %}{% trans 'Upload Speed Profiler' %}{% endblock %}
+
+{% block body %}
+<h1 style="padding: 4px;">Upload profiler - basic data</h1>
+
+<p>
+    There are a total of {{ object_list.length }} videos listed here.
+</p>
+
+<table style="padding: 2em;">
+    <thead>
+        <tr>
+            <td>Master</td><td>Duration</td><td>Created</td><td>Proxy interval</td>
+            <td>Upload trigger interval</td><td>Page created interval</td>
+            <td>Final transcode completed interval</td><td>Page launch interval (guess)</td>
+            <td><b>Completed time</b></td>
+        </tr>
+    </thead>
+    {% if averages %}
+    <tr>
+        <td><strong>Minimum values</strong></td>
+        <td>{{ averages.item_duration__min|time_display }}</td>
+        <td></td>
+        <td>{{ averages.proxy_completed_interval__min|time_display }}</td>
+        <td>{{ averages.upload_trigger_interval__min|time_display }}</td>
+        <td>{{ averages.page_created_interval__min|time_display }}</td>
+        <td>{{ averages.final_transcode_completed_interval__min|time_display }}</td>
+        <td>{{ averages.page_launch_guess_interval__min|time_display }}</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><strong>Average values</strong></td>
+        <td>{{ averages.item_duration__avg|time_display }}<br>± {{ averages.item_duration__stddev|time_display }}</td>
+        <td></td>
+        <td>{{ averages.proxy_completed_interval__avg|time_display }}<br> ± {{ averages.proxy_completed_interval__stddev|time_display }}</td>
+        <td>{{ averages.upload_trigger_interval__avg|time_display }}<br> ± {{ averages.upload_trigger_interval__stddev|time_display }}</td>
+        <td>{{ averages.page_created_interval__avg|time_display }}<br> ± {{ averages.page_created_interval__stddev|time_display }}</td>
+        <td>{{ averages.final_transcode_completed_interval__avg|time_display }}<br> ± {{ averages.final_transcode_completed_interval__stddev|time_display }}</td>
+        <td>{{ averages.page_launch_guess_interval__avg|time_display }}<br> ± {{ averages.page_launch_guess_interval__stddev|time_display }}</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td><strong>Maximum values</strong></td>
+        <td>{{ averages.item_duration__max|time_display }}</td>
+        <td></td>
+        <td>{{ averages.proxy_completed_interval__max|time_display }}</td>
+        <td>{{ averages.upload_trigger_interval__max|time_display }}</td>
+        <td>{{ averages.page_created_interval__max|time_display }}</td>
+        <td>{{ averages.final_transcode_completed_interval__max|time_display }}</td>
+        <td>{{ averages.page_launch_guess_interval__max|time_display }}</td>
+        <td></td>
+    </tr>
+    {% endif %}
+    {% for entry in object_list %}
+    <tr>
+        <td><a href="/master/{{ entry.item_id }}" target="_blank">{{ entry.item_id }}</a></td>
+        <td>{{ entry.item_duration|time_display }}</td>
+        <td>{{ entry.created_time }}</td>
+        <td>{{ entry.proxy_completed_interval|time_display }}</td>
+        <td>{{ entry.upload_trigger_interval|time_display }}</td>
+        <td>{{ entry.page_created_interval|time_display }}</td>
+        <td>{{ entry.final_transcode_completed_interval|time_display }}</td>
+        <td>{{ entry.page_launch_guess_interval|time_display }}</td>
+        <td><strong>{{ entry.completed_time }}</strong></td>
+    </tr>
+    {% endfor %}
+</table>
+{% endblock %}

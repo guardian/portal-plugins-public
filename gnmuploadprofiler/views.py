@@ -10,10 +10,13 @@ import logging
 
 from django.contrib.auth.decorators import login_required
 from django.views.generic import TemplateView, ListView
+from django.http import HttpResponseBadRequest
+
 from portal.generic.baseviews import ClassView
 from portal.vidispine.iitem import ItemHelper
 from portal.vidispine.iexception import NotFoundError
 from rest_framework.views import APIView
+from rest_framework.response import Response
 from models import OutputTimings
 import re
 from datetime import datetime
@@ -68,7 +71,9 @@ class BasicDataView(ListView):
         averages = {}
 
         for x in ['item_duration','proxy_completed_interval','upload_trigger_interval',
-                  'page_created_interval','final_transcode_completed_interval','page_launch_guess_interval']:
+                  'page_created_interval','final_transcode_completed_interval','page_launch_guess_interval',
+                  'page_launch_capi_interval']:
+        #for x in OutputTimings._meta.get_all_field_names():
             data = qs.aggregate(Avg(x),StdDev(x),Min(x),Max(x))
 
             stkeyname = "{0}__stddev".format(x)
@@ -82,3 +87,43 @@ class BasicDataView(ListView):
         #ctx['averages'] = qs.aggregate(Avg('item_duration'),StdDev('item_duration')))
         ctx['averages'] = averages
         return ctx
+
+
+class ItemInfoAPIView(APIView):
+    from rest_framework.parsers import JSONParser, XMLParser
+    from rest_framework.renderers import JSONRenderer, XMLRenderer
+    from rest_framework import permissions
+
+    permission_classes = (permissions.IsAuthenticated,)
+    parser_classes = (JSONParser,XMLParser,)
+    renderer_classes = (JSONRenderer,XMLRenderer,)
+
+    interesting_fields = [
+        'title',
+        'gnm_commission_title',
+        'gnm_project_headline',
+        'gnm_commission_workinggroup'
+    ]
+
+    def get(self,request,itemid=None):
+        import re
+        from gnmvidispine.vs_item import VSItem
+        from django.core import cache
+        from django.conf import settings
+
+        if not re.match(r'\w{2}-\d+$',itemid):
+            return HttpResponseBadRequest("Item ID invalid")
+
+        c = cache.get_cache('default')
+
+        rtn = c.get('gnmuploadprofiler:item:{0}'.format(itemid))
+        if rtn is None:
+            item = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,
+                          passwd=settings.VIDISPINE_PASSWORD)
+            item.populate(itemid,specificFields=self.interesting_fields)
+
+            rtn = {}
+            for f in self.interesting_fields:
+                rtn[f] = item.get(f)
+            c.set('gnmuploadprofiler:item:{0}'.format(itemid),rtn)
+        return Response(rtn)

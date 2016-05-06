@@ -48,7 +48,7 @@ def lookup_by_octid(octid):
     h = httplib2.Http()
 
     (headers, content) = h.request(weburl,method="GET")
-    pprint(headers)
+    #pprint(headers)
 
     if int(headers['status'])<200 or int(headers['status'])>299:
         raise HttpError(headers['status'])

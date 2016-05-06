@@ -1,4 +1,5 @@
 from celery import shared_task
+from contentapi import lookup_by_octid
 import logging
 
 logger = logging.getLogger(__name__)
@@ -14,7 +15,38 @@ def changesets_for_fieldname(fieldname,changeset_list):
     return rtn
 
 
-def last_change_from_set(changeset_list):
+def _is_change_matching(change,fieldname=None,value=None):
+    if fieldname is not None and change.fieldname != str(fieldname):
+        return False
+    if value is not None and isinstance(change.value, list) and value not in change.value:
+        return False
+    if value is not None and not isinstance(change.value, list) and value != change.value:
+        print "continuing as '{0}' ({3}) is not equal to '{1}' ({4}) for {2}".format(value, change.value,
+                                                                                     change.fieldname,
+                                                                                     value.__class__.__name__,
+                                                                                     change.value.__class__.__name__)
+        return False
+    return True
+
+
+def first_change_from_set(changeset_list,fieldname=None,value=None):
+    from datetime import datetime
+    import pytz
+    rtn = None
+    first_timestamp = datetime.now(tz=pytz.UTC)
+
+    for cs in changeset_list:
+        for change in cs.changes():
+            if not _is_change_matching(change,fieldname,value): #if fieldname and value are both None, this check is effectively bypassed
+                continue
+            if change.timestamp < first_timestamp:
+                rtn = change
+                first_timestamp = change.timestamp
+
+    return rtn
+
+
+def last_change_from_set(changeset_list,fieldname=None,value=None):
     from datetime import datetime
     import pytz
     rtn = None
@@ -22,6 +54,9 @@ def last_change_from_set(changeset_list):
 
     for cs in changeset_list:
         for change in cs.changes():
+            if not _is_change_matching(change,fieldname,value):
+                continue
+
             if change.timestamp > last_timestamp:
                 rtn = change
                 last_timestamp = change.timestamp
@@ -31,6 +66,7 @@ def last_change_from_set(changeset_list):
 
 def change_for_value(value,changeset_list):
     rtn = None
+    changeset_list.sort(key=lambda x: x.name)
     for cs in changeset_list:
         for change in cs.changes():
             if isinstance(change.value,list):
@@ -88,11 +124,21 @@ def profile_item(itemname):
 
     print("portal_ingested is {0}".format(item.get('portal_ingested')))
 
-    subset = changesets_for_fieldname('shapeTag',changeset_list)
-    lastchange = last_change_from_set(subset)
-    print("last change of shapeTag is {0}".format(unicode(lastchange)))
+    #when was the media last added?
+    current_version = item.get('portal_essence_version')
+    #for the time being, ignoring updates; therefore we're looking for the creation of version 1.
+    subset = changesets_for_fieldname('portal_essence_version',changeset_list)
+    lastchange = first_change_from_set(subset,fieldname='portal_essence_version',value=str(1))
+    print("change of portal_essence_version is {0}".format(unicode(lastchange)))
+    profile_record.version_created_time = lastchange.timestamp
+    profile_record.media_version = int(current_version) #int(lastchange.value)
 
-    interval = lastchange.timestamp - profile_record.created_time
+    subset = changesets_for_fieldname('shapeTag',changeset_list)
+    #lastchange = last_change_from_set(subset)
+    #print("last change of shapeTag is {0}".format(unicode(lastchange)))
+    lastchange = change_for_value('lowres',subset)
+    print("change of shapeTag to have lowres is {0}".format(unicode(lastchange)))
+    interval = lastchange.timestamp - profile_record.version_created_time
     print("Time interval is {0}".format(interval))
     profile_record.proxy_completed_interval = timedelta_to_float(interval)
 
@@ -100,26 +146,32 @@ def profile_item(itemname):
     #print "got subset {0}".format(subset)
     readychange = change_for_value('Ready to Upload',subset)
     print("trigger change was {0}".format(unicode(readychange)))
-    profile_record.upload_trigger_interval=timedelta_to_float(readychange.timestamp - profile_record.created_time)
+    profile_record.upload_trigger_interval=timedelta_to_float(readychange.timestamp - profile_record.version_created_time)
 
     #page_created_interval
     subset = changesets_for_fieldname('gnm_master_website_edit_url',changeset_list)
     lastchange = last_change_from_set(subset)
     print("last change of gnm_master_website_edit_url is {0}".format(lastchange))
-    profile_record.page_created_interval=timedelta_to_float(lastchange.timestamp - profile_record.created_time)
+    profile_record.page_created_interval=timedelta_to_float(lastchange.timestamp - profile_record.version_created_time)
 
     #last transcode
     subset = changesets_for_fieldname('gnm_master_website_uploadlog',changeset_list)
     lastchange = last_change_from_set(subset)
     print("last change of gnm_master_website_uploadlog is {0}".format(lastchange))
-    profile_record.final_transcode_completed_interval = timedelta_to_float(lastchange.timestamp - profile_record.created_time)
+    profile_record.final_transcode_completed_interval = timedelta_to_float(lastchange.timestamp - profile_record.version_created_time)
 
     #page launch guess
     launchguess = dateutil.parser.parse(item.get('gnm_master_publication_time'))
-    profile_record.page_launch_guess_interval = timedelta_to_float(launchguess - profile_record.created_time)
+    profile_record.page_launch_guess_interval = timedelta_to_float(launchguess - profile_record.version_created_time)
+
+    #page launch from capi
+    capi_data = lookup_by_octid(item.get('gnm_master_generic_titleid'))
+    profile_record.page_launch_capi_interval = timedelta_to_float(capi_data['webPublicationDate'] - profile_record.version_created_time)
+    profile_record.page_launch_pluto_lag = timedelta_to_float(launchguess - capi_data['webPublicationDate'])
 
     #last timestamp, for sorting.
-    profile_record.completed_time = launchguess
+    #profile_record.completed_time = launchguess
+    profile_record.completed_time = capi_data['webPublicationDate']
 
     pprint(profile_record.__dict__)
     profile_record.save()

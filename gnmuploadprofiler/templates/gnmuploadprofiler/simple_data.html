@@ -3,7 +3,42 @@
 {% block title %}{% trans 'Upload Speed Profiler' %}{% endblock %}
 {% block heading %}{% trans 'Upload Speed Profiler' %}{% endblock %}
 
+{% block head %}
+<style>
+    p.item_info_text { font-size: 0.8em; }
+    p.important { font-weight: bold; font-size: 0.9em; }
+    img.inline_icon { padding-right: 8px; width: 15px; vertical-align:center; }
+</style>
+{% endblock %}
+
 {% block body %}
+<script>
+    $(document).ready(function(){
+
+    });
+
+    function get_item_info(itemid)
+    {
+        url = "{% url item_info itemid='VX-1' %}";
+        n=url.length;
+        url = url.slice(0,n-4) + itemid;
+
+        $('#info_'+itemid).empty();
+        $('#info_'+itemid).append($('<img>', {'src': '{% static "img/icon-ajax-loader.gif" %}'}));
+
+        $.getJSON(url, function(data){
+            console.log(data);
+            var video_title=$('<p>',{'class': 'item_info_text important'}).html('<img src="/sitemedia/img/gnm/icon_master.png" class="inline_icon">'+data['title']);
+            var video_commission=$('<p>',{'class': 'item_info_text'}).html('<img src="/sitemedia/img/gnm/icon_commission.png" class="inline_icon">'+data['gnm_commission_title']);
+            var video_project=$('<p>',{'class': 'item_info_text'}).html('<img src="/sitemedia/img/gnm/icon_project.png" class="inline_icon">'+data['gnm_project_headline']);
+
+            $('#info_'+itemid).empty();
+            $('#info_'+itemid).append(video_title);
+            $('#info_'+itemid).append(video_commission);
+            $('#info_'+itemid).append(video_project);
+        });
+    }
+</script>
 <h1 style="padding: 4px;">Upload profiler - basic data</h1>
 
 <p>
@@ -13,61 +48,78 @@
 <table style="padding: 2em;">
     <thead>
         <tr>
-            <td>Master</td><td><a href="?sort=item_duration">Duration</a></td>
+            <td>Master</td>
+            <td>Version</td>
+            <td><a href="?sort=item_duration">Duration</a></td>
             <td><a href="?sort=created_time">Created</a></td>
+            <td><a href="?sort=version_created_time">Media Added</a></td>
             <td><a href="?sort=proxy_completed_interval">Proxy interval</a></td>
             <td><a href="?sort=upload_trigger_interval">Upload trigger interval</a></td>
             <td><a href="?sort=page_created_interval">Page created interval</a></td>
             <td><a href="?sort=final_transcode_completed_interval">Final transcode completed interval</a></td>
-            <td><a href="?sort=page_launch_guess_interval">Page launch interval (guess)</a></td>
+            <td><a href="?sort=page_launch_guess_interval">Page launch interval (CAPI)</a></td>
             <td><b>Completed time</b></td>
         </tr>
     </thead>
     {% if averages %}
     <tr>
         <td><strong>Minimum values</strong></td>
+        <td></td>
         <td>{{ averages.item_duration__min|time_display }}</td>
+        <td></td>
         <td></td>
         <td>{{ averages.proxy_completed_interval__min|time_display }}</td>
         <td>{{ averages.upload_trigger_interval__min|time_display }}</td>
         <td>{{ averages.page_created_interval__min|time_display }}</td>
         <td>{{ averages.final_transcode_completed_interval__min|time_display }}</td>
-        <td>{{ averages.page_launch_guess_interval__min|time_display }}</td>
+        <td>{{ averages.page_launch_capi_interval__min|time_display }}</td>
         <td></td>
     </tr>
     <tr>
         <td><strong>Average values</strong></td>
+        <td></td>
         <td>{{ averages.item_duration__avg|time_display }}<br>± {{ averages.item_duration__stddev|time_display }}</td>
+        <td></td>
         <td></td>
         <td>{{ averages.proxy_completed_interval__avg|time_display }}<br> ± {{ averages.proxy_completed_interval__stddev|time_display }}</td>
         <td>{{ averages.upload_trigger_interval__avg|time_display }}<br> ± {{ averages.upload_trigger_interval__stddev|time_display }}</td>
         <td>{{ averages.page_created_interval__avg|time_display }}<br> ± {{ averages.page_created_interval__stddev|time_display }}</td>
         <td>{{ averages.final_transcode_completed_interval__avg|time_display }}<br> ± {{ averages.final_transcode_completed_interval__stddev|time_display }}</td>
-        <td>{{ averages.page_launch_guess_interval__avg|time_display }}<br> ± {{ averages.page_launch_guess_interval__stddev|time_display }}</td>
+        <td>{{ averages.page_launch_capi_interval__avg|time_display }}<br> ± {{ averages.page_launch_capi_interval__stddev|time_display }}</td>
         <td></td>
     </tr>
     <tr>
         <td><strong>Maximum values</strong></td>
+        <td></td>
         <td>{{ averages.item_duration__max|time_display }}</td>
+        <td></td>
         <td></td>
         <td>{{ averages.proxy_completed_interval__max|time_display }}</td>
         <td>{{ averages.upload_trigger_interval__max|time_display }}</td>
         <td>{{ averages.page_created_interval__max|time_display }}</td>
         <td>{{ averages.final_transcode_completed_interval__max|time_display }}</td>
-        <td>{{ averages.page_launch_guess_interval__max|time_display }}</td>
+        <td>{{ averages.page_launch_capi_interval__max|time_display }}</td>
         <td></td>
     </tr>
     {% endif %}
     {% for entry in object_list %}
     <tr>
-        <td><a href="/master/{{ entry.item_id }}" target="_blank">{{ entry.item_id }}</a></td>
+        <td>
+            <a href="/master/{{ entry.item_id }}" target="_blank">{{ entry.item_id }}</a>
+            <div id="info_{{ entry.item_id }}"></div>
+            <script>
+            $(document).ready(function(){ get_item_info("{{ entry.item_id }}"); });
+            </script>
+        </td>
+        <td>{{ entry.media_version }}</td>
         <td>{{ entry.item_duration|time_display }}</td>
         <td>{{ entry.created_time }}</td>
+        <td>{{ entry.version_created_time }}</td>
         <td>{{ entry.proxy_completed_interval|time_display }}<br>{{ entry.proxy_completed_interval_ratio|floatformat:"1" }}x</td>
         <td>{{ entry.upload_trigger_interval|time_display }}<br>{{ entry.upload_trigger_interval_ratio|floatformat:"1" }}x</td>
         <td>{{ entry.page_created_interval|time_display }}<br>{{ entry.page_created_interval_ratio|floatformat:"1" }}x</td>
         <td>{{ entry.final_transcode_completed_interval|time_display }}<br>{{ entry.final_transcode_completed_interval_ratio|floatformat:"1" }}x</td>
-        <td>{{ entry.page_launch_guess_interval|time_display }}<br>{{ entry.page_launch_guess_interval_ratio|floatformat:"1" }}x</td>
+        <td>{{ entry.page_launch_capi_interval|time_display }}<br>{{ entry.page_launch_capi_interval_ratio|floatformat:"1" }}x</td>
         <td><strong>{{ entry.completed_time }}</strong></td>
     </tr>
     {% endfor %}

@@ -1,3 +1,3 @@
-__version__ = 'DISPLAY_VERSION'
+__version__ = '1.0.0'
 __production__ = False
 from plugin import *

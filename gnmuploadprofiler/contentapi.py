@@ -57,6 +57,9 @@ def lookup_by_octid(octid):
     #pprint(data)
     return update_data_types(data['response']['content'])
 
+#internal.content.guardianapis.com/search?q={internalComposerCode}
+#gives results[] section with each occurrence of it on the site
+
 if __name__ == "__main__":
     import sys
     record = lookup_by_octid(sys.argv[1])

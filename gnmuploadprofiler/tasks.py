@@ -116,6 +116,8 @@ def profile_item(itemname):
         profile_record = OutputTimings()
 
     profile_record.item_id = item.name
+    profile_record.commission = item.get('gnm_commission_title')
+    profile_record.project = item.get('gnm_project_headline')
     profile_record.item_duration = item.get('durationSeconds')
 
     #step one - created time

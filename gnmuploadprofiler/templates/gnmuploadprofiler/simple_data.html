@@ -13,8 +13,12 @@
 
 {% block body %}
 <script>
-    $(document).ready(function(){
+    var items_by_commission = {};
+    var items_by_project = {};
+    var is_filtered = false;
 
+    $(document).ready(function(){
+        $('#clear_filter_button').hide();
     });
 
     function get_item_info(itemid)
@@ -29,8 +33,16 @@
         $.getJSON(url, function(data){
             console.log(data);
             var video_title=$('<p>',{'class': 'item_info_text important'}).html('<img src="/sitemedia/img/gnm/icon_master.png" class="inline_icon">'+data['title']);
-            var video_commission=$('<p>',{'class': 'item_info_text'}).html('<img src="/sitemedia/img/gnm/icon_commission.png" class="inline_icon">'+data['gnm_commission_title']);
+            var video_commission=$('<p>',{'class': 'item_info_text'})
+                .append($('<a>', {'onclick': 'commission_filter("'+data['gnm_commission_title']+'");'})
+                    .html('<img src="/sitemedia/img/gnm/icon_commission.png" class="inline_icon">'+data['gnm_commission_title']));
             var video_project=$('<p>',{'class': 'item_info_text'}).html('<img src="/sitemedia/img/gnm/icon_project.png" class="inline_icon">'+data['gnm_project_headline']);
+
+            if(! items_by_commission.hasOwnProperty(data['gnm_commission_title'])){
+                items_by_commission[data['gnm_commission_title']] = new Array(itemid);
+            } else {
+                items_by_commission[data['gnm_commission_title']].push(itemid);
+            }
 
             $('#info_'+itemid).empty();
             $('#info_'+itemid).append(video_title);
@@ -38,11 +50,94 @@
             $('#info_'+itemid).append(video_project);
         });
     }
+
+    function update_averages(commission_name)
+    {
+        url = '{% url averages %}';
+        if(commission_name) url+='?commission='+encodeURIComponent(commission_name);
+
+        $('.avg_display').html($('<img>', {'src': '{% static "img/icon-ajax-loader.gif" %}'}));
+
+        $.getJSON(url, {
+
+        }).success(function(data){
+            console.log(data);
+            $.each(data, function(index,value){
+                if(index.endsWith('avg')){
+                    new_key = index.replace('avg','stddev');
+                    str = value + " ± " + data[new_key];
+                    new_key = index.replace('avg','median');
+                    str += "<br><br>Median: " + data[new_key];
+                    $('#' + index).html(str);
+                } else {
+                    $('#' + index).html(value);
+                }
+            });
+
+        }).fail(function(jqXHR,errorThrown,status){
+            console.log(errorThrown);
+            $('.avg_display').html($('<img>', {'src': '{% static "img/warning.png" %}'}));
+        }).always(function(){
+
+        });
+    }
+
+    function commission_filter(commission_name)
+    {
+        console.log(items_by_commission);
+
+        if(! items_by_commission.hasOwnProperty(commission_name)){
+            console.log("ERROR: items_by_commission has no record of '"+commission_name+"'.");
+            return;
+        }
+
+        var rowdata = items_by_commission[commission_name];
+        console.log(rowdata);
+
+        $("tr.data_entry").each(function(){
+            //console.log($(this));
+            var rowid = $(this).attr('id')
+            console.log(rowid);
+            if($.inArray(rowid,rowdata)>=0){
+                console.log("present!");
+                $(this).fadeIn();
+            } else {
+                console.log("not present :(");
+                $(this).fadeOut();
+            }
+        });
+
+        is_filtered=true;
+        $('#current_filter').html("Currently filtering by commission '"+commission_name+"'");
+        $('#current_filter').fadeIn();
+        $('#clear_filter_button').fadeIn();
+        update_averages(commission_name);
+    }
+
+    function clear_filter()
+    {
+        $("tr.data_entry").each(function(){
+            $(this).fadeIn();
+        });
+        is_filtered=false;
+        $('#current_filter').fadeOut();
+        $('#clear_filter_button').fadeOut();
+
+        $('.avg_display').html($('<img>', {'src': '{% static "img/icon-ajax-loader.gif" %}'}));
+
+        update_averages(null);
+    }
+
 </script>
 <h1 style="padding: 4px;">Upload profiler - basic data</h1>
 
 <p>
     There are a total of {{ object_list.length }} videos listed here.
+</p>
+
+<p>
+    <button type="button" onclick="clear_filter()" id="clear_filter_button">Clear filter</button>
+    <span style="font-style: italic" id="current_filter"></span>
 </p>
 
 <table style="padding: 2em;">
@@ -65,45 +160,45 @@
     <tr>
         <td><strong>Minimum values</strong></td>
         <td></td>
-        <td>{{ averages.item_duration__min|time_display }}</td>
+        <td id="item_duration__min" class="avg_display">{{ averages.item_duration__min|time_display }}</td>
         <td></td>
         <td></td>
-        <td>{{ averages.proxy_completed_interval__min|time_display }}</td>
-        <td>{{ averages.upload_trigger_interval__min|time_display }}</td>
-        <td>{{ averages.page_created_interval__min|time_display }}</td>
-        <td>{{ averages.final_transcode_completed_interval__min|time_display }}</td>
-        <td>{{ averages.page_launch_capi_interval__min|time_display }}</td>
+        <td id="proxy_completed_interval__min" class="avg_display">{{ averages.proxy_completed_interval__min|time_display }}</td>
+        <td id="upload_trigger_interval__min" class="avg_display">{{ averages.upload_trigger_interval__min|time_display }}</td>
+        <td id="page_created_interval__min" class="avg_display">{{ averages.page_created_interval__min|time_display }}</td>
+        <td id="final_transcode_completed_interval__min" class="avg_display">{{ averages.final_transcode_completed_interval__min|time_display }}</td>
+        <td id="page_launch_capi_interval__min" class="avg_display">{{ averages.page_launch_capi_interval__min|time_display }}</td>
         <td></td>
     </tr>
     <tr>
         <td><strong>Average values</strong></td>
         <td></td>
-        <td>{{ averages.item_duration__avg|time_display }}<br>± {{ averages.item_duration__stddev|time_display }}</td>
+        <td id="item_duration__avg" class="avg_display">{{ averages.item_duration__avg|time_display }}<br>± {{ averages.item_duration__stddev|time_display }}</td>
         <td></td>
         <td></td>
-        <td>{{ averages.proxy_completed_interval__avg|time_display }}<br> ± {{ averages.proxy_completed_interval__stddev|time_display }}</td>
-        <td>{{ averages.upload_trigger_interval__avg|time_display }}<br> ± {{ averages.upload_trigger_interval__stddev|time_display }}</td>
-        <td>{{ averages.page_created_interval__avg|time_display }}<br> ± {{ averages.page_created_interval__stddev|time_display }}</td>
-        <td>{{ averages.final_transcode_completed_interval__avg|time_display }}<br> ± {{ averages.final_transcode_completed_interval__stddev|time_display }}</td>
-        <td>{{ averages.page_launch_capi_interval__avg|time_display }}<br> ± {{ averages.page_launch_capi_interval__stddev|time_display }}</td>
+        <td id="proxy_completed_interval__avg" class="avg_display">{{ averages.proxy_completed_interval__avg|time_display }}<br> ± {{ averages.proxy_completed_interval__stddev|time_display }}</td>
+        <td id="upload_trigger_interval__avg" class="avg_display">{{ averages.upload_trigger_interval__avg|time_display }}<br> ± {{ averages.upload_trigger_interval__stddev|time_display }}</td>
+        <td id="page_created_interval__avg" class="avg_display">{{ averages.page_created_interval__avg|time_display }}<br> ± {{ averages.page_created_interval__stddev|time_display }}</td>
+        <td id="final_transcode_completed_interval__avg" class="avg_display">{{ averages.final_transcode_completed_interval__avg|time_display }}<br> ± {{ averages.final_transcode_completed_interval__stddev|time_display }}</td>
+        <td id="page_launch_capi_interval__avg" class="avg_display">{{ averages.page_launch_capi_interval__avg|time_display }}<br> ± {{ averages.page_launch_capi_interval__stddev|time_display }}</td>
         <td></td>
     </tr>
     <tr>
         <td><strong>Maximum values</strong></td>
         <td></td>
-        <td>{{ averages.item_duration__max|time_display }}</td>
+        <td id="item_duration__max" class="avg_display">{{ averages.item_duration__max|time_display }}</td>
         <td></td>
         <td></td>
-        <td>{{ averages.proxy_completed_interval__max|time_display }}</td>
-        <td>{{ averages.upload_trigger_interval__max|time_display }}</td>
-        <td>{{ averages.page_created_interval__max|time_display }}</td>
-        <td>{{ averages.final_transcode_completed_interval__max|time_display }}</td>
-        <td>{{ averages.page_launch_capi_interval__max|time_display }}</td>
+        <td id="proxy_completed_interval__max" class="avg_display">{{ averages.proxy_completed_interval__max|time_display }}</td>
+        <td id="upload_trigger_interval__max" class="avg_display">{{ averages.upload_trigger_interval__max|time_display }}</td>
+        <td id="page_created_interval__max" class="avg_display">{{ averages.page_created_interval__max|time_display }}</td>
+        <td id="final_transcode_completed_interval__max" class="avg_display">{{ averages.final_transcode_completed_interval__max|time_display }}</td>
+        <td id="page_launch_capi_interval__max" class="avg_display">{{ averages.page_launch_capi_interval__max|time_display }}</td>
         <td></td>
     </tr>
     {% endif %}
     {% for entry in object_list %}
-    <tr>
+    <tr id="{{ entry.item_id }}" class="data_entry">
         <td>
             <a href="/master/{{ entry.item_id }}" target="_blank">{{ entry.item_id }}</a>
             <div id="info_{{ entry.item_id }}"></div>

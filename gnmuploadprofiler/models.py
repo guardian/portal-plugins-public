@@ -24,6 +24,9 @@ class OutputTimings(models.Model):
     page_launch_pluto_lag = models.FloatField(blank=True,default=0.0)
     completed_time = models.DateTimeField(blank=True)
 
+    project = models.CharField(max_length=255,db_index=True,blank=True)
+    commission = models.CharField(max_length=255,db_index=True,blank=True)
+
     class Meta:
         ordering = ['-completed_time','-created_time']
 

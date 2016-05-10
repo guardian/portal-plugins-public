@@ -59,37 +59,6 @@ class DataMixin(object):
         'page_launch_capi_interval'
     ]
 
-    @staticmethod
-    def median_value(queryset, term):
-        count = queryset.count()
-        values = queryset.values_list(term, flat=True).order_by(term)
-        if count % 2 == 1:
-            return values[int(round(count / 2))]
-        else:
-            return sum(values[count / 2:count / 2 + 2]) / 2.0
-
-    def calculate_averages(self,qs):
-        from django.db.models import Avg, StdDev, Variance, Sum, Min, Max
-        averages = {}
-
-        for x in self.interesting_fields:
-            # for x in OutputTimings._meta.get_all_field_names():
-            data = qs.aggregate(Avg(x), StdDev(x), Min(x), Max(x))
-
-            stkeyname = "{0}__stddev".format(x)
-            avkeyname = "{0}__avg".format(x)
-
-            data[stkeyname] = "{0:.1f}%".format((data[stkeyname] / data[avkeyname]) * 100)
-
-            averages.update(data)
-        return averages
-
-
-class AveragesRESTView(DataMixin, APIView):
-    authentication_classes = (SessionAuthentication, )
-    permission_classes = (IsAuthenticated, )
-    renderer_classes = (JSONRenderer,)
-
     def get_queryset(self):
         qs = OutputTimings.objects.all()
 
@@ -112,6 +81,39 @@ class AveragesRESTView(DataMixin, APIView):
             qs = qs.order_by(self.request.GET['sort'])
 
         return qs
+
+    @staticmethod
+    def median_value(queryset, term):
+        count = queryset.count()
+        values = queryset.values_list(term, flat=True).order_by(term)
+        if count % 2 == 1:
+            return values[int(round(count / 2))]
+        else:
+            return sum(values[count / 2:count / 2 + 2]) / 2.0
+
+    def calculate_averages(self,qs):
+        from django.db.models import Avg, StdDev, Variance, Sum, Min, Max
+        averages = {}
+
+        for x in self.interesting_fields:
+            # for x in OutputTimings._meta.get_all_field_names():
+            data = qs.aggregate(Avg(x), StdDev(x), Min(x), Max(x))
+
+            stkeyname = "{0}__stddev".format(x)
+            avkeyname = "{0}__avg".format(x)
+
+            try:
+                data[stkeyname] = "{0:.1f}%".format((data[stkeyname] / data[avkeyname]) * 100)
+                averages.update(data)
+            except ValueError: #if there is no data present then the division fails
+                pass
+        return averages
+
+
+class AveragesRESTView(DataMixin, APIView):
+    authentication_classes = (SessionAuthentication, )
+    permission_classes = (IsAuthenticated, )
+    renderer_classes = (JSONRenderer,)
 
     def get(self,request):
         from templatetags.uploadprofiler_customfilters import time_display
@@ -160,6 +162,30 @@ class BasicDataView(DataMixin, ListView):
         #ctx['averages'] = qs.aggregate(Avg('item_duration'),StdDev('item_duration')))
         ctx['averages'] = self.calculate_averages(qs[:self.max_items])
         return ctx
+
+
+class ChartDataView(DataMixin, APIView):
+    from rest_framework.parsers import JSONParser
+    from rest_framework.renderers import JSONRenderer,XMLRenderer
+    from rest_framework import permissions
+
+    permission_classes = (permissions.IsAuthenticated,)
+    parser_classes = (JSONParser,)
+    renderer_classes = (JSONRenderer,XMLRenderer)
+
+    def get_queryset(self):
+        qs = super(ChartDataView,self).get_queryset()
+        if "o" in self.request.GET:
+            return qs.order_by(self.request.GET["o"])
+        else:
+            return qs
+
+    def get(self,request):
+        from serializers import OutputTimingsRatioSerializer
+        qs = self.get_queryset()
+
+        s = OutputTimingsRatioSerializer(qs[:25], many=True)
+        return Response(s.data)
 
 
 class ItemInfoAPIView(APIView):

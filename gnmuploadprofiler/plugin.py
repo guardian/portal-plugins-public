@@ -17,7 +17,7 @@ class GnmuploadprofilerPluginURL(Plugin):
     implements(IPluginURL)
 
     def __init__(self):
-        self.name = "Gnmuploadprofiler App"
+        self.name = "GNM Upload Profiler"
         self.urls = 'portal.plugins.gnmuploadprofiler.urls'
         self.urlpattern = r'^gnmuploadprofiler/'
         self.namespace = r'gnmuploadprofiler'
@@ -58,11 +58,11 @@ class GnmuploadprofilerRegister(Plugin):
     def __call__(self):
         from __init__ import __version__ as versionnumber
         _app_dict = {
-                'name': 'Gnmuploadprofiler',
-                'version': '0.0.1',
-                'author': '',
+                'name': 'Upload Speed Profiler',
+                'version': versionnumber,
+                'author': 'Andy Gallagher <andy.gallagher@theguardian.com>',
                 'author_url': '',
-                'notes': 'Add your Copyright notice here.'}
+                'notes': 'GNM internal software'}
         return _app_dict
 
 gnmuploadprofilerplugin = GnmuploadprofilerRegister()

@@ -1,0 +1,85 @@
+{% themeextends "base.html" %}
+{% load i18n datetimeformatting compress staticfiles uploadprofiler_customfilters %}
+{% block title %}{% trans 'Upload Speed Profiler' %}{% endblock %}
+{% block heading %}{% trans 'Upload Speed Profiler' %}{% endblock %}
+
+{% block head %}
+<script src="https://code.jquery.com/jquery-1.12.3.min.js"></script>
+<script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
+<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/globalize/0.1.1/globalize.min.js"></script>
+<script type="text/javascript" src='{% static "js/knockout-3.3.0.js" %}'></script>
+
+<script type="text/javascript" src="/sitemedia/js/chartjs/Lib/js/dx.chartjs.js"></script>
+<script type="text/javascript" src='{% static "js/jquery.cookie.js" %}'></script>
+<style>
+    p.item_info_text { font-size: 0.8em; }
+    p.important { font-weight: bold; font-size: 0.9em; }
+    img.inline_icon { padding-right: 8px; width: 15px; vertical-align:center; }
+</style>
+{% endblock %}
+
+{% block body %}
+<script>
+var cached_data=null;
+var showLabels=false;
+
+$(document).ready(function(){
+    update_chart();
+});
+
+function update_chart()
+{
+    if(cached_data==null){
+        console.log("downloading data...");
+        $.getJSON('{% url chartdata %}?o=item_duration',{
+
+        }).success(function(data){
+            cached_data = data;
+            update_chart();
+        }).fail(function(jqXHR,errorThrown){
+            $('#chartarea').html('<p class="error">Unable to load data: '+errorThrown+'</p>');
+        });
+
+        return;
+    }
+
+    console.log("plotting chart");
+    console.log(cached_data);
+    $('#chartarea').dxChart({
+        dataSource: cached_data,
+        argumentAxis: {
+            title: "Duration in seconds",
+            argumentType: "string"
+        },
+        valueAxis: {
+            title: "Elapsed time (x video duration)",
+            max: 50
+        },
+        commonSeriesSettings: {
+            argumentField: 'item_duration',
+            type: 'bar',
+            label: {
+                visible: true,
+                format: 'fixedPoint',
+                precision: 1,
+                visible: showLabels
+            }
+        },
+        series: [
+            { valueField: 'proxy_completed_interval_ratio', name: 'Proxy completed' },
+            { valueField: 'upload_trigger_interval_ratio', name: 'Upload triggered' },
+            { valueField: 'page_created_interval_ratio', name: 'Page created' },
+            { valueField: 'final_transcode_completed_interval_ratio', name: 'Final transcode completed' },
+            { valueField: 'page_launch_capi_interval_ratio', name: 'Page launch' }
+        ],
+        title: 'Time spent as a ratio of video length'
+    });
+}
+
+</script>
+
+<form>
+    <input type="checkbox" value="false" onchange="showLabels=!showLabels; update_chart();">Show labels
+</form>
+<div id="chartarea"></div>
+{% endblock %}

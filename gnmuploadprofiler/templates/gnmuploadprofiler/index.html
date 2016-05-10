@@ -1,1 +1,16 @@
-<h1>hello Gnmuploadprofiler</h1>
+{% themeextends "base.html" %}
+{% load i18n datetimeformatting compress staticfiles uploadprofiler_customfilters %}
+{% block title %}{% trans 'Upload Speed Profiler' %}{% endblock %}
+{% block heading %}{% trans 'Upload Speed Profiler' %}{% endblock %}
+
+{% block head %}
+
+{% endblock %}
+
+{% block body %}
+<div style="margin: 1em;">
+    <h2>GNM Upload Profiler</h2>
+    <a href="{% url basic_data %}">Simple data view</a>
+    <a href="{% url chart_view %}">Upload time ratios graph</a>
+</div>
+{% endblock %}

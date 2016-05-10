@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<rules>
+    <rule type="item">
+        <trigger field="gnm_master_generic_status"/>
+        <input field="itemId"/>
+        <![CDATA[
+            from portal.plugins.gnmuploadprofiler.tasks import profile_item
+
+            if gnm_master_generic_status=="Published":
+                logging.info("Triggering upload profiler on %s" % itemId)
+                profile_item.delay(itemId)
+            else:
+                logging.info("NOT triggering upload profiler on %s as status changed to %s" % (itemId,gnm_master_generic_status))
+
+        ]]>
+    </rule>
+</rules>

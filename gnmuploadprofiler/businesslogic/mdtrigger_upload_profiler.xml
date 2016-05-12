@@ -6,6 +6,7 @@
         <input field="itemId"/>
         <![CDATA[
             from portal.plugins.gnmuploadprofiler.tasks import profile_item
+            import logging
 
             if gnm_master_generic_status=="Published":
                 logging.info("Triggering upload profiler on %s" % itemId)

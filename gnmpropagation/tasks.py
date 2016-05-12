@@ -18,7 +18,9 @@ rule_value_table = {
 class UnknownFieldError(StandardError):
     pass
 
-@celery.task
+#see http://docs.celeryproject.org/en/latest/userguide/tasks.html
+#rate limit = 0.5 tasks per second, i.e. only start them every 2s.
+@celery.task(rate_limit=0.5)
 def propagate(collectionid,field,current_value):
     from gnmvidispine.vs_collection import VSCollection, VSItem
     import traceback

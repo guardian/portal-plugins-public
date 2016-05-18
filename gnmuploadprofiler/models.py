@@ -35,16 +35,32 @@ class OutputTimings(models.Model):
         return float(self.proxy_completed_interval)/float(self.item_duration)
 
     @property
+    def proxy_completed_interval_diff(self):
+        return float(self.proxy_completed_interval) #this is the first one, so there's nothing to subtract
+
+    @property
     def upload_trigger_interval_ratio(self):
-        return float(self.upload_trigger_interval) / float(self.item_duration)
+        return float(self.upload_trigger_interval_diff) / float(self.item_duration)
+
+    @property
+    def upload_trigger_interval_diff(self):
+        return float(self.upload_trigger_interval) - float(self.proxy_completed_interval)
 
     @property
     def page_created_interval_ratio(self):
-        return float(self.page_created_interval) / float(self.item_duration)
+        return float(self.page_created_interval_diff) / float(self.item_duration)
+
+    @property
+    def page_created_interval_diff(self):
+        return float(self.page_created_interval) - float(self.upload_trigger_interval)
 
     @property
     def final_transcode_completed_interval_ratio(self):
-        return float(self.final_transcode_completed_interval) / float(self.item_duration)
+        return float(self.final_transcode_completed_interval_diff) / float(self.item_duration)
+
+    @property
+    def final_transcode_completed_interval_diff(self):
+        return float(self.final_transcode_completed_interval) - float(self.page_created_interval)
 
     @property
     def page_launch_guess_interval_ratio(self):
@@ -52,4 +68,8 @@ class OutputTimings(models.Model):
 
     @property
     def page_launch_capi_interval_ratio(self):
-        return float(self.page_launch_capi_interval) / float(self.item_duration)
+        return float(self.page_launch_capi_interval_diff) / float(self.item_duration)
+
+    @property
+    def page_launch_capi_interval_diff(self):
+        return float(self.page_launch_capi_interval) - float(self.final_transcode_completed_interval)

@@ -215,7 +215,8 @@ def profile_item(itemname):
     readychange = change_for_value('Ready to Upload',subset)
     print("trigger change was {0}".format(unicode(readychange)))
     profile_record.upload_trigger_interval=timedelta_to_float(readychange.timestamp - profile_record.version_created_time)
-
+    if profile_record.upload_trigger_interval<0:
+        profile_record.upload_trigger_interval = timedelta_to_float(readychange.timestamp - profile_record.created_time)
     #page_created_interval
     subset = changesets_for_fieldname('gnm_master_website_edit_url',changeset_list)
     #lastchange = last_change_from_set(subset)

@@ -24,3 +24,14 @@ class OutputTimingsRatioSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         print "called serializer::update"
         pass
+
+
+class OutputTimingsDiffSerializer(serializers.Serializer):
+    item_id = serializers.IntegerField()
+    item_duration = serializers.FloatField()
+    proxy_completed_interval_diff = serializers.FloatField()
+    upload_trigger_interval_diff = serializers.FloatField()
+    page_created_interval_diff = serializers.FloatField()
+    final_transcode_completed_interval_diff = serializers.FloatField()
+    #page_launch_guess_interval_diff = serializers.FloatField()
+    page_launch_capi_interval_diff = serializers.FloatField()

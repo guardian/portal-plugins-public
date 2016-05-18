@@ -210,11 +210,11 @@
         <td>{{ entry.item_duration|time_display }}</td>
         <td>{{ entry.created_time }}</td>
         <td>{{ entry.version_created_time }}</td>
-        <td>{{ entry.proxy_completed_interval|time_display }}<br>{{ entry.proxy_completed_interval_ratio|floatformat:"1" }}x</td>
-        <td>{{ entry.upload_trigger_interval|time_display }}<br>{{ entry.upload_trigger_interval_ratio|floatformat:"1" }}x</td>
-        <td>{{ entry.page_created_interval|time_display }}<br>{{ entry.page_created_interval_ratio|floatformat:"1" }}x</td>
-        <td>{{ entry.final_transcode_completed_interval|time_display }}<br>{{ entry.final_transcode_completed_interval_ratio|floatformat:"1" }}x</td>
-        <td>{{ entry.page_launch_capi_interval|time_display }}<br>{{ entry.page_launch_capi_interval_ratio|floatformat:"1" }}x</td>
+        <td>{{ entry.proxy_completed_interval_diff|time_display }}<br>{{ entry.proxy_completed_interval_ratio|floatformat:"1" }}x</td>
+        <td>{{ entry.upload_trigger_interval_diff|time_display }}<br>{{ entry.upload_trigger_interval_ratio|floatformat:"1" }}x</td>
+        <td>{{ entry.page_created_interval_diff|time_display }}<br>{{ entry.page_created_interval_ratio|floatformat:"1" }}x</td>
+        <td>{{ entry.final_transcode_completed_interval_diff|time_display }}<br>{{ entry.final_transcode_completed_interval_ratio|floatformat:"1" }}x</td>
+        <td>{{ entry.page_launch_capi_interval_diff|time_display }}<br>{{ entry.page_launch_capi_interval_ratio|floatformat:"1" }}x</td>
         <td><strong>{{ entry.completed_time }}</strong></td>
     </tr>
     {% endfor %}

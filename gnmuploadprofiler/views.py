@@ -102,6 +102,9 @@ class DataMixin(object):
             stkeyname = "{0}__stddev".format(x)
             avkeyname = "{0}__avg".format(x)
 
+            if data[stkeyname] is None or data[avkeyname] is None:
+                continue
+
             try:
                 data[stkeyname] = "{0:.1f}%".format((data[stkeyname] / data[avkeyname]) * 100)
                 averages.update(data)

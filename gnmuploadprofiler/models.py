@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import html
 import logging
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,10 @@ class OutputTimings(models.Model):
 
     class Meta:
         ordering = ['-completed_time','-created_time']
+
+    @property
+    def total_time_taken(self):
+        return self.completed_time - self.created_time
 
     @property
     def proxy_completed_interval_ratio(self):

@@ -8,6 +8,10 @@
     p.item_info_text { font-size: 0.8em; }
     p.important { font-weight: bold; font-size: 0.9em; }
     img.inline_icon { padding-right: 8px; width: 15px; vertical-align:center; }
+    span.first_q { color: #009933; }
+    span.second_q {color: #0066cc; }
+    span.third_q {color: #e67300; }
+    span.fourth_q {color: #e60000; }
 </style>
 {% endblock %}
 
@@ -153,6 +157,7 @@
             <td><a href="?sort=page_created_interval">Page created interval</a></td>
             <td><a href="?sort=final_transcode_completed_interval">Final transcode completed interval</a></td>
             <td><a href="?sort=page_launch_guess_interval">Page launch interval (CAPI)</a></td>
+            <td>Total time taken</td>
             <td><b>Completed time</b></td>
         </tr>
     </thead>
@@ -169,6 +174,7 @@
         <td id="final_transcode_completed_interval__min" class="avg_display">{{ averages.final_transcode_completed_interval__min|time_display }}</td>
         <td id="page_launch_capi_interval__min" class="avg_display">{{ averages.page_launch_capi_interval__min|time_display }}</td>
         <td></td>
+        <td></td>
     </tr>
     <tr>
         <td><strong>Average values</strong></td>
@@ -182,6 +188,7 @@
         <td id="final_transcode_completed_interval__avg" class="avg_display">{{ averages.final_transcode_completed_interval__avg|time_display }}<br> ± {{ averages.final_transcode_completed_interval__stddev|time_display }}</td>
         <td id="page_launch_capi_interval__avg" class="avg_display">{{ averages.page_launch_capi_interval__avg|time_display }}<br> ± {{ averages.page_launch_capi_interval__stddev|time_display }}</td>
         <td></td>
+        <td></td>
     </tr>
     <tr>
         <td><strong>Maximum values</strong></td>
@@ -194,6 +201,7 @@
         <td id="page_created_interval__max" class="avg_display">{{ averages.page_created_interval__max|time_display }}</td>
         <td id="final_transcode_completed_interval__max" class="avg_display">{{ averages.final_transcode_completed_interval__max|time_display }}</td>
         <td id="page_launch_capi_interval__max" class="avg_display">{{ averages.page_launch_capi_interval__max|time_display }}</td>
+        <td></td>
         <td></td>
     </tr>
     {% endif %}
@@ -210,11 +218,27 @@
         <td>{{ entry.item_duration|time_display }}</td>
         <td>{{ entry.created_time }}</td>
         <td>{{ entry.version_created_time }}</td>
-        <td>{{ entry.proxy_completed_interval_diff|time_display }}<br>{{ entry.proxy_completed_interval_ratio|floatformat:"1" }}x</td>
-        <td>{{ entry.upload_trigger_interval_diff|time_display }}<br>{{ entry.upload_trigger_interval_ratio|floatformat:"1" }}x</td>
-        <td>{{ entry.page_created_interval_diff|time_display }}<br>{{ entry.page_created_interval_ratio|floatformat:"1" }}x</td>
-        <td>{{ entry.final_transcode_completed_interval_diff|time_display }}<br>{{ entry.final_transcode_completed_interval_ratio|floatformat:"1" }}x</td>
-        <td>{{ entry.page_launch_capi_interval_diff|time_display }}<br>{{ entry.page_launch_capi_interval_ratio|floatformat:"1" }}x</td>
+        <td>{{ entry.proxy_completed_interval_diff|time_display }}<br>
+            {{ entry.proxy_completed_interval_ratio|floatformat:"1" }}x<br>
+            {{ entry.proxy_completed_interval_diff|proportion:entry.total_time_taken.seconds }}
+        </td>
+        <td>{{ entry.upload_trigger_interval_diff|time_display }}<br>
+            {{ entry.upload_trigger_interval_ratio|floatformat:"1" }}x<br>
+            {{ entry.upload_trigger_interval_diff|proportion:entry.total_time_taken.seconds }}
+        </td>
+        <td>{{ entry.page_created_interval_diff|time_display }}<br>
+            {{ entry.page_created_interval_ratio|floatformat:"1" }}x<br>
+            {{ entry.page_created_interval_diff|proportion:entry.total_time_taken.seconds }}
+        </td>
+        <td>{{ entry.final_transcode_completed_interval_diff|time_display }}<br>
+            {{ entry.final_transcode_completed_interval_ratio|floatformat:"1" }}x<br>
+            {{ entry.final_transcode_completed_interval_diff|proportion:entry.total_time_taken.seconds }}
+        </td>
+        <td>{{ entry.page_launch_capi_interval_diff|time_display }}<br>
+            {{ entry.page_launch_capi_interval_ratio|floatformat:"1" }}x<br>
+            {{ entry.page_launch_capi_interval_diff|proportion:entry.total_time_taken.seconds }}
+        </td>
+        <td>{{ entry.total_time_taken.seconds|time_display }}</td>
         <td><strong>{{ entry.completed_time }}</strong></td>
     </tr>
     {% endfor %}

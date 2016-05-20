@@ -162,6 +162,7 @@ def profile_item(itemname):
     """
     from gnmvidispine.vs_item import VSItem
     from django.conf import settings
+    from datetime import timedelta
     import dateutil.parser
     from models import OutputTimings
     from pprint import pprint
@@ -232,11 +233,14 @@ def profile_item(itemname):
     # print("There were {0} upload runs total:".format(log.upload_run_count))
     # for n in range(0,log.upload_run_count):
     #     pprint(log.upload_run(n))
-
     first_run=log.upload_run(log.upload_run_count-1)
-    #pprint(first_run)
-    print("last transcode of the first run was at {0} ({1})".format(first_run[0]['timestamp'], first_run[0]['text']))
-    profile_record.final_transcode_completed_interval = timedelta_to_float(first_run[0]['timestamp'] - profile_record.version_created_time)
+    while True:
+        print("last transcode of the first run was at {0} ({1})".format(first_run[0]['timestamp'], first_run[0]['text']))
+        profile_record.final_transcode_completed_interval = timedelta_to_float(first_run[0]['timestamp'] - profile_record.version_created_time)
+        if profile_record.final_transcode_completed_interval >0:
+            break
+        first_run[0]['timestamp']+=timedelta(days=1)
+
     #lastchange = last_change_from_set(subset)
     #print("last change of gnm_master_website_uploadlog is {0}".format(lastchange))
     #profile_record.final_transcode_completed_interval = timedelta_to_float(lastchange.timestamp - profile_record.version_created_time)

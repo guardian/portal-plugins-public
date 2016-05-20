@@ -7,11 +7,18 @@ class Command(BaseCommand):
 
     max_items=20
 
+    def add_arguments(self, parser):
+        parser.add_argument('--items',dest='maxitems')
+
     def handle(self, *args, **options):
         from gnmvidispine.vs_search import VSItemSearch
         from django.conf import settings
         from portal.plugins.gnmuploadprofiler.models import OutputTimings
         from portal.plugins.gnmuploadprofiler.tasks import profile_item
+
+        max_items = self.max_items
+        if 'maxitems' in options:
+            max_items=int(options.maxitems)
 
         n=1
 
@@ -32,5 +39,5 @@ class Command(BaseCommand):
                 profile_item.delay(item.name)
                 n += 1
 
-            if n>=self.max_items:
+            if n>=max_items:
                 break

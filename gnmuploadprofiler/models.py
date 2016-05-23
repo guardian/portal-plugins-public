@@ -78,3 +78,24 @@ class OutputTimings(models.Model):
     @property
     def page_launch_capi_interval_diff(self):
         return float(self.page_launch_capi_interval) - float(self.final_transcode_completed_interval)
+
+    @property
+    def total_time_in_automation(self):
+        totl = self.proxy_completed_interval_diff
+        if self.page_created_interval_diff>0:
+            totl += self.page_created_interval_diff
+        if self.final_transcode_completed_interval_diff>0:
+            totl += self.final_transcode_completed_interval_diff
+        return totl
+
+    @property
+    def total_time_in_automation_ratio(self):
+        return float(self.total_time_in_automation) / float(self.item_duration)
+
+    @property
+    def total_time_in_manual(self):
+        return self.upload_trigger_interval_diff + self. page_launch_capi_interval_diff
+
+    @property
+    def total_time_in_manual_ratio(self):
+        return float(self.total_time_in_manual) / float(self.item_duration)

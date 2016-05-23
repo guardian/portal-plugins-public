@@ -150,6 +150,8 @@
             <td>Master</td>
             <td>Version</td>
             <td><a href="?sort=item_duration">Duration</a></td>
+            <td><a href="?sort=automation_time">Total time in automation</a></td>
+            <td><a href="?sort=manual_time">Total time in manual process</a></td>
             <td><a href="?sort=created_time">Created</a></td>
             <td><a href="?sort=version_created_time">Media Added</a></td>
             <td><a href="?sort=proxy_completed_interval">Proxy interval</a></td>
@@ -168,6 +170,8 @@
         <td id="item_duration__min" class="avg_display">{{ averages.item_duration__min|time_display }}</td>
         <td></td>
         <td></td>
+        <td></td>
+        <td></td>
         <td id="proxy_completed_interval__min" class="avg_display">{{ averages.proxy_completed_interval__min|time_display }}</td>
         <td id="upload_trigger_interval__min" class="avg_display">{{ averages.upload_trigger_interval__min|time_display }}</td>
         <td id="page_created_interval__min" class="avg_display">{{ averages.page_created_interval__min|time_display }}</td>
@@ -182,6 +186,8 @@
         <td id="item_duration__avg" class="avg_display">{{ averages.item_duration__avg|time_display }}<br>± {{ averages.item_duration__stddev|time_display }}</td>
         <td></td>
         <td></td>
+        <td></td>
+        <td></td>
         <td id="proxy_completed_interval__avg" class="avg_display">{{ averages.proxy_completed_interval__avg|time_display }}<br> ± {{ averages.proxy_completed_interval__stddev|time_display }}</td>
         <td id="upload_trigger_interval__avg" class="avg_display">{{ averages.upload_trigger_interval__avg|time_display }}<br> ± {{ averages.upload_trigger_interval__stddev|time_display }}</td>
         <td id="page_created_interval__avg" class="avg_display">{{ averages.page_created_interval__avg|time_display }}<br> ± {{ averages.page_created_interval__stddev|time_display }}</td>
@@ -194,6 +200,8 @@
         <td><strong>Maximum values</strong></td>
         <td></td>
         <td id="item_duration__max" class="avg_display">{{ averages.item_duration__max|time_display }}</td>
+        <td></td>
+        <td></td>
         <td></td>
         <td></td>
         <td id="proxy_completed_interval__max" class="avg_display">{{ averages.proxy_completed_interval__max|time_display }}</td>
@@ -216,6 +224,15 @@
         </td>
         <td>{{ entry.media_version }}</td>
         <td>{{ entry.item_duration|time_display }}</td>
+        <td>{{ entry.total_time_in_automation|time_display }}<br>
+            {{ entry.total_time_in_automation_ratio|floatformat:"1" }}x<br>
+            {{ entry.total_time_in_automation|proportion:entry.total_time_taken.seconds }}
+        </td>
+        <td>{{ entry.total_time_in_manual|time_display }}<br>
+            {{ entry.total_time_in_manual_ratio|floatformat:"1" }}x<br>
+            {{ entry.total_time_in_manual|proportion:entry.total_time_taken.seconds }}
+        </td>
+
         <td>{{ entry.created_time }}</td>
         <td>{{ entry.version_created_time }}</td>
         <td>{{ entry.proxy_completed_interval_diff|time_display }}<br>

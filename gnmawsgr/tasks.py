@@ -231,7 +231,10 @@ def do_glacier_restore(request_id,itemid,path):
     rq = RestoreRequest.objects.get(pk=request_id)
 
     logger.info("Attempting to contact S3")
-    if hasattr(settings, 'AWS_ACCESS_KEY_ID') and hasattr(settings, 'AWS_SECRET_ACCESS_KEY'):
+    #try our own specific settings first.  If they're not there then try generic ones.
+    if hasattr(settings, 'GLACIER_AWS_ACCESS_KEY_ID') and hasattr(settings, 'GLACIER_AWS_SECRET_ACCESS_KEY'):
+        conn = S3Connection(settings.GLACIER_AWS_ACCESS_KEY_ID, settings.GLACIER_AWS_SECRET_ACCESS_KEY)
+    elif hasattr(settings, 'AWS_ACCESS_KEY_ID') and hasattr(settings, 'AWS_SECRET_ACCESS_KEY'):
         conn = S3Connection(settings.AWS_ACCESS_KEY_ID, settings.AWS_SECRET_ACCESS_KEY)
     else:
         logger.warning("No credentials present in settings file.  Falling back to defaults via environment variables, expect trouble")

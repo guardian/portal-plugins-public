@@ -1,7 +1,7 @@
 %define name portal-pluto-gnmawsgr
-%define version 1.0
-%define unmangled_version 1.0
-%define release 17
+%define version 1.1
+%define unmangled_version 1.1
+%define release 2
 
 Summary: GNM Amazon Web Services Glacier Restore
 Name: %{name}

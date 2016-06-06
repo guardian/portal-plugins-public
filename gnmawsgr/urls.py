@@ -8,6 +8,7 @@ urlpatterns = patterns(
     url(r'^$', views.index, name="index"),
     url(r'^r/$', views.r, name="request"),
     url(r'^rc/$', views.rc, name="request"),
+    url(r'^rcs/$', views.rcs, name="request"),
     url(r'^$', redirect_to, {'url': '/' }),
     url(r'^status$', views.CurrentStatusView.as_view(), name="status"),
     url(r'^status/$', redirect_to, {'url': reverse_lazy('status')}),

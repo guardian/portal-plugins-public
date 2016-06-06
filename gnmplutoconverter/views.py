@@ -18,9 +18,10 @@ from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
+from rest_framework.parsers import JSONParser, FormParser
 from django.http import HttpResponseBadRequest
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class GenericAppView(ClassView):
@@ -30,7 +31,7 @@ class GenericAppView(ClassView):
     def __call__(self):
         # __call__ responds to the incoming request. It will already have a information associated to it, such as self.template and self.request
 
-        log.debug("%s Viewing page" % self.request.user)
+        logger.debug("%s Viewing page" % self.request.user)
         ctx = {}
         
         # return a response to the request
@@ -58,16 +59,31 @@ class GenericSearchView(APIView):
 
     def get(self,request,*args,**kwargs):
         try:
-            #from pprint import pprint
+            from pprint import pprint
             rtn = []
-
             results = self.do_search()
-
-            #pprint(results[0].md.__dict__)
-
+            print "Current user ID: {0}".format(request.user.pk)
+            pprint(results)
             for c in results:
-                rtn.append({'vsid': str(c.id),'title': unicode(c.md.title)})
-            #pprint(results[0].md.__dict__)
+                i={
+                    'vsid': str(c.id),
+                    'title': unicode(c.md.title),
+                }
+
+                #these might not exist so wrap in exception catching block
+                try:
+                    i['gnm_commission_status'] = unicode(c.md.gnm_commission_status)
+                    i['user_id'] = unicode(c.md.gnm_commission_owner)
+                except StandardError:
+                    pass
+
+                try:
+                    i['gnm_project_status'] = unicode(c.md.gnm_project_status)
+                    i['user_id'] = unicode(c.md.gnm_project_owner)
+                except StandardError:
+                    pass
+
+                rtn.append(i)
 
             return Response(rtn)
 
@@ -89,7 +105,15 @@ class CommissionListView(GenericSearchView):
 
         critera_string="""
             <gnm_commission_workinggroup>{0}</gnm_commission_workinggroup>
+            <OR>
+                <gnm_commission_status>New</gnm_commission_status>
+                <gnm_commission_status>In production</gnm_commission_status>
+            </OR>
         """.format(self.request.GET['wg'])
+
+        if 'mine' in self.request.GET:
+            if self.request.GET['mine'] == 'true':
+                critera_string += "<gnm_commission_owner>{0}</gnm_commission_owner>".format(self.request.user.pk)
 
         #return VSCommission.objects.filter(gnm_commission_workinggroup=self.request.GET['wg'])
         return VSCommission.vs_search(criteria=VSCommission.search_criteria(criteria=critera_string))
@@ -103,8 +127,87 @@ class ProjectListView(GenericSearchView):
             return HttpResponseBadRequest()
 
         critera_string = """
-            <__collection>{0}</__collection>
+            <__parent_collection>{0}</__parent_collection>
+            <OR>
+                <gnm_project_status>New</gnm_project_status>
+                <gnm_project_status>In production</gnm_project_status>
+            </OR>
         """.format(self.request.GET['comm'])
+
+        if 'mine' in self.request.GET:
+            if self.request.GET['mine'] == 'true':
+                critera_string+="<gnm_project_owner>{0}</gnm_project_owner>".format(self.request.user.pk)
 
         # return VSCommission.objects.filter(gnm_commission_workinggroup=self.request.GET['wg'])
         return VSProject.vs_search(criteria=VSProject.search_criteria(criteria=critera_string))
+<<<<<<< HEAD
+=======
+
+
+class DoConversionView(APIView):
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (SessionAuthentication, )
+    renderer_classes = (JSONRenderer, )
+    parser_classes = (FormParser, JSONParser, )
+
+    def post(self, request):
+        from pprint import pformat
+        from gnmvidispine.vidispine_api import VSException
+        from gnmvidispine.vs_item import VSItem
+        from gnmvidispine.vs_collection import VSCollection
+        from django.conf import settings
+        import re
+
+        is_vsid = re.compile(r'^\w{2}-\d+')
+
+        try:
+            comm_id = request.POST['plutoconverter_commission_id_input'][0]
+            proj_id = request.POST['plutoconverter_project_id_input'][0]
+            item_id = request.POST['plutoconverter_item_id_input'][0]
+        except StandardError as e:
+            return Response({'status': 'error', 'error': unicode(e)},status=400)
+
+        if not is_vsid.match(comm_id) or not is_vsid.match(proj_id) or not is_vsid.match(item_id):
+            return Response({'status': 'error', 'error': 'Not a valid Vidispine ID'},status=400)
+        #pprint(request.POST)
+
+        try:
+            item = VSItem(user=settings.VIDISPINE_USER, passwd=settings.VIDISPINE_PASSWORD, url=settings.VIDISPINE_URL)
+            item.populate(item_id)
+
+            if item.get('gnm_type') == 'master':
+                return Response({'status': 'error', 'error': '{0} is already a master'.format(item_id)},status=400)
+
+            project = VSCollection(user=settings.VIDISPINE_USER, passwd=settings.VIDISPINE_PASSWORD, url=settings.VIDISPINE_URL)
+            project.populate(proj_id)
+
+            commission_id = project.get('__parent_collection')
+            logger.info("Project {0} belongs to commission {1}".format(project.name, commission_id))
+
+            commission = VSCollection(user=settings.VIDISPINE_USER, passwd=settings.VIDISPINE_PASSWORD, url=settings.VIDISPINE_URL)
+            commission.populate(commission_id)
+
+            md_to_set = {
+                'gnm_commission_title'         : commission.get('gnm_commission_title'),
+                'gnm_commission_workinggroup'  : commission.get('gnm_commission_workinggroup'),
+                'gnm_project_headline'         : project.get('gnm_project_headline'),
+                'gnm_master_website_headline'  : item.get('title'),
+                'gnm_master_website_standfirst': item.get('gnm_asset_description'),
+                'gnm_master_website_byline'    : item.get('gnm_asset_owner'),
+                # 'gnm_master_website_tags': breakout_tags(item.get('gnm_asset_user_keywords',allowArray=True),
+                #                                         host=options.vshost,user=options.vsuser,passwd=options.vspasswd),
+                'gnm_type'                     : 'Master',
+            }
+
+            logger.info("Going to add {0} to project {1}".format(item_id,md_to_set))
+            project.addToCollection(item)
+            logger.info("Going to set metadata on {0}: {1}".format(item_id, md_to_set))
+            item.set_metadata(md_to_set)
+            logger.info("SUCCESS: item {0} has been converted to master".format(item_id))
+
+            return Response({'status': 'success'},status=200)
+        except VSException as e:
+            return Response({'status': 'error', 'error': "Vidispine said {0}".format(unicode(e))},status=500)
+        except StandardError as e:
+            return Response({'status': 'error', 'error': unicode(e)},status=500)
+>>>>>>> 69cafc4... few more tweaks, catch all errors in a big exception block and pass them back to clientside

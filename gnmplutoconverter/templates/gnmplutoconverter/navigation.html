@@ -6,4 +6,12 @@
 
 <!--</div>-->
 
-<li><a href="#" onclick="gnmplutoconverter_convert_master('{{ itemid }}');">Convert to Pluto master</a></li>
+<li>
+    {% if gnm_type != "Master" %}
+        {% if mediaType == 'video' or mediaType == 'audio' %}
+            <a href="#" onclick="gnmplutoconverter_convert_master('{{ itemid }}');">Convert to Pluto master</a>
+        {% else %}
+            <p>{{ mediaType }} can't be a master</p>
+        {% endif %}
+    {% endif %}
+</li>

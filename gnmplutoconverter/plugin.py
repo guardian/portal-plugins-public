@@ -96,9 +96,14 @@ class PlutoConverterGenericGearboxPlugin(Plugin):
             #print "Item ID is {0}".format(i.getId())
             #pprint(i.getMetadataFieldValueByName('title'))
             ctx['itemid'] = i.getId()
+            ctx['gnm_type'] = i.getMetadataFieldValueByName('gnm_type')
+            ctx['mediaType'] = i.getMetadataFieldValueByName('mediaType')
         except Exception as e:
+            type = ""
             print u"{0}: {1}".format(e.__class__.__name__,e.message)
             print format_exc()
+
+
 
         #pprint(args)
         #pprint(kwargs)

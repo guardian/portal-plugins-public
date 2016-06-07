@@ -160,3 +160,69 @@ def rc(request):
                 do_task = glacier_restore.delay(rq.pk,itemid,path)
 
     return render(request,"rc.html")
+
+@login_required
+@has_group('AWS_GR_Restore')
+def rcs(request):
+    from tasks import glacier_restore
+    from datetime import datetime
+    from portal.vidispine.icollection import CollectionHelper
+    from portal.vidispine.igeneral import performVSAPICall
+    from portal.vidispine.iitem import ItemHelper
+
+    collid = request.GET.get('id', '')
+
+    selected = request.GET.get('selected', '')
+
+    selectedready = selected.split(",")
+
+    ch = CollectionHelper()
+
+    res = performVSAPICall(func=ch.getCollection, \
+                                args={'collection_id':collid}, \
+                                vsapierror_templateorcode='template.html')
+
+    collection = res['response']
+
+    content = collection.getItems()
+
+    for data in content:
+
+        ith = ItemHelper()
+
+        itemid = data.getId()
+
+        res2 = performVSAPICall(func=ith.getItemMetadata, \
+                                    args={'item_id':itemid}, \
+                                    vsapierror_templateorcode='template.html')
+
+        itemdata = res2['response']
+
+        try:
+            test_value = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_status',itemdata['item'])
+        except:
+            print 'An error broke the call'
+
+        if (test_value == archive_test_value) and itemid in selectedready:
+
+            try:
+                path = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_path',itemdata['item'])
+            except:
+                print 'An error broke the call'
+
+            try:
+                rq = RestoreRequest.objects.get(item_id=itemid)
+            except RestoreRequest.DoesNotExist:
+                rq = RestoreRequest()
+                rq.requested_at = datetime.now()
+                rq.username = request.user.username
+                rq.status = "READY"
+                rq.attempts = 1
+                rq.item_id = itemid
+                rq.parent_collection = collid
+                rq.save()
+
+            if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER") or (rq.status == "COMPLETED"):
+                do_task = glacier_restore.delay(rq.pk,itemid,path)
+
+    return render(request,"rcs.html")

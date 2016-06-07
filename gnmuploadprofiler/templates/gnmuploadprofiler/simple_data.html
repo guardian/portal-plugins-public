@@ -150,15 +150,19 @@
             <td>Master</td>
             <td>Version</td>
             <td><a href="?sort=item_duration">Duration</a></td>
+            {% if show_totals %}
             <td><a href="?sort=automation_time">Total time in automation</a></td>
             <td><a href="?sort=manual_time">Total time in manual process</a></td>
+            {% endif %}
             <td><a href="?sort=created_time">Created</a></td>
             <td><a href="?sort=version_created_time">Media Added</a></td>
+            {% if show_details %}
             <td><a href="?sort=proxy_completed_interval">Proxy interval</a></td>
             <td><a href="?sort=upload_trigger_interval">Upload trigger interval</a></td>
             <td><a href="?sort=page_created_interval">Page created interval</a></td>
             <td><a href="?sort=final_transcode_completed_interval">Final transcode completed interval</a></td>
             <td><a href="?sort=page_launch_guess_interval">Page launch interval (CAPI)</a></td>
+            {% endif %}
             <td>Total time taken</td>
             <td><b>Completed time</b></td>
         </tr>
@@ -168,15 +172,19 @@
         <td><strong>Minimum values</strong></td>
         <td></td>
         <td id="item_duration__min" class="avg_display">{{ averages.item_duration__min|time_display }}</td>
+        {% if show_totals %}
         <td></td>
         <td></td>
+        {% endif %}
         <td></td>
         <td></td>
+        {% if show_details %}
         <td id="proxy_completed_interval__min" class="avg_display">{{ averages.proxy_completed_interval__min|time_display }}</td>
         <td id="upload_trigger_interval__min" class="avg_display">{{ averages.upload_trigger_interval__min|time_display }}</td>
         <td id="page_created_interval__min" class="avg_display">{{ averages.page_created_interval__min|time_display }}</td>
         <td id="final_transcode_completed_interval__min" class="avg_display">{{ averages.final_transcode_completed_interval__min|time_display }}</td>
         <td id="page_launch_capi_interval__min" class="avg_display">{{ averages.page_launch_capi_interval__min|time_display }}</td>
+        {% endif %}
         <td></td>
         <td></td>
     </tr>
@@ -184,15 +192,19 @@
         <td><strong>Average values</strong></td>
         <td></td>
         <td id="item_duration__avg" class="avg_display">{{ averages.item_duration__avg|time_display }}<br>± {{ averages.item_duration__stddev|time_display }}</td>
+        {% if show_totals %}
         <td></td>
         <td></td>
+        {% endif %}
         <td></td>
         <td></td>
+        {% if show_details %}
         <td id="proxy_completed_interval__avg" class="avg_display">{{ averages.proxy_completed_interval__avg|time_display }}<br> ± {{ averages.proxy_completed_interval__stddev|time_display }}</td>
         <td id="upload_trigger_interval__avg" class="avg_display">{{ averages.upload_trigger_interval__avg|time_display }}<br> ± {{ averages.upload_trigger_interval__stddev|time_display }}</td>
         <td id="page_created_interval__avg" class="avg_display">{{ averages.page_created_interval__avg|time_display }}<br> ± {{ averages.page_created_interval__stddev|time_display }}</td>
         <td id="final_transcode_completed_interval__avg" class="avg_display">{{ averages.final_transcode_completed_interval__avg|time_display }}<br> ± {{ averages.final_transcode_completed_interval__stddev|time_display }}</td>
         <td id="page_launch_capi_interval__avg" class="avg_display">{{ averages.page_launch_capi_interval__avg|time_display }}<br> ± {{ averages.page_launch_capi_interval__stddev|time_display }}</td>
+        {% endif %}
         <td></td>
         <td></td>
     </tr>
@@ -200,15 +212,19 @@
         <td><strong>Maximum values</strong></td>
         <td></td>
         <td id="item_duration__max" class="avg_display">{{ averages.item_duration__max|time_display }}</td>
+        {% if show_totals %}
         <td></td>
         <td></td>
+        {% endif %}
         <td></td>
         <td></td>
+        {% if show_details %}
         <td id="proxy_completed_interval__max" class="avg_display">{{ averages.proxy_completed_interval__max|time_display }}</td>
         <td id="upload_trigger_interval__max" class="avg_display">{{ averages.upload_trigger_interval__max|time_display }}</td>
         <td id="page_created_interval__max" class="avg_display">{{ averages.page_created_interval__max|time_display }}</td>
         <td id="final_transcode_completed_interval__max" class="avg_display">{{ averages.final_transcode_completed_interval__max|time_display }}</td>
         <td id="page_launch_capi_interval__max" class="avg_display">{{ averages.page_launch_capi_interval__max|time_display }}</td>
+        {% endif %}
         <td></td>
         <td></td>
     </tr>
@@ -224,6 +240,7 @@
         </td>
         <td>{{ entry.media_version }}</td>
         <td>{{ entry.item_duration|time_display }}</td>
+        {% if show_totals %}
         <td>{{ entry.total_time_in_automation|time_display }}<br>
             {{ entry.total_time_in_automation_ratio|floatformat:"1" }}x<br>
             {{ entry.total_time_in_automation|proportion:entry.total_time_taken.seconds }}
@@ -232,9 +249,10 @@
             {{ entry.total_time_in_manual_ratio|floatformat:"1" }}x<br>
             {{ entry.total_time_in_manual|proportion:entry.total_time_taken.seconds }}
         </td>
-
+        {% endif %}
         <td>{{ entry.created_time }}</td>
         <td>{{ entry.version_created_time }}</td>
+        {% if show_details %}
         <td>{{ entry.proxy_completed_interval_diff|time_display }}<br>
             {{ entry.proxy_completed_interval_ratio|floatformat:"1" }}x<br>
             {{ entry.proxy_completed_interval_diff|proportion:entry.total_time_taken.seconds }}
@@ -255,6 +273,7 @@
             {{ entry.page_launch_capi_interval_ratio|floatformat:"1" }}x<br>
             {{ entry.page_launch_capi_interval_diff|proportion:entry.total_time_taken.seconds }}
         </td>
+        {% endif %}
         <td>{{ entry.total_time_taken.seconds|time_display }}</td>
         <td><strong>{{ entry.completed_time }}</strong></td>
     </tr>

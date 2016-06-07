@@ -164,6 +164,12 @@ class BasicDataView(DataMixin, ListView):
         ctx = super(BasicDataView, self).get_context_data(**kwargs)
         #ctx['averages'] = qs.aggregate(Avg('item_duration'),StdDev('item_duration')))
         ctx['averages'] = self.calculate_averages(qs[:self.max_items])
+        ctx['show_details'] = True
+        if 'no_details' in self.request.GET:
+            ctx['show_details'] = False
+        ctx['show_totals'] = False
+        if 'totals' in self.request.GET:
+            ctx['show_totals'] = True
         return ctx
 
 

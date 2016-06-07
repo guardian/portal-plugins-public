@@ -1,6 +1,6 @@
 %define name portal-pluto-gnmuploadprofiler
-%define version 1.2
-%define unmangled_version 1.2
+%define version 1.3
+%define unmangled_version 1.3
 %define release 2
 
 Summary: GNM Upload Speed Profiler

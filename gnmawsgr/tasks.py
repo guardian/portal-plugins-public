@@ -159,7 +159,7 @@ def glacier_restore(request_id,itemid,path):
             raven_client.user_context({'request_id': request_id, 'item_id': itemid, 'path': path})
             try:
                 from django.conf import settings
-                from vs_item import VSItem
+                from gnmvidispine.vs_item import VSItem
                 item_obj = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
                 item_obj.populate(itemid,specificFields=['title','gnm_asset_category'])
                 rq = RestoreRequest.objects.get(pk=request_id)

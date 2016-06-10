@@ -27,6 +27,8 @@
         <td>File Size</td>
         <td>Currently Downloaded</td>
         <td>File Size Check</td>
+        <td>Time Requested</td>
+        <td>Time completed</td>
         <td>Retry</td>
         <td>Delete</td>
     </tr>
@@ -38,6 +40,8 @@
         <td>{{ entry.file_size|filesizeformat }}</td>
         <td>{{ entry.currently_downloaded|filesizeformat }}</td>
         <td>{{ entry.file_size_check }}</td>
+        <td>{{ entry.requested_at }}</td>
+        <td>{{ entry.completed_at }}</td>
         <td><a id="opener{{ entry.item_id }}">Retry</a></td>
         <td><a href='{% url delete_request pk=entry.pk %}'><img src='{% static "delete.png" %}' style="width: 16px"></a></td>
     </tr>

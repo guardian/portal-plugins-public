@@ -66,3 +66,62 @@ class GnmlibrarytoolRegister(Plugin):
 
 gnmlibrarytoolplugin = GnmlibrarytoolRegister()
 
+
+class GnmlibrarytoolItemViewPlugin(Plugin):
+    implements(IPluginBlock)
+
+    def __init__(self):
+        #print "init library tool item view"
+        self.name = "MediaViewLeftPanelMenu"
+        self.plugin_guid = '5101c687-aa07-4238-a4e9-c5b6f37aade6'
+
+    def return_string(self,tagname,*args):
+        context = args[1]
+        item = context['item']
+        iid = item.getId()
+        return {'guid': self.plugin_guid, 'template': 'gnmlibrarytool/mediaviewmenuitem.html', 'context': {'item_id': iid}}
+
+gnmlibrarytoolitemviewplugin = GnmlibrarytoolItemViewPlugin()
+
+
+class GnmlibrarytoolSRViewJS(Plugin):
+    implements(IPluginBlock)
+
+    jsstring = """
+        <script src="/sitemedia/gnmlibrarytool/js/storagerulepanel.js"></script>
+        <script type="text/javascript" charset="utf-8">
+        $(document).ready(function() {
+            // Extend the namespace with a new viewclass.
+            (function (app, $, undefined) {
+                app.MediaItemMoreInfoPanel = cntmo.prtl.ViewClass.extend();
+            }( cntmo.app = cntmo.app || {}, jQuery ));
+
+            // Create a new instance of the viewclass that can
+            // be switched to.
+            cntmo.prtl.panelviews['GnmLibraryToolSRPanel'] = new cntmo.app.MediaItemMoreInfoPanel({el:$('#GnmLibraryToolSRPanel')});
+        });
+        </script>
+    """
+
+    def __init__(self):
+        print "init inlinejs"
+        self.name = "MediaViewInLineJS"
+        self.plugin_guid = '7e35bced-330f-456c-b472-e8263ad4236a'
+
+    def return_string(self, tagname,*args):
+        return {'guid': self.plugin_guid, 'string': self.jsstring }
+
+gnmlibtooljsplugin = GnmlibrarytoolSRViewJS()
+
+
+class GnmlibrarytoolStorageRulesViewPlugin(Plugin):
+    implements(IPluginBlock)
+
+    def __init__(self):
+        self.name = "MediaViewPanelRow2"
+        self.plugin_guid = "2b849f0f-0509-4edb-98a0-78da05e60682"
+
+    def return_string(self,tagname,*args):
+        return {'guid': self.plugin_guid, 'template': 'gnmlibrarytool/mediaview_storagerules.html'}
+
+gnmlibrarytoolSRviewplugin = GnmlibrarytoolStorageRulesViewPlugin()

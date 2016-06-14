@@ -1,7 +1,9 @@
 from django.views.generic import View, TemplateView
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer, XMLRenderer
 from vsmixin import HttpError, VSMixin
 from models import LibraryNickname, LibraryNicknameSerializer
 import logging
@@ -466,3 +468,28 @@ class LibraryListView(View):
                                                     'results': rtn}),content_type='application/json', status=200)
         except HttpError as e:
             return HttpResponse(content=json.dumps({'status': 'error', 'error': e.__unicode__()}), content_type='application/json', status=500)
+
+
+class StorageRuleInfoView(APIView):
+    permission_classes = (IsAuthenticated,)
+    renderer_classes = (JSONRenderer, XMLRenderer, )
+
+    def get(self,request,itemid):
+        from gnmvidispine.vs_item import VSItem
+        from django.conf import settings
+        import traceback
+        try:
+            itemref = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,
+                             run_as=request.user.username)
+
+            itemref.populate(itemid,specificFields=['title'])
+
+            rtn = []
+            for s in itemref.shapes():
+                info = {"shapetag": s.tag(), "shapeid": s.name, "rules": map(lambda x: x.as_dict(), s.storage_rules().rules()) }
+                rtn.append(info)
+
+            return Response(rtn, status=200)
+
+        except Exception as e:
+            return Response({'status': 'error', 'error': str(e), 'trace': traceback.format_exc()})

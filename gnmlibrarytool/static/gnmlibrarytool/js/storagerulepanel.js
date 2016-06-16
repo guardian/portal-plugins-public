@@ -15,7 +15,7 @@ function load_storage_rule_info(itemid)
             var row=$('<tr>').appendTo(table);
             $('<td>').html(ptr['shapetag']).appendTo(row);
             var rules_cell=$('<td>').appendTo(row);
-            if(ptr['rules'].length==0){
+            if(ptr['rules']==null || ptr['rules'].length==0){
                 $('<p>').html("No storage rule applied").appendTo(rules_cell);
             }
             $.each(ptr['rules'], function(idx,ptr){

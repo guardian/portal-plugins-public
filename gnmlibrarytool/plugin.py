@@ -104,7 +104,7 @@ class GnmlibrarytoolSRViewJS(Plugin):
     """
 
     def __init__(self):
-        print "init inlinejs"
+        #print "init inlinejs"
         self.name = "MediaViewInLineJS"
         self.plugin_guid = '7e35bced-330f-456c-b472-e8263ad4236a'
 

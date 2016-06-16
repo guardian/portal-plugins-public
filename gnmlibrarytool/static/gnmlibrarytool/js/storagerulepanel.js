@@ -10,6 +10,7 @@ function load_storage_rule_info(itemid)
 
     $.getJSON('/gnmlibrarytool/storageruleinfo/' + itemid, function(data){
         var table=$('#mvlibtool_sr_info');
+        console.log(data);
 
         $.each(data, function(idx,ptr){
             var row=$('<tr>').appendTo(table);
@@ -17,11 +18,12 @@ function load_storage_rule_info(itemid)
             var rules_cell=$('<td>').appendTo(row);
             if(ptr['rules']==null || ptr['rules'].length==0){
                 $('<p>').html("No storage rule applied").appendTo(rules_cell);
+                return;
             }
             $.each(ptr['rules'], function(idx,ptr){
                 var rule_container=$('<p>').appendTo(rules_cell);
-                var excludestr = ptr['not_storages'].join() + ptr['not_groups'].join();
-                var includestr = ptr['storages'].join() + ptr['groups'].join();
+                var excludestr = ptr['not_storages'].join() + "," + ptr['not_groups'].join();
+                var includestr = ptr['storages'].join() + "," + ptr['groups'].join();
 
                 if(ptr['not_storages'].length==0 && ptr['not_groups'].length==0) excludestr = "(none)";
                 if(ptr['storages'].length==0 && ptr['groups'].length==0) includestr = "(none)";
@@ -34,7 +36,6 @@ function load_storage_rule_info(itemid)
 
             });
         });
-        console.log(data);
     }).fail(function(jqXHR, textStatus, errorThrown){
         $('#mvlibtool_error').html(errorThrown);
     }).always(function(contentOrXhr, textStatus, xhrOrError){

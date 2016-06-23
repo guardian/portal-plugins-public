@@ -7,10 +7,18 @@ function load_storage_rule_info(itemid)
     itemPlayer.playerResize("small");
     $('#mvlibtool_sr_loading').show();
     $('#mvlibtool_sr_info').empty();
+    $('#mvlibtool_error').empty();
 
     $.getJSON('/gnmlibrarytool/storageruleinfo/' + itemid, function(data){
         var table=$('#mvlibtool_sr_info');
         console.log(data);
+
+        if(data.hasOwnProperty('status')){
+            if(data['status']!="ok"){
+                $('#mvlibtool_error').html("A server error occurred: " + data['error']);
+                return;
+            }
+        }
 
         $.each(data, function(idx,ptr){
             var row=$('<tr>').appendTo(table);
@@ -33,7 +41,6 @@ function load_storage_rule_info(itemid)
                                     "; Exclude: " + excludestr
                                     )
                 $('<p>').append($('<a>',{'href': '/gnmlibrarytool/' + ptr['applies_to'][1]}).html('Applied from ' + ptr['applies_to'][0] + ' ' + ptr['applies_to'][1])).appendTo(rules_cell);
-
             });
         });
     }).fail(function(jqXHR, textStatus, errorThrown){

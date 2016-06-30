@@ -45,13 +45,20 @@ class ByDateRangeView(APIView):
     parser_classes = (JSONParser, )
     renderer_classes = (JSONRenderer, )
 
-    def get(self, request):
+    def get(self,request):
+        import traceback
+        try:
+            return self.inner_get(request)
+        except Exception as e:
+            return Response({'status': 'error','error': str(e),'trace': traceback.format_exc()},status=500)
+
+    def inner_get(self, request):
         from datetime import datetime
         from dateutil.parser import parse
         from reutersindex import ReutersAggregation,ReutersIndex,ReutersEntry
         from pprint import pprint
 
-        end_time = datetime.now()
+        end_time = datetime.now().replace(hour=23,minute=59,second=59,microsecond=999)
         if 'end' in request.GET:
             try:
                 end_time = parse(request.GET['end'])
@@ -158,6 +165,19 @@ class GetVSClipView(APIView):
 
 class TestPlayerView(TemplateView):
     template_name = "gnmnewshound/preview.html"
+
+    def get(self, request, *args, **kwargs):
+        import traceback
+        try:
+            super(TestPlayerView,self).get(request,*args,**kwargs)
+        except Exception as e:
+            rtn = [
+                {
+                    'message': unicode(e),
+                    'trace': traceback.format_exc()
+                }
+            ]
+            return self.render_to_response(rtn,status=500)
 
     def get_context_data(self, category=None, es_id=None, **kwargs):
         from reutersindex import ReutersIndex

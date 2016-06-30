@@ -43,6 +43,17 @@
 <img style="margin-left:auto; margin-right:auto; display: block; width: 250px;" src="{% static 'gnmnewshound/img/Sad-face.jpg' %}">
 <p align="center">No videos could be found for this item</p>
 {% endif %}
+{% if errors %}
+<ul>
+{% for i in errors %}
+    <li class="error">{{ i.message }}</li>
+    {% if i.trace %}
+    <li class="info">
+        <pre>{{ i.trace }}</pre>
+    </li>
+{% endfor %}
+</ul>
+{% endif %}
 </body>
 
 </html>

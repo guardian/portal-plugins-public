@@ -1,7 +1,7 @@
 %define name portal-gnmsearchplugin
 %define version 0.93
 %define unmangled_version 0.93
-%define release 2
+%define release 3
 
 Summary: Vidispine-specific simplified search plugin, with eye-candy
 Name: %{name}

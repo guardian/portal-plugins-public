@@ -29,7 +29,7 @@ class ManagementMixin(object):
 GNM_GRID_API_KEY = {grid_api_key}
 GRID_RETRY_DELAY = 5
 GRID_MAX_RETRIES = 10
-GNM_GRID_DOMAIN = media.test.dev-gutools.co.uk
+GNM_GRID_DOMAIN = \"media.test.dev-gutools.co.uk\"
 """
 
     def get_notification_url(self):

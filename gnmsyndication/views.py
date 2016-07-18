@@ -282,12 +282,14 @@ def asset_list_by_day(request,date):
         'gnm_master_youtube_uploadstatus',
         'gnm_master_facebook_uploadstatus',
         'gnm_master_spotify_uploadstatus',
+        'gnm_mastermediawall_uploadstatus',
         'gnm_master_publication_time',
         'gnm_master_mainstreamsyndication_publication_time',
         'gnm_master_dailymotion_publication_time',
         'gnm_masterfacebook_publication_date_and_time',
         'gnm_masterspotify_publication_date_and_time',
         'gnm_masteryoutube_publication_date_and_time',
+        'gnm_mastermediawall_publication_time',
         'gnm_master_generic_intendeduploadplatforms',
         'gnm_commission_title',
         'gnm_project_headline',
@@ -653,7 +655,7 @@ def csv_report(request):
             csvout.writerow(['Headline','URL','Duration','Keywords (Mainstream)', 'Source', 'Commission',
                              'Project', 'Wholly owned?', 'UK Only', 'Explicit content', 'No mobile rights',
                              'Published to website','Published to Mainstream','Published to YouTube',
-                             'Published to Daily Motion','Published to Facebook','Published to Spotify','Keyword IDs'])
+                             'Published to Daily Motion','Published to Facebook','Published to the Media Wall','Keyword IDs'])
             have_header = True
 
         if asset_list:
@@ -674,7 +676,7 @@ def csv_report(request):
                                 row['gnm_masteryoutube_publication_date_and_time'],
                                 row['gnm_master_dailymotion_publication_time'],
                                 row['gnm_masterfacebook_publication_date_and_time'],
-                                row['gnm_masterspotify_publication_date_and_time'],
+                                row['gnm_mastermediawall_publication_time'],
                                 row['gnm_master_website_keyword_ids']])
         current_date += interval
 

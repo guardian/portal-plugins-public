@@ -18,7 +18,8 @@
         <td><img src="/sitemedia/img/gnmsyndication/youtube_enabled.png" class="inline_medium_icon">YouTube</td>
         <td><img src="/sitemedia/img/gnmsyndication/dailymotion_enabled.jpg" class="inline_medium_icon">Daily Motion</td>
         <td><img src="/sitemedia/img/gnmsyndication/facebook_enabled.png" class="inline_medium_icon">Facebook</td>
-        <td><img src="/sitemedia/img/gnmsyndication/spotify_enabled.png" class="inline_medium_icon">Spotify</td>
+        <!-- <td><img src="/sitemedia/img/gnmsyndication/spotify_enabled.png" class="inline_medium_icon">Spotify</td> -->
+        <td><img src="/sitemedia/img/gnmsyndication/mediawall_enabled.png" class="inline_medium_icon">Media Wall</td>
     </tr>
     {% for item in items %}
         {% if scope == 'masters' %}
@@ -93,7 +94,8 @@
             <td>{{ item.gnm_master_youtube_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masteryoutube_publication_date_and_time|displaydate }}</span></td>
             <td>{{ item.gnm_master_dailymotion_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_master_dailymotion_publication_time|displaydate }}</span></td>
             <td>{{ item.gnm_master_facebook_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masterfacebook_publication_date_and_time|displaydate }}</span></td>
-            <td>{{ item.gnm_master_spotify_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masterspotify_publication_date_and_time|displaydate }}</span></td>
+            <!-- <td>{{ item.gnm_master_spotify_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masterspotify_publication_date_and_time|displaydate }}</span></td> -->
+            <td>{{ item.gnm_mastermediawall_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_mastermediawall_publication_time|displaydate }}</span></td>
         </tr>
         {% elif scope == 'everything' %}
             {% if item.gnm_type == 'Master' %}
@@ -168,7 +170,8 @@
             <td>{{ item.gnm_master_youtube_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masteryoutube_publication_date_and_time|displaydate }}</span></td>
             <td>{{ item.gnm_master_dailymotion_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_master_dailymotion_publication_time|displaydate }}</span></td>
             <td>{{ item.gnm_master_facebook_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masterfacebook_publication_date_and_time|displaydate }}</span></td>
-            <td>{{ item.gnm_master_spotify_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masterspotify_publication_date_and_time|displaydate }}</span></td>
+            <!-- <td>{{ item.gnm_master_spotify_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masterspotify_publication_date_and_time|displaydate }}</span></td> -->
+            <td>{{ item.gnm_mastermediawall_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_mastermediawall_publication_time|displaydate }}</span></td>
         </tr>
             {% else %}
         <tr>
@@ -260,7 +263,8 @@
             <td>{{ item.gnm_master_youtube_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masteryoutube_publication_date_and_time|displaydate }}</span></td>
             <td>{{ item.gnm_master_dailymotion_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_master_dailymotion_publication_time|displaydate }}</span></td>
             <td>{{ item.gnm_master_facebook_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masterfacebook_publication_date_and_time|displaydate }}</span></td>
-            <td>{{ item.gnm_master_spotify_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masterspotify_publication_date_and_time|displaydate }}</span></td>
+            <!-- <td>{{ item.gnm_master_spotify_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_masterspotify_publication_date_and_time|displaydate }}</span></td> -->
+            <td>{{ item.gnm_mastermediawall_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_mastermediawall_publication_time|displaydate }}</span></td>
         </tr>
         {% endif %}
     {% endfor %}

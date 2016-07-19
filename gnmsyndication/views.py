@@ -548,7 +548,7 @@ def asset_list_by_day(request,date):
         assets = []
         for itemdata in data['item']:
             ref = {
-                'url': 'http://pluto.gnm.int/master/{0}'.format(itemdata['id']),
+                'url': '/master/{0}'.format(itemdata['id']),
                 'itemId': itemdata['id'],
             }
 

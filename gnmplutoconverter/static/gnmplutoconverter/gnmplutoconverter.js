@@ -173,9 +173,9 @@ function build_dialog()
     $('<td>',{'style': 'text-align: right;'}).html('within the commission: ').appendTo(tr_commission);
 
     var td_selector = $('<td>',{'id': 'plutoconverter_item_commission_label','font-size': global_font_size}).appendTo(tr_commission);
-<<<<<<< HEAD
+//<<<<<<< HEAD
     $('<input>', {'id': 'plutoconverter_commission_id_input', 'type': 'textbox', 'disabled': true}).appendTo(td_selector);
-=======
+//=======
     var input = $('<input>', {'id': 'plutoconverter_commission_id_input', 'name': 'plutoconverter_commission_id_input', 'disabled': false}).appendTo(td_selector);
     $('<br>').appendTo(td_selector);
     $('<p>', {'id': 'plutoconverter_item_commission_error', 'class': 'error'}).appendTo(td_selector);
@@ -233,7 +233,7 @@ function build_dialog()
         });
 
     });
->>>>>>> 69cafc4... few more tweaks, catch all errors in a big exception block and pass them back to clientside
+//>>>>>>> 69cafc4... few more tweaks, catch all errors in a big exception block and pass them back to clientside
 
     $(document.body).append(dlg);
 }

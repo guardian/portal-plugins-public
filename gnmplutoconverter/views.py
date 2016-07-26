@@ -159,9 +159,9 @@ class DoConversionView(APIView):
         is_vsid = re.compile(r'^\w{2}-\d+')
 
         try:
-            comm_id = request.POST['plutoconverter_commission_id_input'][0]
-            proj_id = request.POST['plutoconverter_project_id_input'][0]
-            item_id = request.POST['plutoconverter_item_id_input'][0]
+            comm_id = request.POST['plutoconverter_commission_id_input']
+            proj_id = request.POST['plutoconverter_project_id_input']
+            item_id = request.POST['plutoconverter_item_id_input']
         except StandardError as e:
             return Response({'status': 'error', 'error': unicode(e)},status=400)
 

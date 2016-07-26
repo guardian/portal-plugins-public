@@ -170,19 +170,19 @@ class DoConversionView(APIView):
         #pprint(request.POST)
 
         try:
-            item = VSItem(user=settings.VIDISPINE_USER, passwd=settings.VIDISPINE_PASSWORD, url=settings.VIDISPINE_URL)
+            item = VSItem(user=settings.VIDISPINE_USERNAME, passwd=settings.VIDISPINE_PASSWORD, url=settings.VIDISPINE_URL)
             item.populate(item_id)
 
             if item.get('gnm_type') == 'master':
                 return Response({'status': 'error', 'error': '{0} is already a master'.format(item_id)},status=400)
 
-            project = VSCollection(user=settings.VIDISPINE_USER, passwd=settings.VIDISPINE_PASSWORD, url=settings.VIDISPINE_URL)
+            project = VSCollection(user=settings.VIDISPINE_USERNAME, passwd=settings.VIDISPINE_PASSWORD, url=settings.VIDISPINE_URL)
             project.populate(proj_id)
 
             commission_id = project.get('__parent_collection')
             logger.info("Project {0} belongs to commission {1}".format(project.name, commission_id))
 
-            commission = VSCollection(user=settings.VIDISPINE_USER, passwd=settings.VIDISPINE_PASSWORD, url=settings.VIDISPINE_URL)
+            commission = VSCollection(user=settings.VIDISPINE_USERNAME, passwd=settings.VIDISPINE_PASSWORD, url=settings.VIDISPINE_URL)
             commission.populate(commission_id)
 
             md_to_set = {

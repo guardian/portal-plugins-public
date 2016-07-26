@@ -140,8 +140,6 @@ class ProjectListView(GenericSearchView):
 
         # return VSCommission.objects.filter(gnm_commission_workinggroup=self.request.GET['wg'])
         return VSProject.vs_search(criteria=VSProject.search_criteria(criteria=critera_string))
-<<<<<<< HEAD
-=======
 
 
 class DoConversionView(APIView):
@@ -210,4 +208,4 @@ class DoConversionView(APIView):
             return Response({'status': 'error', 'error': "Vidispine said {0}".format(unicode(e))},status=500)
         except StandardError as e:
             return Response({'status': 'error', 'error': unicode(e)},status=500)
->>>>>>> 69cafc4... few more tweaks, catch all errors in a big exception block and pass them back to clientside
+

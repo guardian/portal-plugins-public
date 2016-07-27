@@ -153,7 +153,10 @@ class DoConversionView(APIView):
         from gnmvidispine.vidispine_api import VSException
         from gnmvidispine.vs_item import VSItem
         from gnmvidispine.vs_collection import VSCollection
+        from gnmvidispine.vs_metadata import VSMetadata
         from django.conf import settings
+        from portal.plugins.gnm_masters.models import VSMaster, MasterModel
+        from django.contrib.auth.models import User
         import re
 
         is_vsid = re.compile(r'^\w{2}-\d+')
@@ -202,6 +205,16 @@ class DoConversionView(APIView):
             logger.info("Going to set metadata on {0}: {1}".format(item_id, md_to_set))
             item.set_metadata(md_to_set)
             logger.info("SUCCESS: item {0} has been converted to master".format(item_id))
+
+            user = User.objects.get(username='admin')
+
+            master = VSMaster(item_id, user)
+
+            master_model, created = MasterModel.get_or_create_from_master(master, user)
+            if not created:
+                master_model.update_from_master(master)
+                master_model.save()
+            master_model.update_owner(master)
 
             return Response({'status': 'success'},status=200)
         except VSException as e:

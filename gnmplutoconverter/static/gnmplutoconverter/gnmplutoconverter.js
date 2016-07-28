@@ -141,6 +141,16 @@ function open_picker()
 
 }
 
+function close_dialog()
+{
+    $('#plutoconverter_dlg').dialog("close");
+}
+
+function showCompletedMessage(itemid)
+{
+    $('#id_error_text').html('<p style="font-size: 1.4em; color: green;float: left;">Conversion succeeded!</p><a href="#" onClick="close_dialog();" class="blue-button button mark not-bold" style="color: white; float: right; margin-right:10px;">Close</a><a style="color: white;float: right; margin-right:10px;" class="blue-button button mark not-bold" href="/master/'+ itemid + '">View</a>');
+}
+
 function build_dialog()
 {
     var global_font_size = '1.6em'; //horrible i know but will work for time being
@@ -173,9 +183,7 @@ function build_dialog()
     $('<td>',{'style': 'text-align: right;'}).html('within the commission: ').appendTo(tr_commission);
 
     var td_selector = $('<td>',{'id': 'plutoconverter_item_commission_label','font-size': global_font_size}).appendTo(tr_commission);
-//<<<<<<< HEAD
-//    $('<input>', {'id': 'plutoconverter_commission_id_input', 'type': 'textbox', 'disabled': true}).appendTo(td_selector);
-//=======
+
     var input = $('<input>', {'id': 'plutoconverter_commission_id_input', 'name': 'plutoconverter_commission_id_input', 'disabled': false}).appendTo(td_selector);
     $('<br>').appendTo(td_selector);
     $('<p>', {'id': 'plutoconverter_item_commission_error', 'class': 'error'}).appendTo(td_selector);
@@ -188,7 +196,7 @@ function build_dialog()
     $('<input>', {'type': 'submit'}).html('Convert').appendTo(td_submit);
     var throbber = $('<img>', {'src': '/sitemedia/load.gif', 'style': 'width: 16px;', 'id': 'plutoconverter_throbber'}).appendTo(td_submit);
     throbber.hide();
-    var error_text = $('<p>', {'class': 'error'}).appendTo(form);
+    var error_text = $('<p>', {'class': 'error', 'id': 'id_error_text'}).appendTo(form);
 
     form.submit(function(event){
         event.preventDefault(); //prevent the browser to do normal submission
@@ -221,7 +229,10 @@ function build_dialog()
             data: $('#plutoconverter_mainform').serialize()
         }).success(function(data){
             throbber.fadeOut();
-            $('#plutoconverter_dlg').dialog("close");
+            td_submit.hide();
+            console.log(data);
+            showCompletedMessage(data['itemid']);
+            //$('#plutoconverter_dlg').dialog("close");
         }).fail(function(jqXHR, errorThrown, status){
             throbber.fadeOut();
             try{
@@ -233,7 +244,6 @@ function build_dialog()
         });
 
     });
-//>>>>>>> 69cafc4... few more tweaks, catch all errors in a big exception block and pass them back to clientside
 
     $(document.body).append(dlg);
 }

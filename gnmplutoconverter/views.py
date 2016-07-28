@@ -199,7 +199,7 @@ class DoConversionView(APIView):
                 # 'gnm_master_website_tags': breakout_tags(item.get('gnm_asset_user_keywords',allowArray=True),
                 #                                         host=options.vshost,user=options.vsuser,passwd=options.vspasswd),
                 'gnm_type'                     : 'Master',
-                'gnm_master_language'          : settings.LANGUAGE_CODE,
+                'gnm_master_language'          : settings.LANGUAGE_CODE[0:2],
             }
 
             logger.info("Going to add {0} to project {1}".format(item_id,md_to_set))
@@ -214,7 +214,7 @@ class DoConversionView(APIView):
             vs_master = VSMaster(item_id, admin_user)
             vs_project.add_master(vs_master)
 
-            return Response({'status': 'success'},status=200)
+            return Response({'status': 'success', 'itemid': item_id },status=200)
         except VSException as e:
             return Response({'status': 'error', 'error': "Vidispine said {0}".format(unicode(e))},status=500)
         except StandardError as e:

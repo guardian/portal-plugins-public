@@ -156,6 +156,7 @@ class DoConversionView(APIView):
         from gnmvidispine.vs_metadata import VSMetadata
         from django.conf import settings
         from portal.plugins.gnm_masters.models import VSMaster, MasterModel
+        from portal.plugins.gnm_projects.models import VSProject
         from django.contrib.auth.models import User
         import re
 
@@ -206,15 +207,11 @@ class DoConversionView(APIView):
             item.set_metadata(md_to_set)
             logger.info("SUCCESS: item {0} has been converted to master".format(item_id))
 
-            user = User.objects.get(username=settings.VIDISPINE_USERNAME)
+            admin_user = User.objects.get(username=settings.VIDISPINE_USERNAME)
 
-            master = VSMaster(item_id, user)
-
-            master_model, created = MasterModel.get_or_create_from_master(master, user)
-            if not created:
-                master_model.update_from_master(master)
-                master_model.save()
-            master_model.update_owner(master)
+            vs_project = VSProject(proj_id, admin_user)
+            vs_master = VSMaster(item_id, admin_user)
+            vs_project.add_master(vs_master)
 
             return Response({'status': 'success'},status=200)
         except VSException as e:

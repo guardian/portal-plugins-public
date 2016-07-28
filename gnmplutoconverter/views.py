@@ -199,6 +199,7 @@ class DoConversionView(APIView):
                 # 'gnm_master_website_tags': breakout_tags(item.get('gnm_asset_user_keywords',allowArray=True),
                 #                                         host=options.vshost,user=options.vsuser,passwd=options.vspasswd),
                 'gnm_type'                     : 'Master',
+                'gnm_master_language'          : settings.LANGUAGE_CODE,
             }
 
             logger.info("Going to add {0} to project {1}".format(item_id,md_to_set))

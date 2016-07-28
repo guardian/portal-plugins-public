@@ -206,7 +206,7 @@ class DoConversionView(APIView):
             item.set_metadata(md_to_set)
             logger.info("SUCCESS: item {0} has been converted to master".format(item_id))
 
-            user = User.objects.get(username='admin')
+            user = User.objects.get(username=settings.VIDISPINE_USERNAME)
 
             master = VSMaster(item_id, user)
 

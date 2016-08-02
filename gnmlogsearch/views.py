@@ -73,7 +73,8 @@ def doJobSearch(url):
 def index(request):
     from pprint import pprint
     from datetime import datetime,timedelta,date,time
-
+    import json
+    
     search_results = None
     search_error = None
     page_size=100
@@ -206,5 +207,7 @@ def index(request):
 
     first_result = page * 100 - 100 + 1
 
+    if 'accept' in request.GET and request.GET['accept'] == 'application/json':
+        return HttpResponse(content=json.dumps({'status': 'ok', 'hits': hits, 'results': search_results}),status=200)
     return render(request,"logsearch.html", {'search_form': form,'search_results': results,'search_error': search_error, 'search_hits': hits, 'columnsettings': columnsettings, 'next_page': next_page, 'prev_page': prev_page, 'page': page, 'first_result': first_result, 'last_result': last_result})
 

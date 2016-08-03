@@ -87,6 +87,7 @@ class GNMAWSGRAdminPlugin(Plugin):
     def return_string(self,tagname,*args):
         return {'guid': self.plugin_guid, 'template': 'gnmawsgr/navigation.html'}
 
+
 GNMAWSGRadminplug = GNMAWSGRAdminPlugin()
 
 class GNMAWSGRAdminNavigationPlugin(Plugin):
@@ -115,6 +116,7 @@ class GNMAWSGRUrl(Plugin):
         log.info(GNMAWSGRUrl.name + ' initialized')
 
 GNMAWSGRurlplugin = GNMAWSGRUrl()
+
 
 class GNMAWSGRGearboxMenuPlugin(Plugin):
     implements(IPluginBlock)
@@ -253,7 +255,6 @@ class GNMAWSGRCollectionGearboxMenuPlugin(Plugin):
 
     def return_string(self, tagname, *args):
         display = 0
-
         from portal.vidispine.iitem import ItemHelper
         from pprint import pprint
 
@@ -271,8 +272,9 @@ class GNMAWSGRCollectionGearboxMenuPlugin(Plugin):
             #pprint(data.getId())
             try:
                 test_value = self.metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_status',res['item'])
-            except:
-                print 'An error broke the call'
+            except StandardError as e:
+                log.error(str(e))
+                raise
             if test_value == archive_test_value:
                 display = 1
 
@@ -280,6 +282,7 @@ class GNMAWSGRCollectionGearboxMenuPlugin(Plugin):
             return {'guid':self.plugin_guid, 'template':'collection_gearbox_menu.html', 'context' : {'collection':collid, 'res':''} }
 
 GNMAWSGRCollectionpluginblock = GNMAWSGRCollectionGearboxMenuPlugin()
+
 
 class GNMAWSGRBinGearboxMenuPlugin(Plugin):
     implements(IPluginBlock)
@@ -298,3 +301,4 @@ class GNMAWSGRBinGearboxMenuPlugin(Plugin):
             return {'guid':self.plugin_guid, 'template':'bin_gearbox_menu.html', 'context' : {'mediabin':mediabin} }
 
 GNMAWSGRBinpluginblock = GNMAWSGRBinGearboxMenuPlugin()
+

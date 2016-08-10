@@ -252,7 +252,10 @@ def displayDate(value):
 
     if re.match("\d", value) is not None:
 
-        inputdate = time.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+        try:
+            inputdate = time.strptime(value, "%Y-%m-%dT%H:%M:%SZ")
+        except:
+            inputdate = time.strptime(value, "%Y-%m-%dT%H:%M:%S")
 
         try:
             finisheddate = time.strftime("%H:%M:%S %d/%m/%Y", inputdate).lstrip("0").replace("/0", "/").replace(" 0", " ")

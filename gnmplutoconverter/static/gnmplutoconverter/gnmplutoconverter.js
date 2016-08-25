@@ -4,7 +4,6 @@ function gnmplutoconverter_convert_master(itemid)
     /* the main function that kicks things off for the master. */
 
     /* first, show the dialog. */
-    //$('#plutoconverter_item_id_label').html(itemid);
     $('#plutoconverter_item_id_input').attr('value',itemid);
     $('#plutoconverter_dlg').dialog("open");
     $('#plutoconverter_project_id_input').empty();
@@ -22,7 +21,6 @@ function populate_project_dropdown()
 {
     var comm = $('#id_picker_commission_dropdown').val();
     var mine = $('#id_picker_mine_only').is(":checked");
-    //console.log("Current selected working group ID: " + wg);
 
     $('#id_picker_project_dropdown').empty();
     $('#plutoconverter_picker_throbber').fadeIn();
@@ -46,7 +44,6 @@ function populate_commission_dropdown()
 {
     var wg = $('#id_picker_workinggroup_dropdown').val();
     var mine = $('#id_picker_mine_only').is(":checked");
-    //console.log("Current selected working group ID: " + wg);
 
     $('#id_picker_commission_dropdown').empty();
     $('#id_picker_project_dropdown').empty();
@@ -136,7 +133,10 @@ function open_picker()
     var i = $('<li>').appendTo(lst);
     var item_span = $('<span>').appendTo(i)
     var save_button = $('<button>', {'type': 'button', 'id': 'plutoconverter_picker_save_button'}).html("Choose").click(plutoconverter_picker_save).appendTo(item_span);
-    var throbber_image = $('<img>', {'src': '/sitemedia/load.gif', 'style': 'width: 16px;', 'id': 'plutoconverter_picker_throbber'}).appendTo(item_span);
+    var throbber_image = $('<img>', {'src': '/sitemedia/img/core/loading-small.gif',
+                                     'style': 'width: 16px;',
+                                      'id': 'plutoconverter_picker_throbber'
+                                      }).appendTo(item_span);
     throbber_image.hide();
 
 }
@@ -148,7 +148,21 @@ function close_dialog()
 
 function showCompletedMessage(itemid)
 {
-    $('#id_error_text').html('<p style="font-size: 1.4em; color: green;float: left;">Conversion succeeded!</p><a href="#" onClick="close_dialog();" class="blue-button button mark not-bold" style="color: white; float: right; margin-right:10px;">Close</a><a style="color: white;float: right; margin-right:10px;" class="blue-button button mark not-bold" href="/master/'+ itemid + '">View</a>');
+    $('#id_error_text').empty();
+
+    $('<p>', {'style': 'font-size: 1.4em; color: green;float: left;'}).text('Conversion succeeded!').appendTo($('#id_error_text'));
+
+    $('<a>', {'href': '#',
+              'onClick': 'close_dialog();',
+              'class': "blue-button button mark not-bold",
+              'style': "color: white; float: right; margin-right:10px;"
+             }).text('Close').appendTo($('#id_error_text'));
+
+    $('<a>', {'href': "/master/"+ itemid,
+              'onClick': 'close_dialog();',
+              'class': "blue-button button mark not-bold",
+              'style': "color: white; float: right; margin-right:10px;"
+             }).text('View Master').appendTo($('#id_error_text'));
 }
 
 function build_dialog()
@@ -194,7 +208,7 @@ function build_dialog()
     var tr_submit = $('<tr>').appendTo(content_table);
     var td_submit = $('<td>').appendTo(tr_submit);
     $('<input>', {'type': 'submit'}).html('Convert').appendTo(td_submit);
-    var throbber = $('<img>', {'src': '/sitemedia/load.gif', 'style': 'width: 16px;', 'id': 'plutoconverter_throbber'}).appendTo(td_submit);
+    var throbber = $('<img>', {'src': '/sitemedia/img/core/loading-small.gif', 'style': 'width: 16px;', 'id': 'plutoconverter_throbber'}).appendTo(td_submit);
     throbber.hide();
     var error_text = $('<p>', {'class': 'error', 'id': 'id_error_text'}).appendTo(form);
 

@@ -20,10 +20,20 @@ from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
 from rest_framework.parsers import JSONParser, FormParser
 from django.http import HttpResponseBadRequest
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-
+raven_client = None
+try:
+    import raven
+    raven_client = raven.Client(settings.RAVEN_CONFIG['dsn'])
+except ImportError:
+    logger.error("Raven client not installed - can't log errors to Sentry")
+except KeyError:
+    logger.error("Raven is installed but RAVEN_CONFIG is not set up properly. Can't log errors to Sentry.")
+    
+    
 class GenericAppView(ClassView):
     """ Show the page. Add your python code here to show dynamic content or feed information in
         to external apps
@@ -62,8 +72,8 @@ class GenericSearchView(APIView):
             from pprint import pprint
             rtn = []
             results = self.do_search()
-            print "Current user ID: {0}".format(request.user.pk)
-            pprint(results)
+            # print "Current user ID: {0}".format(request.user.pk)
+            # pprint(results)
             for c in results:
                 i={
                     'vsid': str(c.id),
@@ -74,23 +84,25 @@ class GenericSearchView(APIView):
                 try:
                     i['gnm_commission_status'] = unicode(c.md.gnm_commission_status)
                     i['user_id'] = unicode(c.md.gnm_commission_owner)
-                except StandardError:
+                except AttributeError:
                     pass
 
                 try:
                     i['gnm_project_status'] = unicode(c.md.gnm_project_status)
                     i['user_id'] = unicode(c.md.gnm_project_owner)
-                except StandardError:
+                except AttributeError:
                     pass
 
                 rtn.append(i)
 
             return Response(rtn)
 
-        except Exception as e:
+        except StandardError as e:
             from traceback import format_exc
-            print "{0}: {1}".format(e.__class__.__name__,e.message)
-            print format_exc()
+            logger.error(format_exc())
+            if raven_client is not None:
+                raven_client.captureException()
+            return Response({'status': 'error', 'error': format_exc()}, status=500)
 
     def do_search(self):
         pass
@@ -115,7 +127,6 @@ class CommissionListView(GenericSearchView):
             if self.request.GET['mine'] == 'true':
                 critera_string += "<gnm_commission_owner>{0}</gnm_commission_owner>".format(self.request.user.pk)
 
-        #return VSCommission.objects.filter(gnm_commission_workinggroup=self.request.GET['wg'])
         return VSCommission.vs_search(criteria=VSCommission.search_criteria(criteria=critera_string))
 
 
@@ -171,7 +182,6 @@ class DoConversionView(APIView):
 
         if not is_vsid.match(comm_id) or not is_vsid.match(proj_id) or not is_vsid.match(item_id):
             return Response({'status': 'error', 'error': 'Not a valid Vidispine ID'},status=400)
-        #pprint(request.POST)
 
         try:
             item = VSItem(user=settings.VIDISPINE_USERNAME, passwd=settings.VIDISPINE_PASSWORD, url=settings.VIDISPINE_URL)
@@ -216,7 +226,11 @@ class DoConversionView(APIView):
 
             return Response({'status': 'success', 'itemid': item_id },status=200)
         except VSException as e:
+            if raven_client is not None:
+                raven_client.captureException()
             return Response({'status': 'error', 'error': "Vidispine said {0}".format(unicode(e))},status=500)
         except StandardError as e:
+            if raven_client is not None:
+                raven_client.captureException()
             return Response({'status': 'error', 'error': unicode(e)},status=500)
 

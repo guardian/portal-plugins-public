@@ -28,24 +28,6 @@ class GnmplutoconverterPluginURL(Plugin):
 pluginurls = GnmplutoconverterPluginURL()
 
 
-# class GnmplutoconverterAdminNavigationPlugin(Plugin):
-#     # This adds your app to the navigation bar
-#     # Please update the information below with the author etc..
-#     implements(IPluginBlock)
-#
-#     def __init__(self):
-#         self.name = "NavigationAdminPlugin"
-#         self.plugin_guid = '682ba2bd-24e0-41d8-ae85-fc711a51e505'
-#         log.debug('Initiated navigation plugin')
-#
-#     # Returns the template file navigation.html
-#     # Change navigation.html to the string that you want to use
-#     def return_string(self, tagname, *args):
-#         return {'guid': self.plugin_guid, 'template': 'gnmplutoconverter/navigation.html'}
-#
-# navplug = GnmplutoconverterAdminNavigationPlugin()
-
-
 class GnmplutoconverterRegister(Plugin):
     # This adds it to the list of installed Apps
     # Please update the information below with the author etc..
@@ -73,47 +55,17 @@ class PlutoConverterGenericGearboxPlugin(Plugin):
     implements(IPluginBlock)
 
     def return_string(self, tagname, context, request_context):
-        #from portal.vidispine.iitem import ItemHelper
-        from pprint import pprint
         from traceback import format_exc
         ctx={}
-        #pprint(current_context)
 
-        #print "Got {0} args".format(len(args))
         try:
-            # #args[1] is a RequestContext object
-            # for d in request_context.dicts:
-            #     pprint(d)
-            #     print "-------------------------------\n"
-            # for k,v in request_context.__dict__.items():
-            #     if k=='dicts': continue
-            #     print "{0} => {1}".format(k,v)
-            #     print "-------------------------------\n"
             i = request_context['item']
-            #iid = request_context['itemid']
-            #pprint(i.__dict__)
-            #help(i)
-            #print "Item ID is {0}".format(i.getId())
-            #pprint(i.getMetadataFieldValueByName('title'))
             ctx['itemid'] = i.getId()
             ctx['gnm_type'] = i.getMetadataFieldValueByName('gnm_type')
             ctx['mediaType'] = i.getMetadataFieldValueByName('mediaType')
         except Exception as e:
-            type = ""
             print u"{0}: {1}".format(e.__class__.__name__,e.message)
             print format_exc()
-
-
-
-        #pprint(args)
-        #pprint(kwargs)
-        #item = current_context['item']
-        #itemid = item.getId()
-        #pprint(item)
-
-        #ith = ItemHelper()
-
-        #res = ith.getItemMetadata(itemid)
 
         print "PlutoConverterGearboxPlugin: tagname {0}".format(tagname)
         return {

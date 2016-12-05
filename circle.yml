@@ -3,10 +3,10 @@ machine:
   python:
     version: 2.6.9
   pre:
-    - sudo apt-get install rpm
+    - sudo apt-get -y install rpm
     - sudo mkdir -p /opt/cantemo/portal/portal/plugins
     - sudo chown ubuntu /opt/cantemo/portal/portal/plugins
-    - chmod a+x buildrpms.sh
+    - chmod a+x portal-plugins-public/buildrpms.sh
 
 checkout:
   post:
@@ -21,4 +21,4 @@ deployment:
   master:
     branch: master
     commands:
-      - ./buildrpms.sh
+      - ./portal-plugins-public/buildrpms.sh

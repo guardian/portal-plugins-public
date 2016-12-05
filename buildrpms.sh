@@ -45,7 +45,7 @@ function build_rpm {
 }
 
 if [ "$1" == "" ]; then
-	for dir in `find portal-plugins-public -depth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do
+	for dir in `find portal-plugins-public -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do
 	    build_rpm $dir
 	done
 else

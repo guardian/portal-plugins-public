@@ -20,7 +20,7 @@ function build_rpm {
     SPECFILE="$1.spec"
     if [ ! -f ${SPECFILE} ]; then
         echo "No spec file for ${BASENAME} so can't build"
-        return 1
+        return 0    #don't bork things if it failed
     fi
     increment_release ${SPECFILE}
     RPM_BASE=$(grep '%define name' ${SPECFILE} | awk -F ' ' '{print $3}')
@@ -44,7 +44,7 @@ function build_rpm {
     echo -----------------------------------------
     echo Uploading ${BASENAME}
     echo -----------------------------------------
-    aws s3 cp ${HOME}/rpmbuild/RPMS/noarch/${RPM_BASE}*.rpm s3://gnm-multimedia-archivedtech/gnm_portal_plugins/$x --acl public-read
+    aws s3 cp ${HOME}/rpmbuild/RPMS/noarch/${RPM_BASE}*.rpm s3://gnm-multimedia-archivedtech/gnm_portal_plugins/${BASENAME}/$x --acl public-read
     #mv ${HOME}/rpmbuild/RPMS/noarch/${RPM_BASE}* .
 }
 

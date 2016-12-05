@@ -18,7 +18,7 @@ function increment_release {
 function build_rpm {
     BASENAME=$1
     SPECFILE="$1.spec"
-    if [! -f ${SPECFILE} ]; then
+    if [ ! -f ${SPECFILE} ]; then
         echo "No spec file for ${BASENAME} so can't build"
         return 1
     fi

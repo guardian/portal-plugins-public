@@ -8,6 +8,10 @@ machine:
     - sudo chown ubuntu /opt/cantemo/portal/portal/plugins
     - chmod a+x portal-plugins-public/buildrpms.sh
 
+dependencies:
+  cache_directories:
+    - "/opt/circleci/.pyenv/versions/2.6.9/lib/python2.6"
+
 checkout:
   post:
     - for dir in `find . -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do echo Symlinking ${dir} to build locations; ln -s ${PWD}/$dir /opt/cantemo/portal/portal/plugins;done

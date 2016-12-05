@@ -16,9 +16,13 @@ function increment_release {
 }
 
 function build_rpm {
-    increment_release ${SPECFILE}
     BASENAME=$1
     SPECFILE="$1.spec"
+    if [! -f ${SPECFILE} ]; then
+        echo "No spec file for ${BASENAME} so can't build"
+        return 1
+    fi
+    increment_release ${SPECFILE}
     RPM_BASE=$(grep '%define name' ${SPECFILE} | awk -F ' ' '{print $3}')
 
 	if [ ! -d "${BASENAME}" ]; then
@@ -45,7 +49,7 @@ function build_rpm {
 }
 
 if [ "$1" == "" ]; then
-	for dir in `find . -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do
+	for dir in `find . -iname gnm\* -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do
 	    build_rpm $dir
 	done
 else

@@ -6,6 +6,6 @@ sudo mkdir -p ${BL_DEPLOY_PATH}
 sudo chown ubuntu ${BL_DEPLOY_PATH}
 
 for x in `ls gnmpropagation/businesslogic/*.xml`; do
-    echo      Symlinking $x to "${BL_DEPLOY_PATH}"
-    ln -s $x "${BL_DEPLOY_PATH}"
+    echo      Symlinking "$PWD/$x" to "${BL_DEPLOY_PATH}"
+    ln -s "$PWD/$x" "${BL_DEPLOY_PATH}"
 done

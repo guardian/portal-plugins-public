@@ -14,7 +14,7 @@ BuildRoot: %{_tmppath}/gnmgridintegration
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: Andy Gallagher <andy.gallagher@theguardian.com>
-Requires: Portal 'portal_gnm_vidispine>=1.0-2'
+Requires: Portal portal_gnm_vidispine>=1.0-2
 
 %description
 Plugin for Cantemo Portal that allows snapshots taken with the camera icon function to be directly sent on to The Grid

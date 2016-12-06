@@ -33,7 +33,7 @@ function build_rpm {
 	echo -----------------------------------------
 	echo Compressing ${BASENAME}....
 	echo -----------------------------------------
-    tar cv ${BASENAME} | gzip > ${HOME}/rpmbuild/${BASENAME}.tar.gz
+    tar cv ${BASENAME} --exclude .idea | gzip > ${HOME}/rpmbuild/${BASENAME}.tar.gz
 
     echo -----------------------------------------
     echo Bundling ${BASENAME}....

@@ -37,7 +37,6 @@ def propagate(collectionid,field,current_value):
     from django.conf import settings
 
     collection_obj = VSCollection(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
-    #collection_obj = VSCollection(url=VIDISPINE_URL,port=VIDISPINE_PORT,user=VIDISPINE_USERNAME,passwd=VIDISPINE_PASSWORD)
     collection_obj.populate(collectionid, specificFields=['title','gnm_asset_category'])
 
     n=0
@@ -47,8 +46,6 @@ def propagate(collectionid,field,current_value):
         subitem.populate(subitem.name, specificFields=['title','gnm_asset_category','gnm_type','__collection_size',field])
         logger.debug(u"title: {0}, category: {1}, type: {2}".format(subitem.get('title'),subitem.get('gnm_asset_category'),
                                                                     subitem.get('gnm_type')))
-
-        #pprint(subitem.__dict__)
         type = '(unknown)'
         if isinstance(subitem,VSItem):
             type = "item"
@@ -70,11 +67,6 @@ def propagate(collectionid,field,current_value):
         elif isinstance(subitem,VSCollection):
             type = "collection"
 
-        #print "Got {0} {1}".format(type, subitem.name)
-        #for f in ['title','gnm_type','gnm_asset_category',field]:
-        #    print "\t{0}: {1}".format(f,subitem.get(f))
-        #print setswitch
-
         if subitem.get(field) != current_value:
             try:
                 subitem.set_metadata({field: current_value})
@@ -89,10 +81,9 @@ def propagate(collectionid,field,current_value):
 
 if __name__ == '__main__':
     import sys
-    #Use this statement to test from command line
+    #Use this statement to test from command line.
+    #should run as: ./tasks.py {collectionid} {fieldname} {value}
     for arg in sys.argv:
         print arg
 
     propagate(sys.argv[1],sys.argv[2],sys.argv[3])
-    #do_propagate(sys.argv[1],sys.argv[2],sys.argv[3])
-

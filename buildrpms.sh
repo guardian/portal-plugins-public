@@ -4,8 +4,8 @@ function increment_release {
     FILENAME=$1
 
     RELEASEVER=$(grep '%define release' ${FILENAME} | awk -F ' ' '{print $3}')
-    if [ ${CIRCLE_SHA1} != "" ]; then
-        NEWVER=${CIRCLE_SHA1}
+    if [ ${CIRCLE_BUILD_NUM} != "" ]; then
+        NEWVER=${CIRCLE_BUILD_NUM}
     else
         NEWVER=$(($RELEASEVER+1))
     fi
@@ -44,7 +44,13 @@ function build_rpm {
     echo -----------------------------------------
     echo Uploading ${BASENAME}
     echo -----------------------------------------
-    aws s3 cp ${HOME}/rpmbuild/RPMS/noarch/${RPM_BASE}*.rpm s3://gnm-multimedia-archivedtech/gnm_portal_plugins/${BASENAME}/$x --acl public-read
+    if [ "${CIRCLE_TAG}" != "" ]; then
+        S3SUBDIR=${CIRCLE_TAG}
+    elif [ "${CIRCLE_SHA1}" != "" ]; then
+        S3SUBDIR=${CIRCLE_SHA1}
+    fi
+
+    aws s3 cp ${HOME}/rpmbuild/RPMS/noarch/${RPM_BASE}*.rpm s3://gnm-multimedia-archivedtech/gnm_portal_plugins/${S3SUBDIR}/$x --acl public-read
     #mv ${HOME}/rpmbuild/RPMS/noarch/${RPM_BASE}* .
 }
 

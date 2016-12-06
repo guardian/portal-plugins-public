@@ -3,17 +3,19 @@ machine:
   python:
     version: 2.6.9
   pre:
-    - sudo apt-get -y install rpm
+    - sudo apt-get -y install rpm libsasl2-dev libldap2-dev libssl-dev
     - sudo mkdir -p /opt/cantemo/portal/portal/plugins
     - sudo chown ubuntu /opt/cantemo/portal/portal/plugins
-    - chmod a+x portal-plugins-public/buildrpms.sh
 
 dependencies:
   cache_directories:
-    - "/opt/circleci/.pyenv/versions/2.6.9/lib/python2.6"
+    - "/opt/circleci/.pyenv/versions/2.6.9/lib"
 
 checkout:
   post:
+    - git submodule sync
+    - git submodule update --init
+    - pip install -r test-requirements.txt
     - for dir in `find . -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do echo Symlinking ${dir} to build locations; ln -s ${PWD}/$dir /opt/cantemo/portal/portal/plugins;done
     - for dir in `find . -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do echo Trying to run "${PWD}/$dir/testsetup.sh"; if [ -x "${PWD}/$dir/testsetup.sh" ]; then ${PWD}/$dir/testsetup.sh; fi; done
 
@@ -25,4 +27,5 @@ deployment:
   master:
     branch: master
     commands:
+      - chmod a+x buildrpms.sh
       - ./buildrpms.sh

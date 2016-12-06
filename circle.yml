@@ -3,7 +3,7 @@ machine:
   python:
     version: 2.6.9
   pre:
-    - sudo apt-get -y install rpm
+    - sudo apt-get -y install rpm libsasl2-dev libldap2-dev libssl-dev
     - sudo mkdir -p /opt/cantemo/portal/portal/plugins
     - sudo chown ubuntu /opt/cantemo/portal/portal/plugins
 

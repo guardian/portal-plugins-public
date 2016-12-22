@@ -199,6 +199,15 @@ def do_glacier_restore(request_id,itemid,path):
     import traceback
     from functools import partial
 
+    try:
+        import raven
+        from django.conf import settings
+        raven_client = raven.Client(settings.RAVEN_CONFIG['dsn'])
+
+    except StandardError as e:
+        logger.error("Raven client either not installed (pip install raven) or set up (RAVEN_CONFIG in localsettings.py).  Unable to report errors to Sentry")
+        raven_client = None
+
     temp_path = "/tmp"
     restore_time = 2 #in days
     restore_sleep_delay = 14400 #wait this number of seconds for something to restore
@@ -269,6 +278,7 @@ def do_glacier_restore(request_id,itemid,path):
                 try:
                     key.get_file(fp, cb=partial(download_callback, rq), num_cb=40)
                 except AttributeError:
+                        raven_client.captureException()
                     logger.error("No Key found in S3. Object values: {0}".format(rq.__dict__))
             rq.completed_at = datetime.now()
             rq.status = 'IMPORTING'

@@ -9,7 +9,8 @@ machine:
 
 dependencies:
   cache_directories:
-    - "/opt/circleci/.pyenv/versions/2.6.9/lib"
+    - "/opt/circleci/.pyenv/versions/2.6.9"
+    - "/home/ubuntu/virtualenvs/venv-2.6.9"
 
 checkout:
   post:

@@ -28,7 +28,7 @@ def r(request):
 
     res = ith.getItemMetadata(itemid)
 
-    path = self.metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_path',res['item'])
+    path = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_path',res['item'])
 
     try:
         rq = RestoreRequest.objects.get(item_id=itemid)
@@ -78,7 +78,7 @@ def re(request):
 
     res = ith.getItemMetadata(itemid)
 
-    path = self.metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_path',res['item'])
+    path = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_path',res['item'])
 
     rq = RestoreRequest.objects.get(item_id=itemid)
     rq.status = "RETRY"

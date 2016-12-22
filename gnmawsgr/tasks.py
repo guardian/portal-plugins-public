@@ -129,11 +129,18 @@ class MiniItem(object):
 def download_callback(rq, current_progress,total):
     if rq.status != 'DOWNLOADING':
         rq.status = 'DOWNLOADING'
+
+    try:
+        percent = 100*float(current_progress)/float(total)
+
+    except ZeroDivisionError as e:
+        percent = 0.0
+
     logger.info("{itemid} Download in progress: {cur}/{tot}, {pc:.2f}%".format(
         itemid=rq.item_id,
         cur=current_progress,
         tot=total,
-        pc=100*float(current_progress)/float(total)))
+        pc=percent))
     rq.currently_downloaded = current_progress
     rq.file_size = total
     rq.save()

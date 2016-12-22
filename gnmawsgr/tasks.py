@@ -137,11 +137,11 @@ def download_callback(rq, current_progress,total):
         percent = 0.0
         logger.warning("{0} Trying to download but last chunk size was zero".format(rq.item_id))
 
-    #logger.info("{itemid} Download in progress: {cur}/{tot}, {pc:.2f}%".format(
-    #    itemid=rq.item_id,
-    #    cur=current_progress,
-    #    tot=total,
-    #    pc=percent))
+    logger.info("{itemid} Download in progress: {cur}/{tot}, {pc:.2f}%".format(
+        itemid=rq.item_id,
+        cur=current_progress,
+        tot=total,
+        pc=percent))
     rq.currently_downloaded = current_progress
     rq.file_size = total
     rq.save()

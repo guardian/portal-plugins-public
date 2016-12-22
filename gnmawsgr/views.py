@@ -18,11 +18,17 @@ def index(request):
 def r(request):
     from tasks import glacier_restore
     from datetime import datetime
+    from portal.vidispine.iitem import ItemHelper
 
     # pprint(request.user.userprofile.__dict__)
     # pprint(request.user.groups.all())
     itemid = request.GET.get('id', '')
-    path = request.GET.get('path', '')
+
+    ith = ItemHelper()
+
+    res = ith.getItemMetadata(itemid)
+
+    path = self.metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_path',res['item'])
 
     try:
         rq = RestoreRequest.objects.get(item_id=itemid)
@@ -64,9 +70,15 @@ class DeleteRestoreRequest(DeleteView):
 @has_group('AWS_GR_Restore')
 def re(request):
     from tasks import glacier_restore
+    from portal.vidispine.iitem import ItemHelper
 
     itemid = request.GET.get('id', '')
-    path = request.GET.get('path', '')
+
+    ith = ItemHelper()
+
+    res = ith.getItemMetadata(itemid)
+
+    path = self.metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_path',res['item'])
 
     rq = RestoreRequest.objects.get(item_id=itemid)
     rq.status = "RETRY"

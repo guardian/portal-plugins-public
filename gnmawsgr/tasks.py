@@ -278,7 +278,7 @@ def do_glacier_restore(request_id,itemid,path):
                 try:
                     key.get_file(fp, cb=partial(download_callback, rq), num_cb=40)
                 except AttributeError:
-                        raven_client.captureException()
+                    raven_client.captureException()
                     logger.error("No Key found in S3. Object values: {0}".format(rq.__dict__))
             rq.completed_at = datetime.now()
             rq.status = 'IMPORTING'

@@ -134,8 +134,8 @@ def download_callback(rq, current_progress,total):
         percent = 100*float(current_progress)/float(total)
 
     except ZeroDivisionError as e:
-        percent = 0.0
         logger.warning("{0} Trying to download but last chunk size was zero".format(rq.item_id))
+        return
 
     logger.info("{itemid} Download in progress: {cur}/{tot}, {pc:.2f}%".format(
         itemid=rq.item_id,

@@ -46,7 +46,10 @@ def r(request):
         #print do_task
         return render(request,"r.html")
     else:
-        return render(request,"no.html", {"at": rq.requested_at, "user": rq.username, "status": rq.status})
+        if (rq.requested_at == '') or (rq.username == '') or (rq.status == ''):
+            return render(request,"n.html")
+        else:
+            return render(request,"no.html", {"at": rq.requested_at, "user": rq.username, "status": rq.status})
 
 class CurrentStatusView(ListView):
     model = RestoreRequest

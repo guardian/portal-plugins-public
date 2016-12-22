@@ -44,12 +44,12 @@ def r(request):
     if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER") or (rq.status == "COMPLETED"):
         do_task = glacier_restore.delay(rq.pk,itemid,path)
         #print do_task
-        return render(request,"r.html")
+        return render(request,"restore.html")
     else:
         if (rq.requested_at == '') or (rq.username == '') or (rq.status == ''):
-            return render(request,"n.html")
+            return render(request,"do_not_restore_no_data.html")
         else:
-            return render(request,"no.html", {"at": rq.requested_at, "user": rq.username, "status": rq.status})
+            return render(request,"do_not_restore.html", {"at": rq.requested_at, "user": rq.username, "status": rq.status})
 
 class CurrentStatusView(ListView):
     model = RestoreRequest
@@ -88,7 +88,7 @@ def re(request):
     rq.attempts = rq.attempts + 1
     rq.save()
     do_task = glacier_restore.delay(rq.pk,itemid,path)
-    return render(request,"r.html")
+    return render(request,"restore.html")
 
 def _find_group(groupname,meta):
     if not 'group' in meta:
@@ -174,7 +174,7 @@ def rc(request):
             if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER") or (rq.status == "COMPLETED"):
                 do_task = glacier_restore.delay(rq.pk,itemid,path)
 
-    return render(request,"rc.html")
+    return render(request,"restore_collection.html")
 
 @login_required
 @has_group('AWS_GR_Restore')
@@ -240,4 +240,4 @@ def rcs(request):
             if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER") or (rq.status == "COMPLETED"):
                 do_task = glacier_restore.delay(rq.pk,itemid,path)
 
-    return render(request,"rcs.html")
+    return render(request,"restore_selected.html")

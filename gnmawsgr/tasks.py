@@ -129,11 +129,19 @@ class MiniItem(object):
 def download_callback(rq, current_progress,total):
     if rq.status != 'DOWNLOADING':
         rq.status = 'DOWNLOADING'
+
+    try:
+        percent = 100*float(current_progress)/float(total)
+
+    except ZeroDivisionError as e:
+        logger.warning("{0} Trying to download but last chunk size was zero".format(rq.item_id))
+        return
+
     logger.info("{itemid} Download in progress: {cur}/{tot}, {pc:.2f}%".format(
         itemid=rq.item_id,
         cur=current_progress,
         tot=total,
-        pc=100*float(current_progress)/float(total)))
+        pc=percent))
     rq.currently_downloaded = current_progress
     rq.file_size = total
     rq.save()
@@ -191,6 +199,15 @@ def do_glacier_restore(request_id,itemid,path):
     import httplib2
     import traceback
     from functools import partial
+
+    try:
+        import raven
+        from django.conf import settings
+        raven_client = raven.Client(settings.RAVEN_CONFIG['dsn'])
+
+    except StandardError as e:
+        logger.error("Raven client either not installed (pip install raven) or set up (RAVEN_CONFIG in localsettings.py).  Unable to report errors to Sentry")
+        raven_client = None
 
     temp_path = "/tmp"
     restore_time = 2 #in days
@@ -259,7 +276,12 @@ def do_glacier_restore(request_id,itemid,path):
     while True:
         try:
             with open(filename,'wb') as fp:
-                key.get_file(fp, cb=partial(download_callback, rq), num_cb=40)
+                try:
+                    key.get_file(fp, cb=partial(download_callback, rq), num_cb=40)
+                except AttributeError:
+                    raven_client.captureException()
+                    logger.error("No Key found in S3. Object values: {0}".format(rq.__dict__))
+                    return
             rq.completed_at = datetime.now()
             rq.status = 'IMPORTING'
             rq.file_size_check = "Expected: {0} bytes. Actual: {1} bytes.".format(rq.file_size,os.path.getsize(filename))

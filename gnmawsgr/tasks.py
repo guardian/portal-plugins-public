@@ -303,6 +303,11 @@ def do_glacier_restore(request_id,itemid,path):
             filename = filename + '-1'
             continue
 
+        except AttributeError:
+            raven_client.captureException()
+            logger.error("Attribute Error. Object values: {0}".format(rq.__dict__))
+            continue
+
         except S3ResponseError as e:
             try:
                 logger.warning(e)

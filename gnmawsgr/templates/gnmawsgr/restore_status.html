@@ -14,7 +14,7 @@
 
     $( "#opener{{ entry.item_id }}" ).click(function() {
       $( "#dialog{{ entry.item_id }}" ).dialog( "open" );
-      $( "#dialog{{ entry.item_id }}" ).load( "/gnmawsgr/re/?id={{ entry.item_id }}&path={{ entry.filepath_original }}" );
+      $( "#dialog{{ entry.item_id }}" ).load( "/gnmawsgr/re/?id={{ entry.item_id }}" );
     });
   });
   {% endfor %}

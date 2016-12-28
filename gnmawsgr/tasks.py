@@ -276,12 +276,7 @@ def do_glacier_restore(request_id,itemid,path):
     while True:
         try:
             with open(filename,'wb') as fp:
-                try:
-                    key.get_file(fp, cb=partial(download_callback, rq), num_cb=40)
-                except AttributeError:
-                    raven_client.captureException()
-                    logger.error("No Key found in S3. Object values: {0}".format(rq.__dict__))
-                    return
+                key.get_file(fp, cb=partial(download_callback, rq), num_cb=40)
             rq.completed_at = datetime.now()
             rq.status = 'IMPORTING'
             rq.file_size_check = "Expected: {0} bytes. Actual: {1} bytes.".format(rq.file_size,os.path.getsize(filename))
@@ -306,6 +301,11 @@ def do_glacier_restore(request_id,itemid,path):
                 raise
             logger.error(e)
             filename = filename + '-1'
+            continue
+
+        except AttributeError:
+            raven_client.captureException()
+            logger.error("Attribute Error. Object values: {0}".format(rq.__dict__))
             continue
 
         except S3ResponseError as e:

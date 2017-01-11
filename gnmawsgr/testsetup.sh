@@ -1,3 +1,5 @@
+#!/bin/bash
+
 echo Attempting to copy Portal theme files to the required paths
 sudo mkdir -p /opt/cantemo/portal/portal_themes/gnm/templates/media
 sudo chown ubuntu /opt/cantemo/portal/portal_themes/gnm/templates/media

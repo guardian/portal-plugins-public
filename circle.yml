@@ -26,7 +26,7 @@ test:
 
 deployment:
   master:
-    branch: master
+    branch: /.*/
     commands:
       - chmod a+x buildrpms.sh
       - ./buildrpms.sh

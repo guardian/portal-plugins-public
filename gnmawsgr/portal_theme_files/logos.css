@@ -1,0 +1,101 @@
+
+.asset_category.itn {
+    background: url('../../img/gnm/logos/itn.png');
+    width: 50px;
+    height: 25px;
+    text-indent: -999px; /* Hide text label */
+}
+
+.asset_category.reuters {
+    background: url('../../img/gnm/logos/reuters.png');
+    width: 100px;
+    height: 25px;
+    text-indent: -999px; /* Hide text label */
+}
+
+.asset_category.reuterslive {
+    background: url('../../img/gnm/logos/reuters.png');
+    width: 100px;
+    height: 25px;
+    text-indent: -999px; /* Hide text label */
+}
+
+.asset_category.master {
+    background: url('../../img/gnm/icon_master.png');
+    width: 25px;
+    height: 25px;
+    text-indent: -999px; /* Hide text label */
+}
+
+.asset_category.getty-stock {
+    background: url('../../img/gnm/logos/getty.png');
+    width: 150px;
+    height: 25px;
+    text-indent: -999px; /* Hide text label */
+}
+
+.asset_category.itn-source{
+    background: url('../../img/gnm/logos/itn_source.png');
+    width: 50px;
+    height: 25px;
+    text-indent: -999px; /* Hide text label */
+}
+
+.asset_category.universal-music {
+    background: url('../../img/gnm/logos/universal_music.png');
+    width: 50px;
+    height: 25px;
+    text-indent: -999px; /* Hide text label */
+}
+
+.asset_category.archived-to-external {
+    background: url('../../img/gnm/logos/archived.png');
+    width: 50px;
+    height: 25px;
+    text-indent: -999px; /* Hide text label */
+}
+
+.asset_category.waiting-for-archive-restore {
+    background: url('../../img/gnm/logos/axe.gif');
+    width: 50px;
+    height: 25px;
+    text-indent: -999px; /* Hide text label */
+}
+
+.asset_category.ready-for-editing-from-archive {
+    background: url('../../img/gnm/logos/restored.png');
+    width: 50px;
+    height: 25px;
+    text-indent: -999px; /* Hide text label */
+}
+
+.asset_category.search-archived-to-external {
+    background: url('../../img/gnm/logos/archived.png');
+    width: 50px;
+    height: 25px;
+    position: relative;
+    left: 190px;
+    top: 22px;
+    text-indent: -999px; /* Hide text label */
+}
+
+.asset_category.search-waiting-for-archive-restore {
+    background: url('../../img/gnm/logos/axe.gif');
+    width: 50px;
+    height: 25px;
+    position: relative;
+    left: 190px;
+    top: 22px;
+    text-indent: -999px; /* Hide text label */
+}
+
+.asset_category.search-ready-for-editing-from-archive {
+    background: url('../../img/gnm/logos/restored.png');
+    width: 50px;
+    height: 25px;
+    position: relative;
+    left: 190px;
+    top: 26px;
+    text-indent: -999px; /* Hide text label */
+}
+

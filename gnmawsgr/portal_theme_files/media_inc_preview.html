@@ -1,0 +1,136 @@
+{% load thumbnailer datetimeformatting i18n general vidispinetags switch %}
+
+<div class="mediaitem mediaitemgrid {% if item.isToBeDeleted %}mediaitemtobedeleted{% endif %} item|getMetadataFieldValueByName:'gnm_asset_status'|slugify" id="{{ item.getId }}" name="{{ item.getId }}">
+
+{% spaceless %}
+{% if item.isToBeDeleted %}
+<div class="tobedeletedwrapper">
+    <div class="tobedeleted">{% trans "To be deleted" %}</div>
+</div>
+{% endif %}
+<a name="{{ item.getId }}"></a>
+{% if item.getMediaType %}
+    {% switch item.getItemType %}
+        {% case "video" %}
+            {% themeinclude 'media/media_inc_preview_video.html' %}
+        {% case "image" %}
+            {% themeinclude 'media/media_inc_preview_image.html' %}
+        {% case "audio" %}
+            {% themeinclude 'media/media_inc_preview_audio.html' %}
+        {% case "document" %}
+            {% themeinclude 'media/media_inc_preview_document.html' %}
+        {% case "sequence" %}
+            {% themeinclude 'media/media_inc_preview_sequence.html' %}
+        {% case "fcpx_project" %}
+            {% themeinclude 'media/media_inc_preview_sequence.html' %}
+        {% case "fcp7_project" %}
+            {% themeinclude 'media/media_inc_preview_sequence.html' %}
+        {% case "ppro_project" %}
+            {% themeinclude 'media/media_inc_preview_sequence.html' %}
+        {% case "data" %}
+            {% themeinclude 'media/media_inc_preview_unknown.html' %}
+        {% else %}
+            {% themeinclude 'media/media_inc_preview_unknown.html' %}
+    {% endswitch %}
+{% else %}
+    {% themeinclude 'media/media_inc_preview_unknown.html' %}
+{% endif %}
+{% endspaceless %}
+        <div class="podmenu_holder">
+            {% if not item.isToBeDeleted %}
+            <ul style="" class="podmenu plevel-one">
+                <li><a href="#"></a>
+                    <ul class="plevel-two">
+                        <li><a href="{% url vs_collection_add_form %}" class="add_to_collection" ref="{{ item.getId }}">{% trans "Add to Collection" %}</a></li>
+                        <li><a href="" class="add_to_bin" ref="{{ item.getId }}" name="{{ item.getTitle }}">{% trans "Add to bin" %}</a></li>
+                        {% pluginblock "MediaViewDropdown" collection core %}
+                    </ul>
+                </li>
+            </ul>
+            {% else %}
+                    {% pluginblock "MediaViewDeletableDropdown" mediaitem core %}
+            {% endif %}
+        </div>
+
+    <div class="infoholder">
+        <div class="mediabox-added">
+            <span class="info">{% trans "Added" %}:
+            {{ item|getMetadataFieldValueByName:"created"|datetimeobject|date:"DATETIME_FORMAT" }}</span>
+            {% if item.isToBeDeleted %}
+            <span class="info">{% trans "Deleted" %}:
+                {{ item.isToBeDeleted|datetimeobject|date:"DATETIME_FORMAT" }}</span>
+            <span class="info">{% trans "Approx Removal" %}:
+                {% if item.isToBeDeleted|timeuntilremoval == 0 %}
+                    {% trans "Under 1 Hour" %}
+                {% else %}
+                    {{ item.isToBeDeleted|timeuntilremoval }} {% trans "Hour" %}{{ item.isToBeDeleted|timeuntilremoval|pluralize }}</span>
+                {% endif %}
+            {% endif %}
+        </div>
+        {% for mdf in 3|getRepresentativeMetadataFields:item %}
+            <div class="mediabox-id">
+                <span class="info">{{ "name"|getMetadataFieldExtraDataValue:mdf }}:
+                {% if "type"|getMetadataFieldExtraDataValue:mdf == "date" %}
+                  {{ mdf.getFirstFieldValue|datetimeobject|date:"DATE_FORMAT" }}</span>
+                {% else %}
+                  {% if "type"|getMetadataFieldExtraDataValue:mdf == "timestamp" %}
+                    {{ mdf.getFirstFieldValue|datetimeobject|date:"DATETIME_FORMAT" }}</span>
+                  {% else %}
+                  	{% if "type"|getMetadataFieldExtraDataValue:mdf == "systemfield" %}
+                  		{% comment %} if this is a system field, we need to fetch the value from the item {% endcomment %}
+                  		{% with "systemfield"|getMetadataFieldExtraDataValue:mdf as systemfieldname %}
+	                  		{{ systemfieldname|getSytemMetadataFieldFormatted:item }}</span>
+	                  	{% endwith %}
+                		{% else %}
+                		  {{ mdf.getFirstFieldValue }}</span>
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
+            </div>
+        {% empty %}
+            <div class="mediabox-id">
+                <span class="info">{% trans "ID" %}:
+                {{ item.getId }}</span>
+            </div>
+        {% endfor %}
+		{% pluginblock "MediaPreviewIcon" mediaitem core %}
+        <input type="checkbox" name="mediaitem" value="{{ item.getId }}" id="item_{{ item.getId }}" class="infocheckbox">
+    </div>
+
+{% if not item.isToBeDeleted %}
+{% if item|getMetadataFieldValueByName:"created"|datetimeobject|comparetime:user.last_login %}
+<div href="#" class="starburst">
+   <span><span><span>
+      {% trans "new" %}
+   </span></span></span>
+</div>
+{% endif %}
+{% endif %}
+
+<div class="asset_category {{ item|getMetadataFieldValueByName:"gnm_asset_category"|slugify }}" title="{{ item|getMetadataFieldValueByName:"gnm_asset_category" }}">
+    {{ item|getMetadataFieldValueByName:"gnm_asset_category" }}
+</div>
+<div class="asset_category search-{{ item|getMetadataFieldValueByName:"gnm_asset_status"|slugify }}" title="{{ item|getMetadataFieldValueByName:"gnm_asset_status" }}"></div>
+
+</div>
+{% docstring %}
+media_inc_preview.html
+============
+This is the pod for one item in the search result.
+
+It includes a template to present viewers for different item types, shows some basic technical metadata and has a panel switching system for show information on the current item by selecting the menu on the left hand side.
+
+Context
+-------
+
+There is a lot of context on this page, please use the debug tag or django debug toolbar if you wish to see it all.
+
+Plugins
+-------
+
+pluginblock
+    MediaViewDropdown - Use for adding menu option to the gearbox dropdown menu
+    MediaPreviewIcon - For adding additional icons to the media pod (defined in media_inc_preview_video.html)
+
+The panel switching system can also register new panels and take existing panels away.
+{% enddocstring %}

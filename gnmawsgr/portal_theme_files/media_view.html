@@ -1,0 +1,782 @@
+{% themeextends "media/base_media_view.html" %}
+{% load i18n formatting general vidispinetags datetimeformatting videopreview compress %}
+{% block extra_script %}
+    {% compress js %}
+        <script type="text/javascript" src="{{ STATIC_URL }}js/libs/player/player.min.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/libs/select2/select2.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/app/portal/panelMgr.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/app/metadata/metadataform.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/app/media/models.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/app/media/collections.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/app/media/views.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/app/sharing/views.js"></script>
+    {% endcompress %}
+    <script type="text/javascript">
+        var media_item_id = '{{ item.getId }}';
+    </script>
+{% endblock extra_script %}
+{% block title %}{% if item.getTitle %} {{ item.getTitle }} {% else %}
+    {% trans "Item" %}: {{ item.getId }}{% endif %}{% endblock title %}
+{% block heading %}
+    <div id="header" class="header">
+        {% if item.getTitle %}
+            <h1 {% if aclcurrentuser.hasURIWritePermission and user|has_role:"_metadata_write" %}class="title_editable"{%endif%} rel="{% url item_update_metadata_field item.getId 'title' %}" ref="{{ item.getId }}">{{ item.getTitle }}</h1>
+        {% else %}
+            <h1 {% if aclcurrentuser.hasURIWritePermission and user|has_role:"_metadata_write" %}class="title_editable"{%endif%} rel="{% url item_update_metadata_field item.getId 'title' %}" ref="{{ item.getId }}">{{ item.getId }} </h1>
+        {% endif %}
+        {% if "gnm_type"|getSytemMetadataFieldFormatted:item == 'Master' %}
+            <a href="{% url master item.getId %}" class="button blue-button right">View as Master</a>
+        {% endif %}
+        <div class="mediacontextualmenu"><div class="tabholder"><span class="largecontextmenu">&nbsp;</span></div>
+
+            <div id="mcm-dropdown" class="mcm-dropdown">
+                <ol>
+                    {% if originalshape %}
+                        {% permissionrequired _export %}
+                            <li><a id="exportitem" href="#">{% trans "Export" %}</a></li>
+                        {% endpermissionrequired %}
+                        {% if not item.isPlaceholder or item.isSequence %}
+                            {% permissionrequired _file_write  %}
+                                {% if aclcurrentuser.hasURIWritePermission %}
+                                    <li><a id="returntoplaceholder" href="#">{% trans "Return to Placeholder" %}</a></li>
+                                {% endif %}
+                            {% endpermissionrequired %}
+                        {% endif %}
+                    {% endif %}
+                    {% if version == None %}
+                        {% if aclcurrentuser.hasURIWritePermission %}
+                            {% permissionrequired _item_shape_write  %}
+                                {% if user|has_role:'_administrator' %}
+                                    <li><a id="deleteitem" href="{% url vs_item_delete item.getId %}{% if item.getTitle %}?titles={{ item.getTitle }}{% endif %}">{% trans "Delete    " %}</a></li>
+                                {% endif %}
+                            {% endpermissionrequired %}
+                        {% endif %}
+                        <li><a href="" class="add_to_bin" ref="{{ item.getId }}" name="{{ item.getTitle }}">{% trans "Add to bin" %}</a></li>
+                        <li><a href="" class="add_to_collection" ref="{{ item.getId }}">{% trans "Add to Collection" %}</a></li>
+                        {% permissionrequired _import %}
+                            {% if version_support %}
+                                {% if version == None %}
+                                    <li><a href="" class="upload_item_version" ref="{{ item.getId }}">{% trans "Upload new version" %}</a></li>
+                                {% endif %}
+                                {% if version != None and item.getOriginalTag %}
+                                    <li><a href="" class="make_latest_version" ref="{{ item.getId }}">{% trans "Make latest version" %}</a></li>
+                                {% endif %}
+                                {% if not item.isPlaceholder %}
+                                    <li><a href="" class="clone_item" ref="{{ item.getId }}">{% trans "Clone to new item" %}</a></li>
+                                {% endif %}
+                            {% endif %}
+                        {% endpermissionrequired %}
+                    {% endif %}
+                    {% if request.user.userprofile.can_share %}
+                        <li><a href="" class="share_item" ref="{{ item.getId }}">{% trans "Share item" %}</a></li>
+                    {% endif %}
+                    {% pluginblock "MediaViewDropdown" collection core %}
+                </ol>
+            </div>
+        </div>
+
+        <div class="asset_category {{ item|getMetadataFieldValueByName:"gnm_asset_category"|slugify }}" title="{{ item|getMetadataFieldValueByName:"gnm_asset_category" }}"></div>
+
+    </div>
+{% endblock heading %}
+
+{% block content %}
+    <div class="leftcontent" id="mv_menu">
+        <ol class="mi_contextmenu" id="mi_contextmenu">
+            <li><a href="#" class="selected" id="mv_overview_a" shortcut="overview" rel='{"viewopen":["MediaItemPreviewPanel", "MediaItemMetadataPanel"], "norender":["MediaItemPreviewPanel", "MediaItemMetadataPanel"], "callfunc":{"func":"itemPlayer.playerResize", "args":["itemPlayer","small"]}}'><span class="iicon" style="background-position:-51px -49px"></span>{% trans "Overview" %}</a></li>
+            {% if systemmetadata.mediaType == "video" %}
+                <li><a href="#" id="mv_preview_a" shortcut="preview"  rel='{"viewopen":["MediaItemPreviewPanel", "MediaItemMetadataPanel"], "norender":["MediaItemPreviewPanel", "MediaItemMetadataPanel"], "callfunc":{"func":"itemPlayer.playerResize", "args":["itemPlayer","large"]}}'><span class="iicon" style="background-position:-28px -49px"></span>{% trans "Preview" %}</a></li>
+            {% endif %}
+            {% if thumbnails %}
+                <li><a href="#" id="mv_thumbnails_a" shortcut="thumbnails" rel='{"viewopen":["MediaItemThumbnailPanel", "MediaItemMetadataPanel"]}'><span class="iicon" style="background-position:-26px -122px"></span>{% trans "Thumbnails" %}</a></li>
+            {% endif %}
+            {% if systemmetadata.mediaType == "video" %}
+                <li><a href="#" id="mv_posters_a" shortcut="posters" rel='{"viewopen":["MediaItemPosterPanel", ""]}'><span class="iicon" style="background-position:-26px -122px"></span>{% trans "Posters" %}</a></li>
+            {% endif %}
+            {% if item.getShapes %}{% if aclcurrentuser.hasURIReadPermission %}
+                <li><a href="#" id="mv_formats_a" shortcut="formats" rel='{"viewopen":["MediaItemPreviewPanel", "MediaItemFormatsPanel"], "norender":["MediaItemPreviewPanel"], "callfunc":{"func":"itemPlayer.playerResize", "args":["itemPlayer","small"]}}'><span class="iicon" style="background-position:-170px -170px"></span>{% trans "Formats" %}</a></li>
+            {% endif %}{% endif %}
+            {% permissionrequired _job_read %}
+                <li><a href="#" id="mv_history_a" rel='{"viewopen":["MediaItemPreviewPanel", "MediaItemHistoryPanel"], "norender":["MediaItemPreviewPanel"], "callfunc":{"func":"itemPlayer.playerResize", "args":["itemPlayer","small"]}}'><span class="iicon" style="background-position:-50px -218px"></span>{% trans "History" %}</a></li>
+            {% endpermissionrequired %}
+            {% permissionrequired _accesscontrol_read %}
+                <li><a href="#" id="mv_accesscontrol_a" shortcut="accesscontrol" rel='{"viewopen":["MediaItemPreviewPanel", "MediaItemACLPanel"], "norender":["MediaItemPreviewPanel"], "callfunc":{"func":"itemPlayer.playerResize", "args":["itemPlayer","small"]}}'><span class="iicon" style="background-position:-75px -146px"></span>{% trans "Access Right" %}</a></li>
+            {% endpermissionrequired %}
+            {% if version_support %}
+                <li><a href="#" id="mv_versions_a" shortcut="versions" rel='{"viewopen":["MediaItemPreviewPanel", "MediaItemMetadataPanel"], "norender":["MediaItemPreviewPanel", "MediaItemVersionsPanel"], "callfunc":{"func":"cntmo.prtl.panelviews.MediaItemVersionsPanel.render", "args":["itemPlayer","small"]}}'><span class="iicon" style="background-position: -26px -312px"></span>{% trans "Versions" %}</a></li>
+            {% endif %}
+            <li><a href="#" id="mv_comments_a" shortcut="comments" rel='{"viewopen":["MediaItemPreviewPanel", "MediaItemCommentsPanel"], "norender":["MediaItemPreviewPanel", "MediaItemCommentsPanel"], "callfunc":{"func":"cntmo.prtl.panelviews.MediaItemCommentsPanel.render", "args":["itemPlayer","large"]}}'>
+                {% if commentcount > 0  %}
+                    <span class="iicon" style="background-position: -194px -24px"></span>{% trans "Comments" %}
+                    <span class="commentsCommentCount">({{ commentcount }})</a></span>
+                {% else %}
+                    <span class="iicon" style="background-position: -170px -24px"></span>{% trans "Comments" %}</a>
+                    <span class="commentsCommentCount"></a></span>
+                {% endif %}
+
+            </li>
+
+            {% comment %} will show metadata entry when we have more functionality shown in here.
+{% if aclcurrentuser.hasMetadataReadPermission %}
+                    <li><a href="#" id="mv_metadata_a" rel='{"viewopen":["MediaItemPreviewPanel", "MediaItemMetadataPanel"],"callfunc":{"func":"playerSize", "args":["#player","small"]}}'><span class="iicon" style="background-position:-173px -146px"></span>{% trans "Metadata" %}</a></li>
+{% endif %}
+{% endcomment %}
+            {% permissionrequired _accesscontrol_read %}
+                <li><a href="#" id="mv_related_a" shortcut="related" rel='{"viewopen":["MediaItemPreviewPanel", "MediaItemRelatedPanel"], "norender":["MediaItemPreviewPanel", "MediaItemRelatedPanel"], "callfunc":{"func":"cntmo.prtl.panelviews.MediaItemRelatedPanel.render", "args":["itemPlayer","small"]}}'><span class="iicon" style="background-position: -26px -312px"></span>{% trans "Related" %}</a></li>
+            {% endpermissionrequired %}
+            {% comment %}
+                    <li><a href="#" id="mv_related_a" shortcut="related" rel='{"viewopen":["MediaItemPreviewPanel", "MediaItemRelatedPanel"],"callfunc":{"func":"itemPlayer.playerResize", "args":["itemPlayer","small"]}}'><span class="iicon" style="background-position:-99px -146px"></span>{% trans "Related" %}</a></li>
+{% endcomment %}
+            {% pluginblock "MediaViewLeftPanelMenu" %}
+        </ol>
+        <ol>
+            {% pluginblock "MediaViewLeftContentBottom" %}
+        </ol>
+        <div class="clearfix" style="height:0;clear:both;">&nbsp;</div>
+    </div><!-- .leftcontent -->
+    <div class="itemcontentholder">
+        <div class="itemcontent" id="mvcontent">
+            {% if item.isToBeDeleted %}
+                <div class="noticemessage">
+                    <p><strong>
+                        {% if item.isToBeDeleted|timeuntilremoval == 0 %}
+                            {% trans "This item is scheduled to be deleted in less than one hour" %}
+                        {% else %}
+                            {% trans "This item is scheduled for deletion in" %} {{ item.isToBeDeleted|timeuntilremoval }} {% trans "Hour" %}{{ item.isToBeDeleted|timeuntilremoval|pluralize }}
+                        {% endif %}
+                    </strong></p>
+                </div>
+            {% endif %}
+            <div class="row">
+                {% pluginblock "MediaViewPanelRow1" %}
+                <div id="panel_preview" class="panel">
+                    {% if previews %}
+                        {% previewplayer item %}
+                    {% else %}
+                        <div id="placeholderspacer" class="smallPlayer {% if item.isSequence %}sequence{% endif %}">
+                            {% if item.isPlaceholder or item.isEmpty %}
+                                {% if skipIngestButton == False %}
+                                    {% if aclcurrentuser.hasURIWritePermission and user|has_role:"_import" and user|has_role:"_storage_read" and item.getItemType == "placeholder" %}
+                                        <a href="{% url vs_storage_ingest_to_placeholder item.getId %}{% if item.isEmpty %}?version=True{% endif %}" style="color:transparent;"><button type="button" class="button" onclick="window.location=this.parentNode.href;">{% trans "Ingest to Placeholder" %}</button></a>
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                    <div class="versionsmenu" style="display:none;">
+                        <nav>
+                            <h4>Versions</h4>
+                        </nav>
+                        <div class="versions">
+                            <img src="{{ STATIC_URL }}/img/core/loading-small.gif" class="loading-inline" alt="" />
+
+
+                        </div>
+                    </div>
+                    <div class="itemmenu">
+                        {% pluginblock "MediaViewItemTechMetadataTop" %}
+                        <h6>{% trans 'Item' %}</h6>
+                        <dl>
+                            {% if item.isToBeDeleted %}
+                                <div class="hr-panel"></div>
+                                <dt>{% trans 'Deleted' %}</dt>
+                                <dd> {{ item.isToBeDeleted|datetimeobject|date:"DATETIME_FORMAT" }}</dd>
+                            {% endif %}
+                            {% if systemmetadata.mediaType == "video" or systemmetadata.mediaType == "audio" %}
+                                {% if item.getDurationTimecode or systemmetadata.durationSeconds %}
+                                    <div class="hr-panel"></div>
+                                    <dt>{% trans 'Duration' %}</dt>
+                                    {% if item.getDurationTimecode and systemmetadata.mediaType == "video" %}
+                                        <dd>{{ item.getDurationTimecode.toSMPTE }} </dd>
+                                    {% else %}
+                                        <dd>{{ ""|formatToTime:systemmetadata.durationSeconds }} </dd>
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
+                            {% if startTimeCode and startTimeCode.frames > 0 %}
+                                <div class="hr-panel"></div>
+                                <dt>{% trans 'Start Timecode' %}</dt>
+                                <dd>{{ startTimeCode.toSMPTE }}</dd>
+                            {% endif %}
+
+
+                            {% if systemmetadata.user %}
+                                <div class="hr-panel"></div>
+                                <dt>{% trans 'User' %}</dt>
+                                <dd>{{ systemmetadata.user }}</dd>
+                            {% endif %}
+                            <div class="hr-panel"></div>
+                            <dt>{% trans 'Added' %}</dt>
+                            <dd>{{ item|getMetadataFieldValueByName:"created"|datetimeobject|date:"DATETIME_FORMAT" }}{% if not item|getMetadataFieldValueByName:"created" %}unknown{% endif %}&nbsp;</dd>
+
+                            <div class="hr-panel"></div>
+                            <dt>{% trans 'Reuters number' %}</dt>
+                            <dd>{{ item|getMetadataFieldValueByName:"gnm_newswiresgeneralinformation_edit_number" }}{% if not item|getMetadataFieldValueByName:"gnm_newswiresgeneralinformation_edit_number" %}unknown{% endif %}</dd>
+
+                            <div class="hr-panel"></div>
+                            <dt>{% trans 'Restrictions' %}</dt>
+                            <dd>{{ item|getMetadataFieldValueByName:"gnm_newswires_general_usage_terms" }}{% if not item|getMetadataFieldValueByName:"gnm_newswires_general_usage_terms" %}unknown{% endif %}</dd>
+
+                            <div class="hr-panel"></div>
+                            <dt>{% trans 'Owners' %}</dt>
+                            <dd id="extras_owner">&nbsp;</dd>
+
+                            <div class="hr-panel"></div>
+                            <dt>{% trans 'Tags' %}</dt>
+                            <dd id="extras_tags">&nbsp;</dd>
+
+                        </dl>
+                        <h6>{% trans 'Media' %}</h6>
+                        <dl>
+                            <dt>{% trans "Type" %}</dt>
+                            <dd>{{ item|getItemTypeLabel }}</dd>
+                            {% if systemmetadata.originalFilename %}
+                                <div class="hr-panel"></div>
+                                <dt>{% trans "Filename" %}</dt>
+                                {% comment %}<dd>{{ systemmetadata.originalFormat|upper }}</dd>{% endcomment %}
+                                <dd>{{ item.getOriginalFilename }}</dd>
+                            {% endif %}
+                            {% if systemmetadata.originalFormat %}
+                                <div class="hr-panel"></div>
+                                <dt>{% trans "Format" %}</dt>
+                                {% comment %}<dd>{{ systemmetadata.originalFormat|upper }}</dd>{% endcomment %}
+                                <dd>
+                                    {{ item.getOriginalFilename|getBestMediaFormat:systemmetadata.originalFormat }}
+                                    {% if systemmetadata.mediaType == "video" %}
+                                        ({{ systemmetadata.originalVideoCodec }}
+                                        {% if systemmetadata.originalAudioCodec %}
+                                            : {{ systemmetadata.originalAudioCodec }})
+                                        {% else %})
+                                        {% endif %}
+                                    {% endif %}
+                                </dd>
+                            {% endif %}
+                            {% if systemmetadata.originalWidth and systemmetadata.originalHeight %}
+                                <div class="hr-panel"></div>
+                                <dt class="inlinedt">{% trans 'Dimension' %}</dt>
+                                <dd>{{ systemmetadata.originalWidth }} x {{ systemmetadata.originalHeight }}
+                                    {% if aspect_ratio %}
+                                        ({{ aspect_ratio }})
+                                    {% endif %}
+                                </dd>
+                            {% endif %}
+                        </dl>
+
+                        {% pluginblock "ItemTechMetadataPlugin" %}
+                    </div><!-- .itemmenu-->
+                </div><!-- #panel_preview -->
+
+                {% if thumbnails %}
+                    <div style="display:none;" class="panel" id="panel_thumbnails">
+                        {% for thumb in thumbnails  %}
+                            <img src="{{ thumb }}" width="160px" class="imagethumbnail" />
+                        {% endfor %}
+                    </div><!--#mv_thumbnails -->
+                {% endif %}
+                <div style="display:none;" class="panel" id="panel_posters">
+                    {% trans "There are currently no posters to show." %}
+                </div>
+            </div><!-- .row -->
+            <div class="row">
+                <div class="project-usage">
+                    <fieldset class="collapsible collapsed collapsibleClosed">
+                        <legend class="collapsible collapsed">
+                            <div class="collapsible_icon"></div>
+                            <strong>Usage in masters</strong>
+                        </legend>
+                        <div class="panes">
+                            <div id="tab1" class="clearfix tab">
+                                <table class="generictbl" id="usage_in_masters">
+                                    <thead>
+                                    <tr>
+                                        <th><a href="#">Master title</a></th>
+                                        <th><a href="#">Project title</a></th>
+                                        <th><a href="#">Commission title</a></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </fieldset>
+                    <fieldset class="collapsible collapsed collapsibleClosed">
+                        <legend class="collapsible collapsed">
+                            <div class="collapsible_icon"></div>
+                            <strong>Project collections</strong>
+                        </legend>
+                        <div class="panes">
+                            <div id="tab1" class="clearfix tab">
+                                <table class="generictbl" id="usage_in_projects">
+                                    <thead>
+                                    <tr>
+                                        <th><a href="#">Project title</a></th>
+                                        <th><a href="#">Commission title</a></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="row">
+                {% pluginblock "MediaViewPanelRow2" %}
+                {% if aclcurrentuser.hasMetadataReadPermission %}
+                    <div id="panel_metadata" class="panel">
+                        <div class="panel-header"><h2>{% trans "Metadata" %}</h2>
+                            {% if aclcurrentuser.hasMetadataWritePermission and metadataelements %}{% permissionrequired _metadata_write %}
+                                <a href="#fullmetadata" class="edit_metadata buttonlink" rel="{% url vs_item_get_metadataform item.getId %}" ><button class="button emd_button" before="{% trans "Edit" %}" after="{% trans "Cancel" %}" loading="{% trans "Loading" %}">{% trans "Edit" %}</button></a>
+
+                                {% permissionrequired _metadata_write %}
+                                    {% if metadataelements %}
+                                        <a href="" id="delete_metadata" class="buttonlink" ><button class="button">{% trans "Remove metadata" %}</button></a>
+                                    {% endif %}
+                                {% endpermissionrequired %}
+                            {% endpermissionrequired %}{% endif %}
+                        </div>
+                        {% if metadataelements %}
+                            <form action="{% url vs_item_get_metadataform item.getId %}" method="post" accept-charset="utf-8" id="metadataeditform">{% csrf_token %}
+                                <div id="metadataform">
+                                    {% themeinclude "media/metadata_render.html" %}
+                                </div>
+                            </form>
+                        {% endif %}
+                        {% if specificmetadataform %}
+                            <form action="" method="post" accept-charset="utf-8" >{% csrf_token %}
+                                <fieldset>
+                                    <div id="specificmetadataform">
+                                        <ul>{% for field in specificmetadataform  %}
+                                            <li>{{ field.label_tag }}{{ field }}<div class="fld_help_txt">{{ field.help_text }}</div></li>
+                                        {% endfor %}
+                                        </ul>
+                                    </div><!-- #metadataform -->
+                                </fieldset>
+                            </form>
+                        {% endif %}
+                        {% if not specificmetadataform %}
+                            {% if not metadataelements and aclcurrentuser.hasMetadataWritePermission %}
+                                {% if user|has_role:"_metadata_write" %}
+                                    <p id="msg-no_metadata">{% trans "There is no metadata for this item please choose a metadata form to apply to this item" %}</p>
+                                    <form id="metadataformedit" action="{% url vs_item_associate_metadata item.getId %}" method="post" accept-charset="utf-8">
+                                        {% csrf_token %}
+                                        <fieldset id="setmetadataform">
+                                            {% themeinclude "includes/metadataformchooser.html" %}
+                                        </fieldset>
+                                        <ul>
+                                            <li class="mono"><input type="submit" name="action" value="{% trans 'Create' %}" class="button" /></li>
+                                        </ul>
+                                    </form>
+                                {% else %}
+                                    <p id="msg-no_metadata">{% trans "There is no metadata for this item" %}</p>
+                                {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    </div><!-- #panel_metadata .panel -->
+                {% endif %}
+            {% if item.getShapes %}{% if aclcurrentuser.hasURIReadPermission %}
+                <div id="panel_format" class="panel" style="display:none;">
+                    <div class="panel-header"><h2>{% trans "Formats" %}</h2>
+                        {% if originalshape and aclcurrentuser.hasURIWritePermission and systemmetadata.mediaType != "data" %}{% permissionrequired _job_write %}
+                            <a href="" id="transcodeitem" class="buttonlink"><button class="button"><img src="{{ STATIC_URL }}img/icon-transcode.png"> {% trans "Transcode" %}</button></a>
+                        {% endpermissionrequired %}{% endif %}
+                    </div>
+                    <table id="cntmo_prtl_mediaitem_shape_table">
+                        <thead>
+                        <tr>
+                            <th>{% trans "Name" %}</th>
+                            <th>{% trans "Format" %}</th>
+                            <th>{% trans "Filesize" %}</th>
+                            <th>{% trans "Filename" %}</th>
+                            <th>{% trans "Storage" %}</th>
+                            <th style="width:150px;"></th>
+                            <th style="width:150px;"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <td colspan="6" class="imgpreloader" ><img src="{{ STATIC_URL }}img/icon-ajax-loader.gif"></td>
+                        </tbody>
+                    </table>
+                    <div id="transcodepanel"></div>
+
+                </div><!-- #panel_format -->
+            {% endif %}{% endif %}
+            <div id="panel_related" class="panel" style="display:none;">
+                <div class="panel-header">
+                    <h2>{% trans "Related Items" %}</h2>
+                    {% if aclcurrentuser.hasURIWritePermission %}
+                        {% comment %}
+        	                <a href="" id="relateitem" class="buttonlink"><button class="button"><img src="{{ STATIC_URL }}img/icon-item-export.png"> {% trans "Relate" %}</button></a></li>
+                          {% endcomment %}
+                    {% endif %}
+                </div>
+                <div class="related_wrapper">
+                </div>
+            </div><!--#panel_related -->
+
+            {% permissionrequired _job_read %}
+                <div id="panel_history"  class="panel" style="display:none;">
+                    <div class="panel-header"><h2>{% trans "History" %}</h2></div>
+                    <table class="jobstable" id="jobstbl">
+                        <thead>
+                        <tr class="heading">
+                            <th>{% trans 'Status' %}</th>
+                            <th>{% trans 'Type' %}</th>
+                            <th>{% trans 'Current Step' %}</th>
+                            <th>{% trans 'Started' %}</th>
+                            <th>{% trans 'User' %}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+
+                        </tr>
+                        {% comment %}
+
+                            {% if transcodejobs %}
+                                {% for job in transcodejobs %}
+                                    <tr{% if forloop.counter|divisibleby:"2"  %} class="even"{% endif %}>
+                                        <td>{{ ""|getJobStatusLabel:job.getStatus }}</td>
+                                        <td>{{ ""|getJobTypeLabel:job.getType}}</td>
+                                        <td>{{job.getCurrentStepDescription}}</td>
+                                        <td>{{job.getStarted|datetimeobject|date:"DATETIME_FORMAT"}}</td>
+                                        <td>{{job.getUser}}</td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <td colspan="5" class="imgpreloader" ><img src="{{ STATIC_URL }}img/icon-ajax-loader.gif"></td>
+                            {% endif %}
+                                {% endcomment %}
+                        </tbody>
+                    </table>
+                </div><!--#panel_history -->
+            {% endpermissionrequired %}
+
+            <div id="panel_acl" class="panel" style="display:none;">
+                <div class="panel-header"><h2>{% trans "Access Rights" %}</h2>
+                    {% permissionrequired _administrator %}
+                        <a href="#" id="showhideaudit" class="buttonlink" rel="{% url vs_item_accessrights_ajax item.getId %}" before="{% trans "Show audit" %}" after="{% trans "Show access list" %}"><button class="button">{% trans "Show audit" %}</button></a>
+                    {% endpermissionrequired %}
+                    {% if aclcurrentuser.hasURIWritePermission %}
+                        <a href="#" id="aclmanage" class="buttonlink" rel="{% url vs_acl_form %}"><button class="button"><img src="{{ STATIC_URL }}img/icon-acl.png"> {% trans "Add Access Rights" %}</button></a>
+                    {% endif %}
+                </div><!-- .panel-header -->
+                <table id="access_rights">
+                    <thead>
+                    <th>{% trans "Recipient" %}</th>
+                    <th>{% trans "Permission" %}</th>
+                    <th style="width:150px;"></th>
+                    </thead>
+                    <tbody>
+                    <td colspan="3" class="imgpreloader" ><img src="{{ STATIC_URL }}img/icon-ajax-loader.gif"></td>
+                    </tbody>
+                    <tfoot>
+                    </tfoot>
+                </table>
+                <table id="audit_access_rights" style="display:none;">
+                    <thead>
+                    <th>{% trans "Recipient" %}</th>
+                    <th>{% trans "Permission" %}</th>
+                    <th>{% trans "Why" %}</th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+                <script type="text/template" id="cntmo_prtl_mediaitem_acl_tmpl">
+                    <td><% if (user != "") { print(user) } else { print(group) } %></td>
+                    <td style="text-transform:capitalize;"><%= permission.toLowerCase() %></td>
+                    <td style="width:2em;">{% if aclcurrentuser.hasURIWritePermission %}<% if (permission.toLowerCase() != 'owner'){ %><a href="#" class="remove hidden">{% trans "Remove" %}</a><% } %>{% endif %}</td>
+                </script>
+                <script type="text/template" id="cntmo_prtl_mediaitem_history_tmpl">
+                    <td>
+                        <% if (joblink !== '') { %><a href="<%= joblink %>"><%= status_label %></a><% } else { %><%= status_label %><% } %></td>
+                    <td><%= type %></td>
+                    <td><%= current_step_description %></td>
+                    <td><%= started %></td>
+                    <td><%= user %></td>
+                </script>
+                <script type="text/template" id="cntmo_prtl_mediaitem_format_tmpl">
+                    <td><%= name %></td>
+                    <td class="shapeformat" style="cursor:pointer;cursor:hand;"><strong><%= format %></strong>
+                        <% if (format) { %>
+                        <div class="cnxtualMenu"><div class="cnxtualMenu_arrow"></div>
+                            <table>
+                                <% if (mimetype.indexOf('image') != -1) { %>
+                                <tr>
+                                    <td>{% trans "Image Type:" %}</td>
+                                    <td class="value"><%= videoCodec %></td>
+                                    <td>{% trans "Resolution:" %}</td>
+                                    <td class="value"><%= videoResolution %>px</td>
+                                </tr>
+
+                                <% } else if (mimetype.indexOf('video') != -1 || mimetype.indexOf('application/mxf') != -1) { %>
+                                <tr>
+                                    <td>{% trans "Video codec:" %}</td>
+                                    <td class="value"><%= videoCodec %></td>
+                                    <td>{% trans "Bitrate:" %}</td>
+                                    <td class="value"><%= videoBitRate %></td>
+                                    <td>{% trans "Framerate:" %}</td>
+                                    <td class="value"><%= videoFPS %>FPS</td>
+                                    <td>{% trans "Resolution:" %}</td>
+                                    <td class="value"><%= videoResolution %>px</td>
+                                    <td>{% trans "Field Order:" %}</td>
+                                    <td class="value"><%= fieldOrder %></td>
+                                </tr>
+                                <tr>
+                                    <td>{% trans "Audio codec:" %}</td>
+                                    <td class="value"><%= audioCodec %></td>
+                                    <td>{% trans "Bitrate:" %}</td>
+                                    <td class="value"><%= audioBitRate %></td>
+                                    <td>{% trans "Samplerate:" %}</td>
+                                    <td class="value"><%= audioSamplingRate %>Hz</td>
+                                    <td>{% trans "Channel count:" %}</td>
+                                    <td class="value"><%= audioChannelCount %></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                                <% } else if (mimetype.indexOf('audio') != -1) { %>
+                                <tr>
+                                    <td>{% trans "Audio codec:" %}</td>
+                                    <td class="value"><%= audioCodec %></td>
+                                    <td>{% trans "Bitrate:" %}</td>
+                                    <td class="value"><%= audioBitRate %></td>
+                                    <td>{% trans "Samplerate:" %}</td>
+                                    <td class="value"><%= audioSamplingRate %>Hz</td>
+                                    <td>{% trans "Channel count:" %}</td>
+                                    <td class="value"><%= audioChannelCount %></td>
+                                </tr>
+                                <% } %>
+                            </table>
+                        </div><!-- /.cnxtualMenu -->
+                        <% } %>
+                    </td>
+                    <td><%= filesize %></td>
+                    <td><%= filename %></td>
+                    <td><%= storagename %></td>
+                    <td><% if (download_uri != "") { print('<a href="' + download_uri +'">{% trans "Download" %}</a>') } else { print('') } %></td>
+                    <td style="width:2em;">{% if aclcurrentuser.hasURIWritePermission %}{% permissionrequired _item_shape_write %}<a href="#" class="remove hidden">{% trans "Delete" %}</a>{% endpermissionrequired %}{% endif %}</td>
+                </script>
+            </div>
+            <div id="panel_comments"  class="panel" style="display:none;">
+                <div class="panel-header"><h2>{% trans "Comments" %}</h2></div>
+                <div class="comments_wrapper">
+
+                </div>
+            </div>
+            <div class="clearfix">&nbsp;</div>
+        </div><!-- .row -->
+    </div><!-- .itemcontent-->
+    <div class="clearing" style="height: 0;clear:both;">&nbsp;</div>
+    <div style="display:none">
+        <button onClick='itemPlayer.printDebug("#debuginfo")'>Debug</button>
+        <div id="debuginfo"></div>
+    </div>
+    </div><!-- .itemcontentholder -->
+{% endblock content %}
+{% block inlinejs %}
+    <script type="text/javascript" charset="utf-8">
+        $(document).ready(function() {
+            $.ajax('{% url asset_usage_in_masters item.getId %}', {
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    $.each(data, function(index, item) {
+                        var tr = $('<tr />');
+                        var master = $('<td><a href="/master/' + item.master_id + '">' + item.master_title + '</a></td>');
+                        var project = $('<td><a href="/project/' + item.project_id + '">' + item.project_title + '</a></td>');
+                        var commission = $('<td><a href="/commission/' + item.commission_id + '">' + item.commission_title + '</a></td>');
+
+                        tr.append(master);
+                        tr.append(project);
+                        tr.append(commission);
+
+                        $('#usage_in_masters').find('tbody').append(tr);
+                    });
+                }
+            });
+
+            $.ajax('{% url asset_usage_in_projects item.getId %}', {
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    $.each(data, function(index, item) {
+                        var tr = $('<tr />');
+                        var project = $('<td><a href="/project/' + item.project_id + '">' + item.project_title + '</a></td>');
+                        var commission = $('<td><a href="/commission/' + item.commission_id + '">' + item.commission_title + '</a></td>');
+
+                        tr.append(project);
+                        tr.append(commission);
+
+                        $('#usage_in_projects').find('tbody').append(tr);
+                    });
+                }
+            });
+
+            $.ajax('{% url asset_itempage_extras item.getId %}', {
+                type: 'GET',
+                success: function(data) {
+                    var owners = $('<div>&nbsp;</div>');
+                    data.owners.forEach(function(text) {
+                        var owner = $('<div class="tag_blob" />');
+                        owner.text(text);
+                        owners.append(owner);
+                    });
+                    $('#extras_owner').html(owners);
+
+                    var tags = $('<div>&nbsp;</div>');
+                    data.tags.forEach(function(text) {
+                        var tag = $('<div class="tag_blob" />');
+                        tag.text(text);
+                        tags.append(tag);
+                    });
+                    $('#extras_tags').html(tags);
+                }
+            });
+
+            cntmo.app.page.mainView = new cntmo.prtl.Item.MediaViewPage({
+                el: $('#main'),
+                initializePanels: true,
+                model: new cntmo.vs.VSItem({
+                    id: '{{ item.getId }}',
+                    fps: '{{ item.getFramesPerSecond }}',
+                    start_tc: new Timecode({smpte: '{{ startTimeCode.toSMPTE }}'}),
+                    resource_type: '{{systemmetadata.mediaType }}',
+                    item_relations: {% if relationships %}[]{% else %}undefined{% endif %},
+                    resource_name: "{{ item.getTitle }}"{% if thumbnails %},
+                        thumbnail_uri: "{% firstof thumbnails.6 thumbnails.4 thumbnails|first %}"{% endif %}
+                }),
+                definedurls: {
+                    'exporturl': '{% url vs_items_export %}?selected_objects={{ item.getId }}',
+                    'removemetadataurl': '{% url vs_item_remove_metadataform item.getId %}',
+                    {% if version != None %}
+                        'this': '{% url vs_item_version item.getId version %}',
+                        'makelatestversionurl': '{% url vs_item_make_latest_version item.getId version %}',
+                        'cloneitemurl': '{% url vs_item_version_clone item.getId version %}',
+                    {% else %}
+                        'this': '{% url vs_item item.getId  %}',
+                        'cloneitemurl': '{% url vs_item_clone item.getId %}',
+                    {% endif %}
+                    'returntoplaceholderurl': '{% url vs_item_shape item.getId %}?placeholder=True',
+                    'createitemrelationship': '{% url vs_create_relationship %}',
+                    'searchajax': '{% url vs_search_ajax  %}',
+                    'grabstill': '{% url vs_create_posters item.getId %}',
+                    'uploaditem' : '{% url vs_item_upload item.getId %}',
+                    'shareitem': '{% url sharing:shareout item.getId %}'
+                    {% if aclcurrentuser.hasURIWritePermission and originalshape %}
+                        ,'transcodeurl':'{% url vs_item_transcode_ajax item.getId originalshape.getId %}?mediaType={{systemmetadata.mediaType}}'
+                    {% endif %}
+                },
+
+                panels: {
+                    {% if systemmetadata.mediaType == "video" or systemmetadata.mediaType == "image" %}
+                        'MediaItemPreviewPanel': new cntmo.prtl.Item.MediaItemPreviewPanel({
+                            el:$('#panel_preview')
+                        }),
+                    {% endif %}
+                    {% if systemmetadata.mediaType == "video" and item.getOriginalTag.getEssenceVersion != None %}
+                        'MediaItemPosterPanel':  new cntmo.prtl.Item.MediaItemPosterPanel({
+                            el:$('#panel_posters'),
+                            {% if item.getOriginalTag.getEssenceVersion %}
+                                url:"{% url vs_item_get_poster_version item.getId item.getOriginalTag.getEssenceVersion %}"
+                            {% else %}
+                                url:"{% url vs_item_get_poster item.getId %}"
+                            {% endif %}
+                        }),{% endif %}
+                    'MediaItemThumbnailPanel': new cntmo.prtl.Item.MediaItemThumbnailPanel({
+                        el:$('#panel_thumbnails')
+                    }),
+                    'MediaItemMetadataPanel': new cntmo.prtl.Item.MediaItemMetadataPanel({
+                        el:$('#panel_metadata')
+                    }),
+                    'MediaItemFormatsPanel': new cntmo.prtl.Item.MediaItemFormatsPanel({
+                        el:$('#panel_format'),
+                        {% if version != None %}
+                            url: "{% url vs_item_shape_version item.getId version %}"
+                        {% else %}
+                            url: "{% url vs_item_shape item.getId %}"
+                        {% endif %}
+                    }),
+                    'MediaItemRelatedPanel': new cntmo.prtl.Item.MediaItemRelatedPanel({
+                        el:$('#panel_related'),
+                        url: "{% url vs_item_view_related item.getId %}"
+                    }),
+                    'MediaItemHistoryPanel': new cntmo.prtl.Item.MediaItemHistoryPanel({
+                        el:$('#panel_history'),
+                        url: "{% url item_jobs item.getId %}"
+                    }),
+                    'MediaItemACLPanel': new cntmo.prtl.Item.MediaItemACLPanel({
+                        el:$('#panel_acl'),
+                        url:"{% url vs_item_acl_ajax item.getId %}"
+                    }),
+                    'MediaItemVersionsPanel': new cntmo.prtl.Item.MediaItemVersionsPanel({
+                        el:$('#panel_preview'),
+                        url: "{% url vs_item_versions item.getId  %}",
+                        currentSelectedVersion: "{{ version }}"
+                    }),
+                    'MediaItemCommentsPanel': new cntmo.prtl.Item.MediaItemCommentsPanel({
+                        el:$('#panel_comments'),
+                        url: "{% url comments:comment_thread item.getId 'item' version|default:'latest' %}",
+                        currentSelectedVersion: "{{ version }}"
+                    })
+                }
+
+            });
+
+            {% comment %}
+
+            // Add relationship functionality to the media bin.
+            $('#mediabin').bind('cntmo.prtl.MediaBinView.Event.addAll', function(event){
+                  $('#mediabin .smallmediapod').trigger('cntmo.prtl.MediaBinVSItemView.addContextPlugin', ['AddItemRelationship', 'cntmo.prtl.AddItemRelationShip', 'Relate to item']);
+                  });
+              $(window).bind('cntmo.prtl.AddItemRelationShip', function(event, model){
+                  /*  Add item relationship
+                      call add to element.
+                      On Success raise an event which will tell the collection to go fetch...
+                  */
+                   $.ajax({
+                       url:'{% url vs_create_relationship %}',
+                       data: { source: '{{ item.getId }}', target: model.get('resource_id') },
+                       type: 'GET',
+                       success: function(data, textStatus, XMLHttpRequest){
+                           $.growl(data, 'success');
+                       },
+                   });
+              });
+            {% endcomment %}
+
+
+        });
+    </script>
+    {% pluginblock "MediaViewInLineJS" %}
+{% endblock inlinejs %}
+{% docstring %}
+    media_view.html
+    ============
+    This is the main media page for showing an item.
+
+    It includes a template to present viewers for different item types, shows some basic technical metadata and has a panel switching system for show information on the current item by selecting the menu on the left hand side.
+
+    Context
+    -------
+
+    There is a lot of context on this page, please use the debug tag if you wish to see it all.
+
+    Plugins
+    -------
+
+    pluginblock
+    MediaViewDropdown - Use for adding menu option to the gearbox dropdown menu
+    MediaViewLeftContentBottom - Use for adding more things into the left content view.
+    MediaViewItemTechMetadataTop - For adding more information to the Item metadata section
+    MediaViewLeftPanelMenu - For adding items to the Panel switcher menu
+    MediaViewInLineJS - For adding Javascript into the bottom of the MediaView's page.
+    MediaViewPanelRow1 - For adding a panel to Row1 in MediaView's page.
+    MediaViewPanelRow2 - For adding a panel to Row2 in MediaView's page.
+    ItemTechMetadataPlugin - For adding more information to the Item metadata section at the bottom.
+
+    The panel switching system can also register new panels and take existing panels away.
+{% enddocstring %}
+

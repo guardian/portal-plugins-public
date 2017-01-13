@@ -202,8 +202,6 @@ def do_glacier_restore(request_id,itemid,path):
     import traceback
     from functools import partial
 
-    path = path.replace(' ','\ ')
-
     try:
         import raven
         from django.conf import settings

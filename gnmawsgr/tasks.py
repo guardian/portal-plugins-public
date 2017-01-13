@@ -58,7 +58,7 @@ def makeshape(itemid,uri,tagname='original',agent=None):
     if not re.match(r'^\w+:/',uri):
         uri = 'file:' + uri
 
-    uri = uri.replace(' ','\ ')
+    uri = uri.replace(' ','%20')
 
     url = "/API/item/{0}/shape?uri={1}&tag={2}".format(itemid,uri,tagname)
 

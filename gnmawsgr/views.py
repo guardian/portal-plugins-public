@@ -21,12 +21,8 @@ def r(request):
     from portal.vidispine.igeneral import performVSAPICall
     from portal.vidispine.iitem import ItemHelper
 
-    # pprint(request.user.userprofile.__dict__)
-    # pprint(request.user.groups.all())
     itemid = request.GET.get('id', '')
-
     ith = ItemHelper()
-
     res = performVSAPICall(func=ith.getItemMetadata, \
                                     args={'item_id':itemid}, \
                                     vsapierror_templateorcode='template.html')
@@ -48,7 +44,6 @@ def r(request):
 
     if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER") or (rq.status == "COMPLETED"):
         do_task = glacier_restore.delay(rq.pk,itemid,path)
-        #print do_task
         return render(request,"restore.html")
     else:
         if (rq.requested_at == '') or (rq.username == '') or (rq.status == ''):
@@ -134,40 +129,24 @@ def rc(request):
     from portal.vidispine.iitem import ItemHelper
 
     collid = request.GET.get('id', '')
-
     ch = CollectionHelper()
-
     res = performVSAPICall(func=ch.getCollection, \
                                 args={'collection_id':collid}, \
                                 vsapierror_templateorcode='template.html')
-
     collection = res['response']
-
     content = collection.getItems()
 
     for data in content:
-
         ith = ItemHelper()
-
         itemid = data.getId()
-
         res2 = performVSAPICall(func=ith.getItemMetadata, \
                                     args={'item_id':itemid}, \
                                     vsapierror_templateorcode='template.html')
-
         itemdata = res2['response']
 
-        try:
-            test_value = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_status',itemdata['item'])
-        except:
-            print 'An error broke the call'
-
+        test_value = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_status',itemdata['item'])
         if test_value == archive_test_value:
-
-            try:
-                path = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_path',itemdata['item'])
-            except:
-                print 'An error broke the call'
+            path = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_path',itemdata['item'])
 
             try:
                 rq = RestoreRequest.objects.get(item_id=itemid)

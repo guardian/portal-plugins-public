@@ -19,10 +19,53 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
         urlpath = '/' + urlpath
 
     url = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
-    #url = "http://dc1-mmmw-05.dc1.gnm.int:8080{0}".format(urlpath)
     logging.debug("URL is %s" % url)
     (headers,content) = agent.request(url,method=method,body=body,headers=headers)
     return (headers,content)
+
+class Gnm_ProjectRestoreOption(Plugin):
+    """
+    Injects a link to the asset folder, with create & fix permissions buttons, into the Project edit view.
+    """
+    implements(IPluginBlock)
+
+    def __init__(self):
+        self.name = "pluto_project_edit_extras_right"
+        self.plugin_guid = '4506fd78-6e1b-4e5e-a6a0-674ae0ca5c41'
+        log.debug('Initiated project page plugin')
+
+    def return_string(self, tagname, *args):
+        """
+        Renders a template of html to inject into the project page, containing an opening link and controls that call
+        our AJAX views
+        :param tagname:
+        :param args:
+        :return:
+        """
+        context = args[1]
+        project = context['project']
+        projectmodel = context['projectmodel']
+        project_id = project.id
+
+        print context['user'].groups.all()
+        
+        is_allowed = False
+        if context['user'].is_superuser:
+            is_allowed = True
+        else:
+            list = filter(lambda group: True if group.name=='AWS_GR_Restore' else False,context['user'].groups.all())
+            if len(list)>0: is_allowed=True
+            
+        print is_allowed
+        
+        return {'guid': self.plugin_guid,
+                'template': 'gnmawsgr/project_restore_request.html',
+                'context': {
+                    'collection': project_id,
+                    'is_allowed': is_allowed
+                }}
+
+navplug = Gnm_ProjectRestoreOption()
 
 def getItemInfo(itemid,agent=None):
     import json

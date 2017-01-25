@@ -6,8 +6,12 @@ from decorators import has_group
 from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
 from django.core.urlresolvers import reverse_lazy
-
-archive_test_value = 'Archived'
+from rest_framework.views import APIView, Response
+from rest_framework.renderers import JSONRenderer
+from rest_framework import permissions
+from vsmixin import VSMixin, VSWrappedSearch
+from utils import metadataValueInGroup
+from portal.plugins.gnmawsgr import archive_test_value
 
 @login_required
 def index(request):
@@ -50,6 +54,7 @@ def r(request):
             return render(request,"do_not_restore_no_data.html")
         else:
             return render(request,"do_not_restore.html", {"at": rq.requested_at, "user": rq.username, "status": rq.status})
+
 
 class CurrentStatusView(ListView):
     model = RestoreRequest
@@ -94,30 +99,6 @@ def re(request):
     rq.save()
     do_task = glacier_restore.delay(rq.pk,itemid,path)
     return render(request,"restore.html")
-
-def _find_group(groupname,meta):
-    if not 'group' in meta:
-        return None
-
-    for g in meta['group']:
-        if g['name'] == groupname:
-            return g
-        _find_group(groupname,g)
-
-def metadataValueInGroup(groupname, mdkey, meta):
-    for item_data in meta:
-        for ts in item_data['metadata']['timespan']:
-            group = _find_group(groupname, ts)
-            if group is None:
-                raise ValueError("Could not find group {0}".format(groupname))
-            for f in group['field']:
-                if f['name'] == mdkey:
-                    rtn = map(lambda x: x['value'],f['value'])
-                    if len(rtn)==1:
-                        return rtn[0]
-                    else:
-                        return rtn
-    raise ValueError("Could not find metadata key {0}".format(mdkey))
 
 @login_required
 @has_group('AWS_GR_Restore')
@@ -230,3 +211,31 @@ def rcs(request):
                 do_task = glacier_restore.delay(rq.pk,itemid,path)
 
     return render(request,"restore_selected.html")
+
+
+class ProjectInfoView(APIView):
+    renderer_classes = (JSONRenderer, )
+    permission_classes = (permissions.IsAuthenticated, )
+    
+    def get(self, request, projectid=None):
+        """
+        Returns information about the project's archive status.  This is used to determine whether to show restore controls or not.
+        :param request: django request object
+        :param projectid: project id as given by Vidispine
+        :return: HttpResponse with a json object for ajax
+        """
+    
+        try:
+            promises = {
+                'total_items': VSWrappedSearch({'__collection': projectid}).execute(),
+                'archived_items': VSWrappedSearch(
+                    {'__collection': projectid, 'gnm_external_archive_external_archive_status': "Archived to External"}).execute()
+            }
+            
+            results = dict(
+                map(lambda key, promise: (key, promise.waitForJson()), promises.items())
+            )
+            
+            return Response({'status': "ok", "results": results})
+        except Exception as e:
+            return Response({'status': "error", "detail": str(e)})

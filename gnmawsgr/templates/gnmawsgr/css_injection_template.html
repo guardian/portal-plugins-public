@@ -1,0 +1,16 @@
+<!--GNM AWS GR CSS injection template -->
+<style>
+    {% if is_archiving %}
+    .itemcontent {
+        background-color: #e6e6e6;
+    }
+    {% elif is_restoring %}
+    .itemcontent {
+        background-color: #ff9999;
+    }
+    {% elif is_archived %}
+    .itemcontent {
+        background-color: #66ccff;
+    }
+    {% endif %}
+</style>

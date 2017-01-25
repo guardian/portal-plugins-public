@@ -1,3 +1,4 @@
+{% if is_allowed %}
 <script>
   $(function() {
     $( "#dialog_{{ collection }}" ).dialog({
@@ -13,14 +14,30 @@
   });
 
 </script>
+{% endif %}
 
+<script>
+    function check_has_in_glacier(){
+        //ask the server whether this project has any assets externally archived. If so, return true
+        $ajax("{% url 'gnmawsgr:
+    }
+    $(document).ready(function(){
+        $("#glacier_restore_button_container").hide();
+        check_has_in_glacier();
+    });
+</script>
 <li>
-    {% if is_allowed %}
-    <button type="button" id="restore_{{ collection }}">Restore from Glacier</button>
-    {% else %}
-    <button type="button" id="disabled_restore_button" style="background-color: LightGrey;">Restore from Glacier</button>
-    <span style="font-style: italic; text-align: right;">Only admins are allowed to restore entire projects from Glacier</span>
-    {% endif %}
+    <div id="glacier_restore_button_loading">
+        <img src="{% static 'img/gnm/load.gif' %}">
+    </div>
+    <div id="glacier_restore_button_container">
+        {% if is_allowed %}
+        <button type="button" id="restore_{{ collection }}">Restore from Glacier</button>
+        {% else %}
+        <button type="button" id="disabled_restore_button" style="background-color: LightGrey;">Restore from Glacier</button>
+        <span style="font-style: italic; text-align: right;">Only admins are allowed to restore entire projects from Glacier</span>
+        {% endif %}
+    </div>
 </li>
 
 <div id="dialog_{{ collection }}" title="Restore from Glacier">

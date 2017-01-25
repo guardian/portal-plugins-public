@@ -3,6 +3,8 @@ from portal.pluginbase.core import Plugin, implements
 from portal.generic.plugin_interfaces import IPluginURL, IPluginBlock, IAppRegister
 
 archive_test_value = 'Archived'
+restoring_test_value = 'Requested Restore'
+archiving_test_value = 'Requested Archive'
 
 log = logging.getLogger(__name__)
 
@@ -22,6 +24,7 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
     logging.debug("URL is %s" % url)
     (headers,content) = agent.request(url,method=method,body=body,headers=headers)
     return (headers,content)
+
 
 class Gnm_ProjectRestoreOption(Plugin):
     """
@@ -66,6 +69,68 @@ class Gnm_ProjectRestoreOption(Plugin):
                 }}
 
 navplug = Gnm_ProjectRestoreOption()
+
+
+class Gnm_GlacierCSS(Plugin):
+    """
+    Injects CSS overrides into an item page
+    """
+    implements(IPluginBlock)
+    
+    def __init__(self):
+        self.name = "header_css_js"
+        self.plugin_guid = '46ac18fe-8753-499f-b026-02ca7d9b2e89'
+        log.warning('Initiated glacier CSS')
+    
+    def context_for_item(self, item):
+        from pprint import pprint
+        from utils import metadataValueInGroup, item_is_archived, item_is_restoring, item_will_be_archived
+        
+        print item.__class__.__name__
+        print dir(item)
+        pprint(item.item_metadata)
+
+        return {
+            'object_class': 'item',
+            'is_archiving': item_will_be_archived(item.item_metadata),
+            'is_restoring': item_is_restoring(item.item_metadata),
+            'is_archived': item_is_archived(item.item_metadata),
+        }
+    
+    
+    def context_for_collection(self, collection):
+        return {}
+    
+    def return_string(self, tagname, *args):
+        """
+        
+        :param tagname:
+        :param args:
+        :return:
+        """
+        import traceback
+        try:
+            context = args[1]
+            if 'item' in context:
+                ctx=self.context_for_item(context['item'])
+            elif 'collection' in context:
+                ctx=self.context_for_collection(context['collection'])
+            else:
+                print "no item or collection in context"
+                ctx = {}
+                keylist = map(lambda (k,v): k, context.items())
+                print keylist
+        except Exception:
+            traceback.print_exc()
+            ctx = {}
+            
+        return {'guid': self.plugin_guid,
+                'template': 'gnmawsgr/css_injection_template.html',
+                'context': ctx
+                }
+    
+cssplug = Gnm_GlacierCSS()
+
 
 def getItemInfo(itemid,agent=None):
     import json

@@ -28,7 +28,7 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
 
 class Gnm_ProjectRestoreOption(Plugin):
     """
-    Injects a link to the asset folder, with create & fix permissions buttons, into the Project edit view.
+    Injects an option to restore a project into the project view
     """
     implements(IPluginBlock)
 
@@ -73,7 +73,8 @@ navplug = Gnm_ProjectRestoreOption()
 
 class Gnm_GlacierCSS(Plugin):
     """
-    Injects CSS overrides into an item page
+    Injects CSS overrides into all Portal pages; in practise, it will only inject ones with items or collections
+    in their context
     """
     implements(IPluginBlock)
     
@@ -83,6 +84,11 @@ class Gnm_GlacierCSS(Plugin):
         log.warning('Initiated glacier CSS')
     
     def context_for_item(self, item):
+        """
+        Return a simplified context dictionary of item attributes that we're interested in
+        :param item: item ref
+        :return: dictionary
+        """
         from pprint import pprint
         from utils import metadataValueInGroup, item_is_archived, item_is_restoring, item_will_be_archived
         
@@ -103,10 +109,10 @@ class Gnm_GlacierCSS(Plugin):
     
     def return_string(self, tagname, *args):
         """
-        
-        :param tagname:
-        :param args:
-        :return:
+        Returns a dictionary containing rendering information
+        :param tagname: tag name
+        :param args: passed in from Portal
+        :return: dictionary of context, guid and template
         """
         import traceback
         try:
@@ -117,9 +123,7 @@ class Gnm_GlacierCSS(Plugin):
                 ctx=self.context_for_collection(context['collection'])
             else:
                 print "no item or collection in context"
-                ctx = {}
-                keylist = map(lambda (k,v): k, context.items())
-                print keylist
+                ctx={}
         except Exception:
             traceback.print_exc()
             ctx = {}

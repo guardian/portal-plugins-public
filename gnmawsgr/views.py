@@ -224,18 +224,22 @@ class ProjectInfoView(APIView):
         :param projectid: project id as given by Vidispine
         :return: HttpResponse with a json object for ajax
         """
-    
+        import traceback
+        import time
+        
+        time.sleep(10)
         try:
             promises = {
                 'total_items': VSWrappedSearch({'__collection': projectid}).execute(),
                 'archived_items': VSWrappedSearch(
-                    {'__collection': projectid, 'gnm_external_archive_external_archive_status': "Archived to External"}).execute()
+                    {'__collection': projectid, 'gnm_external_archive_external_archive_status': "Archived"}).execute()
             }
             
             results = dict(
-                map(lambda key, promise: (key, promise.waitForJson()), promises.items())
+                map(lambda (key, promise): (key, promise.waitfor_json()), promises.items())
             )
             
-            return Response({'status': "ok", "results": results})
+            return Response({'status': "ok", "results": dict(map(lambda (key,searchresult): (key, searchresult['hits']), results.items()))})
         except Exception as e:
-            return Response({'status': "error", "detail": str(e)})
+            traceback.print_exc()
+            return Response({'status': "error", "detail": str(e)},status=500)

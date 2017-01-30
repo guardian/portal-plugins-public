@@ -226,8 +226,7 @@ class ProjectInfoView(APIView):
         """
         import traceback
         import time
-        
-        time.sleep(10)
+
         try:
             promises = {
                 'total_items': VSWrappedSearch({'__collection': projectid}).execute(),

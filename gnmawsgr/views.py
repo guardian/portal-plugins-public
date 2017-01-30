@@ -156,31 +156,21 @@ def rcs(request):
     from portal.vidispine.iitem import ItemHelper
 
     collid = request.GET.get('id', '')
-
     selected = request.GET.get('selected', '')
-
     selectedready = selected.split(",")
-
     ch = CollectionHelper()
-
     res = performVSAPICall(func=ch.getCollection, \
                                 args={'collection_id':collid}, \
                                 vsapierror_templateorcode='template.html')
-
     collection = res['response']
-
     content = collection.getItems()
 
     for data in content:
-
         ith = ItemHelper()
-
         itemid = data.getId()
-
         res2 = performVSAPICall(func=ith.getItemMetadata, \
                                     args={'item_id':itemid}, \
                                     vsapierror_templateorcode='template.html')
-
         itemdata = res2['response']
 
         try:

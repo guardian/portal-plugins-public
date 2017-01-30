@@ -1,6 +1,7 @@
 {% load static %}
 
 {% if is_allowed %}
+<script src="{% static 'gnmawsgr/functions.js' %}"></script>
 <script>
   $(function() {
     $( "#dialog_{{ collection }}" ).dialog({
@@ -10,7 +11,7 @@
 
     $( "#restore_{{ collection }}" ).click(function() {
       $( "#dialog_{{ collection }}" ).dialog( "open" );
-      $( "#dialog_{{ collection }}" ).load( "/gnmawsgr/rc/?id={{ collection }}" );
+      request_restore("{% url 'gnmawsgr:request_collection' %}?id={{ collection }}", "Project",  $("#dialog_{{ collection }}"));
     });
 
   });

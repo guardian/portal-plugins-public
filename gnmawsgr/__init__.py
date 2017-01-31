@@ -50,7 +50,7 @@ class Gnm_ProjectRestoreOption(Plugin):
         projectmodel = context['projectmodel']
         project_id = project.id
 
-        print context['user'].groups.all()
+        log.debug("Gnm_ProjectRestoreOption: user groups are {0}".format(context['user'].groups.all()))
         
         is_allowed = False
         if context['user'].is_superuser:
@@ -59,7 +59,7 @@ class Gnm_ProjectRestoreOption(Plugin):
             list = filter(lambda group: True if group.name=='AWS_GR_Restore' else False,context['user'].groups.all())
             if len(list)>0: is_allowed=True
             
-        print is_allowed
+        log.debug("Gnm_ProjectRestoreOption: user is allowed? {0}".format(is_allowed))
         
         return {'guid': self.plugin_guid,
                 'template': 'gnmawsgr/project_restore_request.html',
@@ -89,12 +89,7 @@ class Gnm_GlacierCSS(Plugin):
         :param item: item ref
         :return: dictionary
         """
-        from pprint import pprint
         from utils import metadataValueInGroup, item_is_archived, item_is_restoring, item_will_be_archived
-        
-        print item.__class__.__name__
-        print dir(item)
-        pprint(item.item_metadata)
 
         return {
             'object_class': 'item',

@@ -150,8 +150,10 @@ def download_callback(rq, current_progress,total):
 
 
 @celery.task
-def glacier_restore(request_id,itemid,path):
+def glacier_restore(request_id,itemid):
     from models import RestoreRequest
+    from gnmvidispine.vs_item import VSItem
+    import re
     import traceback
     try:
         import raven
@@ -163,7 +165,25 @@ def glacier_restore(request_id,itemid,path):
         raven_client = None
 
     try:
-        do_glacier_restore(request_id,itemid,path)
+        item_obj = VSItem(url=settings.VIDISPINE_URL, port=settings.VIDISPINE_PORT, user=settings.VIDISPINE_USERNAME,
+                          passwd=settings.VIDISPINE_PASSWORD)
+        item_obj.populate(itemid)
+    
+        archived_path = item_obj.get('gnm_external_archive_external_archive_path', allow_list=True)
+        if isinstance(archived_path, list):
+            logger.warning("Multiple archive paths available for {0}: {1}".format(itemid, archived_path))
+            archived_path = filter(lambda path: len(path) > 1 and re.match(r'[\w\d]', path), archived_path)[-1]
+            logger.warning("Using latest non-empty path name '{0}'".format(archived_path))
+            
+    except StandardError as e:
+        raven_client.captureException()
+        logger.error(e)
+        logger.error(traceback.format_exc())
+        raise  # re-raise the exception, so it shows as Failed in Celery Flower
+    
+    try:
+        do_glacier_restore(request_id,item_obj, archived_path)
+        
     except StandardError as e:
         if raven_client: #if raven is set up, capture some extra information then grab the exception
             raven_client.user_context({'request_id': request_id, 'item_id': itemid, 'path': path})
@@ -190,18 +210,18 @@ def glacier_restore(request_id,itemid,path):
         raise #re-raise the exception, so it shows as Failed in Celery Flower
 
 
-def do_glacier_restore(request_id,itemid,path):
+def do_glacier_restore(request_id,item_obj, archived_path):
     import os
     from django.conf import settings
     from boto.s3.connection import S3Connection
     from boto.exception import S3ResponseError
     from models import RestoreRequest
     from datetime import datetime
-    from gnmvidispine.vs_item import VSItem
     import httplib2
     import traceback
     from functools import partial
-
+    import re
+    
     try:
         import raven
         from django.conf import settings
@@ -232,21 +252,17 @@ def do_glacier_restore(request_id,itemid,path):
 
     try:
         headers, content = make_vidispine_request(agent,"GET","/API/item/{id}/metadata?fields={fieldlist}"
-                                                  .format(id=itemid,fieldlist=','.join(interesting_fields)),
+                                                  .format(id=item_obj.name,fieldlist=','.join(interesting_fields)),
                                                   "",
                                                   {'Accept': 'application/json'},
                                                   )
     except HttpError as e:
         if e.code == 404:
-            logger.error("Item {0} does not exist".format(itemid))
+            logger.error("Item {0} does not exist".format(item_obj.name))
         else:
             logger.error(e)
         return
-
-    item_meta = MiniItem(content)
-
-    item_obj = VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
-    item_obj.populate(itemid,specificFields=['title','gnm_asset_category'])
+        
     rq = RestoreRequest.objects.get(pk=request_id)
 
     logger.info("Attempting to contact S3")
@@ -262,18 +278,18 @@ def do_glacier_restore(request_id,itemid,path):
 
     checksum = "(not found)"
     try:
-        bucket = conn.get_bucket(item_meta.get('gnm_external_archive_external_archive_device'))
-        key = bucket.get_key(path)
+        bucket = conn.get_bucket(item_obj.get('gnm_external_archive_external_archive_device'))
+        key = bucket.get_key(archived_path)
 
     except KeyError:
-        logger.error("Item {0} ({1}) does not appear to have gnm_external_archive_external_archive_device set".format(itemid,item_meta.get('title')))
-        rq.failure_reason = "Item {0} ({1}) does not appear to have gnm_external_archive_external_archive_device set".format(itemid,item_meta.get('title'))
+        logger.error("Item {0} ({1}) does not appear to have gnm_external_archive_external_archive_device set".format(itemid,item_obj.get('title')))
+        rq.failure_reason = "Item {0} ({1}) does not appear to have gnm_external_archive_external_archive_device set".format(itemid,item_obj.get('title'))
         rq.status = 'FAILED'
         rq.completed_at = datetime.now()
         rq.save()
         return
 
-    filename = os.path.join(temp_path, os.path.basename(item_meta.get('gnm_external_archive_external_archive_path')))
+    filename = os.path.join(temp_path, os.path.basename(item_obj.get('gnm_external_archive_external_archive_path')))
     n=0
     while True:
         try:
@@ -288,10 +304,10 @@ def do_glacier_restore(request_id,itemid,path):
                 rq.save()
                 break
             rq.save()
-            post_restore_actions(itemid,filename)
+            post_restore_actions(item_obj.name,filename)
             rq.status = 'COMPLETED'
             rq.completed_at = datetime.now()
-            rq.filepath_original = path
+            rq.filepath_original = archived_path
             rq.filepath_destination = filename
             rq.save()
             item_obj.set_metadata({'gnm_asset_status': 'Ready for Editing (from Archive)'})
@@ -321,16 +337,16 @@ def do_glacier_restore(request_id,itemid,path):
                     key.restore(restore_time)
                     rq.status = 'AWAITING_RESTORE'
                     rq.file_size = key.size
-                    rq.filepath_original = path
+                    rq.filepath_original = archived_path
                     rq.filepath_destination = filename
                     rq.save()
-                    glacier_restore.apply_async((rq.pk,itemid, path), countdown=restore_sleep_delay)
+                    glacier_restore.apply_async((rq.pk,item_obj.name), countdown=restore_sleep_delay)
                     return
                 else:
                     #in this case, a restore request is pending.  Log a warning and wait.
                     timediff = datetime.now() - rq.requested_at
                     logger.warning("Glacier request for {0} has not completed in a timely way. Requested {1} ago.".format(rq.item_id,timediff))
-                    glacier_restore.apply_async((rq.pk,itemid, path), countdown=restore_short_delay)
+                    glacier_restore.apply_async((rq.pk,item_obj.name), countdown=restore_short_delay)
                     return
 
             except S3ResponseError as e:
@@ -353,6 +369,19 @@ def post_restore_actions(itemid, downloaded_filename):
         logger.error(unicode(e))
         raise
     logger.info("Done.")
+
+
+@celery.task
+def bulk_restore_main(requestid=None):
+    """
+    calls the class-based bulk restore from celery
+    :param requestid: ID of a BulkRequest model
+    :return:
+    """
+    from bulk_restorer import BulkRestorer
+    r = BulkRestorer()
+    return r.bulk_restore_main(requestid)
+
 
 if __name__ == '__main__':
     print "Running test on AWSGR tasks"

@@ -1,7 +1,7 @@
 from django.views.generic import ListView, DeleteView
 from django.http import HttpResponse
 from django.shortcuts import render
-from models import RestoreRequest
+from models import RestoreRequest, restore_request_for
 from decorators import has_group
 from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
@@ -21,6 +21,7 @@ def index(request):
 
 class GenericRequestRestoreView(APIView):
     renderer_classes = (JSONRenderer,)
+    
     @method_decorator(has_group('AWS_GR_Restore'))
     def dispatch(self, request, *args, **kwargs):
         return super(GenericRequestRestoreView,self).dispatch(request,*args,**kwargs)
@@ -35,20 +36,7 @@ class GenericRequestRestoreView(APIView):
         path = metadataValueInGroup('ExternalArchiveRequest', 'gnm_external_archive_external_archive_path',
                                     itemdata['item'])
 
-        try:
-            rq = RestoreRequest.objects.get(item_id=itemid)
-            if rqstatus=="RETRY":
-                rq.status = "RETRY"
-                rq.save()
-        except RestoreRequest.DoesNotExist:
-            rq = RestoreRequest()
-            rq.requested_at = datetime.now()
-            rq.username = self.request.user.username
-            rq.parent_collection = parent_project
-            rq.status = rqstatus
-            rq.attempts = 1
-            rq.item_id = itemid
-            rq.save()
+        rq = restore_request_for(itemid, username=self.request.user.username, parent_project=parent_project, rqstatus=rqstatus)
         
         if rq.status in self.should_restore_statuses:
             do_task = glacier_restore.delay(rq.pk, itemid, path)

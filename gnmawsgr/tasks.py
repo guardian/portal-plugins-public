@@ -213,7 +213,7 @@ def do_glacier_restore(request_id,itemid,path):
 
     temp_path = "/tmp"
     restore_time = 2 #in days
-    restore_sleep_delay = 14400 #wait this number of seconds for something to restore
+    restore_sleep_delay = 1800 #wait this number of seconds for something to restore
     restore_short_delay = 600
 
     if hasattr(settings,'GLACIER_TEMP_PATH'):

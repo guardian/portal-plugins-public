@@ -1,0 +1,72 @@
+{% load static %}
+
+{% if is_allowed %}
+<script>
+  $(function() {
+    $( "#dialog_{{ collection }}" ).dialog({
+      autoOpen: false,
+      width:480,
+    });
+
+    $( "#restore_{{ collection }}" ).click(function() {
+      $( "#dialog_{{ collection }}" ).dialog( "open" );
+      $( "#dialog_{{ collection }}" ).load( "/gnmawsgr/rc/?id={{ collection }}" );
+    });
+
+  });
+
+</script>
+{% endif %}
+
+<script>
+    var percentage_in_archive;
+
+    function check_has_in_glacier(){
+        //ask the server whether this project has any assets externally archived. If so, return true
+        $("#gnmawsgr_loading_info").html("Checking how much of the project is in archive...");
+        $.ajax("/gnmawsgr/projectinfo/{{ collection }}").done(function(data){
+            console.log("received project info data: " + data);
+            $("#glacier_restore_button_loading").hide();
+
+            if(data['results']['total_items']>0){
+                percentage_in_archive = (data['results']['archived_items'] / data['results']['total_items']) *100;
+            } else {
+                percentage_in_archive = 0;
+            }
+
+            $("#info_text").html("This project is " + percentage_in_archive.toFixed(0) + "% in deep archive (" + data['results']['archived_items'] + "/" + data['results']['total_items'] + " items)");
+            if(percentage_in_archive==0) $("#restore_{{ collection }}").hide();
+            $("#glacier_restore_button_container").fadeIn();
+        }).fail(function(jqXHR,errorThrown,detail){
+            console.error("receiving project info: errorThrown");
+            $("glacier_restore_button_loading").hide();
+        });
+    }
+    $(document).ready(function(){
+        $("#glacier_restore_button_container").hide();
+        check_has_in_glacier();
+    });
+
+</script>
+<li>
+    <div id="glacier_restore_button_loading">
+        <img src="{% static 'img/icon-ajax-loader.gif' %}"><span id="gnmawsgr_loading_info" style="font-style: italic; font-size: 0.8em;"></span>
+    </div>
+    <div id="glacier_restore_button_container">
+        <div style="display: block;">
+            {% if is_allowed %}
+            <button type="button" id="restore_{{ collection }}">Restore from Glacier</button>
+            {% else %}
+            <button type="button" id="disabled_restore_button" style="background-color: LightGrey;">Restore from Glacier</button>
+            <span style="font-style: italic; text-align: right;">Only admins are allowed to restore entire projects from Glacier</span>
+            {% endif %}
+        </div>
+        <div>
+            <span class="gnmawsgr_info_text" id="info_text" style="font-style: italic; font-size: 0.8em;"></span>
+        </div>
+    </div>
+</li>
+
+<div id="dialog_{{ collection }}" title="Restore from Glacier">
+
+</div>

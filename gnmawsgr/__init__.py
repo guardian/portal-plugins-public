@@ -3,6 +3,8 @@ from portal.pluginbase.core import Plugin, implements
 from portal.generic.plugin_interfaces import IPluginURL, IPluginBlock, IAppRegister
 
 archive_test_value = 'Archived'
+restoring_test_value = 'Requested Restore'
+archiving_test_value = 'Requested Archive'
 
 log = logging.getLogger(__name__)
 
@@ -19,10 +21,115 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
         urlpath = '/' + urlpath
 
     url = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
-    #url = "http://dc1-mmmw-05.dc1.gnm.int:8080{0}".format(urlpath)
     logging.debug("URL is %s" % url)
     (headers,content) = agent.request(url,method=method,body=body,headers=headers)
     return (headers,content)
+
+
+class Gnm_ProjectRestoreOption(Plugin):
+    """
+    Injects an option to restore a project into the project view
+    """
+    implements(IPluginBlock)
+
+    def __init__(self):
+        self.name = "pluto_project_edit_extras_right"
+        self.plugin_guid = '4506fd78-6e1b-4e5e-a6a0-674ae0ca5c41'
+        log.debug('Initiated project page plugin')
+
+    def return_string(self, tagname, *args):
+        """
+        Renders a template of html to inject into the project page, containing an opening link and controls that call
+        our AJAX views
+        :param tagname:
+        :param args:
+        :return:
+        """
+        context = args[1]
+        project = context['project']
+        projectmodel = context['projectmodel']
+        project_id = project.id
+
+        log.debug("Gnm_ProjectRestoreOption: user groups are {0}".format(context['user'].groups.all()))
+        
+        is_allowed = False
+        if context['user'].is_superuser:
+            is_allowed = True
+        else:
+            list = filter(lambda group: True if group.name=='AWS_GR_Restore' else False,context['user'].groups.all())
+            if len(list)>0: is_allowed=True
+            
+        log.debug("Gnm_ProjectRestoreOption: user is allowed? {0}".format(is_allowed))
+        
+        return {'guid': self.plugin_guid,
+                'template': 'gnmawsgr/project_restore_request.html',
+                'context': {
+                    'collection': project_id,
+                    'is_allowed': is_allowed
+                }}
+
+navplug = Gnm_ProjectRestoreOption()
+
+
+class Gnm_GlacierCSS(Plugin):
+    """
+    Injects CSS overrides into all Portal pages; in practise, it will only inject ones with items or collections
+    in their context
+    """
+    implements(IPluginBlock)
+    
+    def __init__(self):
+        self.name = "header_css_js"
+        self.plugin_guid = '46ac18fe-8753-499f-b026-02ca7d9b2e89'
+        log.warning('Initiated glacier CSS')
+    
+    def context_for_item(self, item):
+        """
+        Return a simplified context dictionary of item attributes that we're interested in
+        :param item: item ref
+        :return: dictionary
+        """
+        from utils import metadataValueInGroup, item_is_archived, item_is_restoring, item_will_be_archived
+
+        return {
+            'object_class': 'item',
+            'is_archiving': item_will_be_archived(item.item_metadata),
+            'is_restoring': item_is_restoring(item.item_metadata),
+            'is_archived': item_is_archived(item.item_metadata),
+        }
+    
+    
+    def context_for_collection(self, collection):
+        return {}
+    
+    def return_string(self, tagname, *args):
+        """
+        Returns a dictionary containing rendering information
+        :param tagname: tag name
+        :param args: passed in from Portal
+        :return: dictionary of context, guid and template
+        """
+        import traceback
+        try:
+            context = args[1]
+            if 'item' in context:
+                ctx=self.context_for_item(context['item'])
+            elif 'collection' in context:
+                ctx=self.context_for_collection(context['collection'])
+            else:
+                print "no item or collection in context"
+                ctx={}
+        except Exception:
+            traceback.print_exc()
+            ctx = {}
+            
+        return {'guid': self.plugin_guid,
+                'template': 'gnmawsgr/css_injection_template.html',
+                'context': ctx
+                }
+    
+cssplug = Gnm_GlacierCSS()
+
 
 def getItemInfo(itemid,agent=None):
     import json

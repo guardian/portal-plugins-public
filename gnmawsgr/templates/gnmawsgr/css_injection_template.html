@@ -1,0 +1,8 @@
+<!--GNM AWS GR CSS injection template -->
+{% load static %}
+
+{% if is_restoring %}
+<link rel="stylesheet" href="{% static 'gnmawsgr/restoring.css' %}" type="text/css">
+{% elif is_archived %}
+<link rel="stylesheet" href="{% static 'gnmawsgr/archived.css' %}" type="text/css">
+{% endif %}

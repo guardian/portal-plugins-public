@@ -1,8 +1,10 @@
+from __future__ import absolute_import
 from portal.pluginbase.core import Plugin, implements
 from portal.generic.plugin_interfaces import IPluginURL, IPluginBlock, IAppRegister
 import logging
 
 log = logging.getLogger(__name__)
+
 
 class Gnm_ProjectRestoreOption(Plugin):
     """

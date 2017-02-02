@@ -1,6 +1,6 @@
 import os
 if not "CI" in os.environ:
-    from portal.plugins.gnmawsgr.plugin import *
+    import plugin
     
 archive_test_value = 'Archived'
 restoring_test_value = 'Requested Restore'

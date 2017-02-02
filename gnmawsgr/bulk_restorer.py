@@ -57,13 +57,18 @@ class BulkRestorer(VSMixin):
         :param iterator:
         :return:
         """
+        from pprint import pprint
         rtn = {}
         for item in iterator:
-            for k,v in item.items():
-                if not k in rtn:
-                    rtn[k] = v
-                else:
-                    rtn[k].append(v)
+            try:
+                for k,v in item.items():
+                    if not k in rtn:
+                        rtn[k] = v
+                    else:
+                        rtn[k].append(v)
+            except AttributeError:
+                pprint(item)
+                
         return rtn
     
     def remap_metadata(self, record):

@@ -1,6 +1,7 @@
 from django.db.models import Model,BigIntegerField,IntegerField,CharField,DateTimeField,BooleanField, ManyToOneRel
 import re
 from datetime import datetime
+
 is_vidispine_id = re.compile(r'^\w{2}-\d+')
 
 class RestoreRequest(Model):
@@ -56,6 +57,7 @@ def restore_request_for(itemid, username=None, parent_project=None, rqstatus=Non
         rq.item_id = itemid
         rq.save()
     return rq
+        
         
 class BulkRestore(Model):
     parent_collection = CharField(max_length=32, unique=True)

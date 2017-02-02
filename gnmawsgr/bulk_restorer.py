@@ -27,7 +27,7 @@ class BulkRestorer(VSMixin):
         from tasks import bulk_restore_main
         
         try:
-            bulk_request = BulkRestore.objects.get(project_id=project_id)
+            bulk_request = BulkRestore.objects.get(parent_collection=project_id)
         except BulkRestore.DoesNotExist:
             bulk_request = BulkRestore()
             bulk_request.parent_collection = project_id
@@ -39,7 +39,7 @@ class BulkRestorer(VSMixin):
     
     def collapse_field(self, field):
         if not 'value' in field: return []
-        return map(lambda value: value['value'], filter(lambda entry: 'value' in entry, field['value']))
+        return map(lambda value: value['value'], field['value']) #filter(lambda entry: 'value' in entry, field['value']))
     
     def collapse_group(self, group):
         return dict(map(lambda field: (field['name'],self.collapse_field(field),), group['field']))
@@ -88,13 +88,34 @@ class BulkRestorer(VSMixin):
     def flatmap(f, items):
         return chain.from_iterable(imap(f, items))
     
-    def mark_need_restore(self, itemlist):
-        pass
-    
-    def mark_not_need_restore(self, itemlist):
-        pass
-    
     def bulk_restore_main(self, requestid):
+        """
+        Wrapper function for _bulk_restore_main for exception handling
+        :param requestid:
+        :return:
+        """
+        from models import BulkRestore
+        
+        try:
+           bulk_request = BulkRestore.objects.get(pk=requestid)
+        except BulkRestore.DoesNotExist:
+            logger.error("Unable to initiate bulk restore on id {0} as it does not exist".format(requestid))
+            raise
+        
+        try:
+            bulk_request.current_status="Processing"
+            bulk_request.save()
+            self._bulk_restore_main(bulk_request)
+            
+            bulk_request.current_status="Success"
+            bulk_request.save()
+        except Exception as e:
+            bulk_request.current_status="Failed"
+            bulk_request.last_error = str(e)
+            bulk_request.save()
+            raise
+        
+    def _bulk_restore_main(self, bulk_request):
         """
         This is called from a Celery task to actually do the restore
         :param requestid: ID of a BulkRestore record
@@ -111,14 +132,14 @@ class BulkRestorer(VSMixin):
         counter = 1
         search_futures = []
         
-        bulk_request = BulkRestore.objects.get(pk=requestid)
 
         search_request = VSWrappedSearch({'__collection': bulk_request.parent_collection}, pagesize=page_size)
         search_futures.append(search_request.execute(start_at=counter,fieldlist=[
                                              'gnm_external_archive_external_archive_device',
-                                             'gnm_external_archive_external_archive_path'
+                                             'gnm_external_archive_external_archive_path',
                                              'gnm_external_archive_external_archive_status',
-                                             'gnm_external_archive_external_archive_report'
+                                             'gnm_external_archive_external_archive_report',
+                                             'gnm_external_archive_external_archive_request'
                                          ])
                               )
         
@@ -126,9 +147,10 @@ class BulkRestorer(VSMixin):
             #have the next page request going in the background while we process the results from the first one
             search_futures.append(search_request.execute(start_at=counter * page_size,fieldlist=[
                                              'gnm_external_archive_external_archive_device',
-                                             'gnm_external_archive_external_archive_path'
+                                             'gnm_external_archive_external_archive_path',
                                              'gnm_external_archive_external_archive_status',
-                                             'gnm_external_archive_external_archive_report'
+                                             'gnm_external_archive_external_archive_report',
+                                             'gnm_external_archive_external_archive_request'
                                          ])
                                   )
             
@@ -136,13 +158,15 @@ class BulkRestorer(VSMixin):
             resultdoc = search_futures.pop(0).waitfor_json()
             
             remapped_items = map(lambda item: self.remap_metadata(item), resultdoc['item'])
-            pprint(remapped_items)
 
             for item in remapped_items:
+                bulk_request.number_requested += 1
                 if item['fields']['gnm_external_archive_external_archive_status'][0] == 'Archived':
                     rq = restore_request_for(item['itemId'], bulk_request.username, bulk_request.parent_collection, "READY")
                     glacier_restore(rq.pk,item['itemId'])
                     new_report_line = "Initiating restore from collection {0}".format(bulk_request.parent_collection)
+                    new_request = "Requested Restore"
+                    bulk_request.number_queued += 1
                 else:
                     logger.warning("item {0} from collection {1} is not being restored because its status is {2}".format(
                         item['itemId'],
@@ -153,7 +177,7 @@ class BulkRestorer(VSMixin):
                         bulk_request.parent_collection,
                         item['fields']['gnm_external_archive_external_archive_status'][0]
                     )
-                    
+                    new_request = item['fields']['gnm_external_archive_external_archive_request']
                 vsi = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
                 vsi.name = item['itemId']
                 report_content = "\n".join([
@@ -161,8 +185,10 @@ class BulkRestorer(VSMixin):
                     item['fields']['gnm_external_archive_external_archive_report'][0]
                 ])
                 vsi.set({
-                    'gnm_external_archive_external_archive_report': report_content
+                    'gnm_external_archive_external_archive_report': report_content,
+                    'gnm_external_archive_external_archive_request': new_request
                 },group="Asset")
+                bulk_request.save()
                 
             counter +=1
             if counter*page_size > resultdoc['hits']:

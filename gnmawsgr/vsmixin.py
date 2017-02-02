@@ -39,7 +39,9 @@ class VSMixin(object):
     vidispine_url = ""
     vidispine_port = 0
     
-    def __init__(self):
+    def __init__(self,*args,**kwargs):
+        super(VSMixin, self).__init__(*args,**kwargs)
+        print "running VSMixin.__init__"
         from django.conf import settings
         self.vidispine_url = settings.VIDISPINE_URL
         self.vidispine_port = settings.VIDISPINE_PORT
@@ -69,6 +71,8 @@ class VSMixin(object):
 
         url = "{0}:{1}{2}".format(self.vidispine_url,self.vidispine_port,urlpath)
         
+        print url
+        
         (headers,content) = agent.request(url,method=method,body=body,headers=headers)
 
         st = int(headers['status'])
@@ -78,7 +82,7 @@ class VSMixin(object):
         return (headers,content)
 
 
-class VSFuture(Thread, VSMixin):
+class VSFuture(VSMixin, Thread):
     """
     Scala-style asynchronous request for Vidispine. Usage:
     myrequst = VSFuture(None,"GET","/API/requestpath","",{})
@@ -98,6 +102,7 @@ class VSFuture(Thread, VSMixin):
     def __init__(self, agent, method, urlpath, body, headers, content_type='application/xml', *args, **kwargs):
         super(VSFuture, self).__init__(*args, **kwargs)
         
+        print "running VSFuture.__init__"
         self.agent = agent if agent else self.httplib2.Http()
         self.method = method if method else "GET"
         self.urlpath = urlpath

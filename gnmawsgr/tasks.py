@@ -169,7 +169,7 @@ def glacier_restore(request_id,itemid):
                           passwd=settings.VIDISPINE_PASSWORD)
         item_obj.populate(itemid)
     
-        archived_path = item_obj.get('gnm_external_archive_external_archive_path', allow_list=True)
+        archived_path = item_obj.get('gnm_external_archive_external_archive_path', allowArray=True)
         if isinstance(archived_path, list):
             logger.warning("Multiple archive paths available for {0}: {1}".format(itemid, archived_path))
             archived_path = filter(lambda path: len(path) > 1 and re.match(r'[\w\d]', path), archived_path)[-1]
@@ -186,7 +186,7 @@ def glacier_restore(request_id,itemid):
         
     except StandardError as e:
         if raven_client: #if raven is set up, capture some extra information then grab the exception
-            raven_client.user_context({'request_id': request_id, 'item_id': itemid, 'path': path})
+            raven_client.user_context({'request_id': request_id, 'item_id': itemid, 'path': archived_path})
             try:
                 from django.conf import settings
                 from gnmvidispine.vs_item import VSItem
@@ -198,7 +198,7 @@ def glacier_restore(request_id,itemid):
                 rq.save()
                 item_obj.set_metadata({'gnm_asset_status': 'Archived to External'})
                 raven_client.user_context({'request_id': request_id, 'request_details': rq.__dict__,
-                                           'item_id': itemid, 'path': path})
+                                           'item_id': itemid, 'path': archived_path})
             except StandardError as e: #if the database is playing silly buggers then log that too.
                 raven_client.captureException()
                 logger.error(e)

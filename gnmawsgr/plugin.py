@@ -206,7 +206,7 @@ GNMAWSGRnavplug = GNMAWSGRAdminNavigationPlugin()
 class GNMAWSGRUrl(Plugin):
     implements(IPluginURL)
     
-    name = 'GNMAWSGR URL'
+    name = 'GlacierRestoreUrlPlugin'
     urls = 'portal.plugins.gnmawsgr.urls'
     urlpattern = r'^gnmawsgr/'
     namespace = 'gnmawsgr'

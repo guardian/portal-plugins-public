@@ -67,4 +67,10 @@ class BulkRestore(Model):
     number_queued = IntegerField()
     number_already_going = IntegerField()
     
-    
+    current_status = CharField(max_length=32,choices=(
+        ('Queued','Queued'),
+        ('Processing', 'Processing'),
+        ('Failed', 'Failed'),
+        ('Completed', 'Completed')
+    ), default="Queued")
+    last_error = CharField(max_length=1024,null=True,blank=True)

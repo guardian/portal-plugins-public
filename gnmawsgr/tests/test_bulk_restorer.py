@@ -16,10 +16,10 @@ class TestBulkRestorer(unittest2.TestCase):
         from gnmawsgr.bulk_restorer import BulkRestorer
         import json
         from pprint import pprint
-        from testdata import raw_item_json, remapped_document
-        import FakeSettings
+        from .testdata import raw_item_json, remapped_document
+        from .FakeSettings import settings
         
-        with patch("django.conf.settings",FakeSettings.settings()):
+        with patch("django.conf.settings", settings()):
             r = BulkRestorer()
         
         content = json.loads(raw_item_json)

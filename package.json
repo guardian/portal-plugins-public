@@ -1,4 +1,11 @@
 {
   "name": "portal-plugins-public",
-  "description": "Plugins for cantemo portal"
+  "description": "Plugins for cantemo portal",
+  "version": "1.0.0",
+  "devDependencies": {
+    "jshint": "^2.9.4"
+  },
+  "scripts": {
+    "test": "find gnmawsgr -iname '*.js' | grep -v '^./static' | grep -v node_modules | xargs ./node_modules/.bin/jshint"
+  }
 }

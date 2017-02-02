@@ -92,31 +92,23 @@ class RestoreCollectionRequestView(GenericRequestRestoreView):
     def get(self, request):
         from traceback import format_exc
         try:
-            from portal.vidispine.icollection import CollectionHelper
-            from portal.vidispine.igeneral import performVSAPICall
-            if 'id' in request.GET:
-                collid = request.GET['id']
-            else:
-                return Response({'status': "error", "error": "Need a collection id"}, status=400)
-
-            ch = CollectionHelper()
-            res = performVSAPICall(func=ch.getCollection,
-                                   args={'collection_id': collid},
-                                   vsapierror_templateorcode='template.html')
-            collection = res['response']
-                
+            from bulk_restorer import BulkRestorer
+            r = BulkRestorer()
+            
+            if not 'id' in request.GET:
+                return Response({'status': 'error', 'detail': "Need an item ID"},status=400)
+            
             if 'selected' in request.GET:
-                to_restore_list = request.GET['selected'].split(",")
+                selection_list = request.GET['selected'].split(",")
             else:
-                to_restore_list = collection.getItems()
+                selection_list = None
                 
-            responses = map(lambda itemdata: self.make_response(self.request_item_restore(itemdata.getId(), itemdata, parent_project=collection.getId())), to_restore_list)
+            job_id = r.initiate_bulk(request.user,request.GET['id'],selection=selection_list)
             
             return Response(
                 {
                     "status": "ok",
-                    "count": len(responses),
-                    "responses": responses
+                    "bulk_restore_request": job_id
                 }
             )
         except Exception as e:
@@ -171,3 +163,29 @@ class ProjectInfoView(APIView):
         except Exception as e:
             traceback.print_exc()
             return Response({'status': "error", "detail": str(e)},status=500)
+        
+        
+class BulkRestoreStatusView(APIView):
+    renderer_classes = (JSONRenderer, )
+    permission_classes = (permissions.IsAuthenticated, )
+    
+    def get(self, request, vsid):
+        """
+        Returns information about the current state of the bulk restore request, so long as the requesting user
+        is an admin or the owner of the request.
+        :param request: Django request object
+        :param pk: primary key of a bulk restore request
+        :return: json response of information
+        """
+        from models import BulkRestore
+        from serializers import BulkRestoreSerializer
+        try:
+            bulk_request = BulkRestore.objects.get(parent_collection=vsid)
+            s = BulkRestoreSerializer(bulk_request, many=False)
+            if request.user.is_superuser or bulk_request.username == request.user.name:
+                return Response(s.data)
+            else:
+                raise BulkRestore.DoesNotExist  #default behaviour, mask the auth error by returning 404
+        except BulkRestore.DoesNotExist:
+            return Response({'status': 'error'},status=404)
+        

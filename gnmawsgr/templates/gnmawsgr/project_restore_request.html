@@ -11,7 +11,7 @@
 
     $( "#restore_{{ collection }}" ).click(function() {
       $( "#dialog_{{ collection }}" ).dialog( "open" );
-      request_restore("{% url 'gnmawsgr:request_collection' %}?id={{ collection }}", "Project",  $("#dialog_{{ collection }}"));
+      request_collection_restore("{% url gnmawsgr:request_collection %}?id={{ collection }}", "{% url gnmawsgr:bulk_status collection %}", "Project",  $("#dialog_{{ collection }}"));
     });
 
   });

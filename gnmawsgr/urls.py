@@ -12,6 +12,7 @@ urlpatterns = patterns(
     # url(r'^rcs/$', views.rcs, name="request_specific"),
     url(r'^restore/item$', views.RestoreItemRequestView.as_view(), name="request_item"),
     url(r'^restore/collection$', views.RestoreCollectionRequestView.as_view(), name="request_collection"),
+    url(r'^restore/bulk/(\w{2}-\d+)', views.BulkRestoreStatusView.as_view(), name="bulk_status"),
     url(r'^projectinfo/(?P<projectid>\w{2}-\d+)', views.ProjectInfoView.as_view(), name="projectinfo"),
     url(r'^$', redirect_to, {'url': '/' }),
     url(r'^status$', views.CurrentStatusView.as_view(), name="status"),

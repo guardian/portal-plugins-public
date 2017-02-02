@@ -3200,5 +3200,6 @@ raw_item_json = """{
 
 remapped_document = {
     u'gnm_external_archive_external_archive_device': [u'FakeArchiveDevice'],
-    u'gnm_external_archive_external_archive_path': [u'path/to/fake/archive/item']
+    u'gnm_external_archive_external_archive_path': [u'path/to/fake/archive/item'],
+    u'gnm_external_archive_external_archive_status': [u'Archived']
 }

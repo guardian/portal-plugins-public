@@ -1,2 +1,3 @@
 *.pyc
 secure/*
+node_modules

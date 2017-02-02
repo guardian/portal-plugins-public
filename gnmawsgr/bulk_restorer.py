@@ -163,7 +163,7 @@ class BulkRestorer(VSMixin):
                 bulk_request.number_requested += 1
                 if item['fields']['gnm_external_archive_external_archive_status'][0] == 'Archived':
                     rq = restore_request_for(item['itemId'], bulk_request.username, bulk_request.parent_collection, "READY")
-                    glacier_restore(rq.pk,item['itemId'])
+                    glacier_restore.delay(rq.pk,item['itemId'])
                     new_report_line = "Initiating restore from collection {0}".format(bulk_request.parent_collection)
                     new_request = "Requested Restore"
                     bulk_request.number_queued += 1

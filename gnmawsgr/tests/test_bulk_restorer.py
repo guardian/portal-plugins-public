@@ -23,5 +23,9 @@ class TestBulkRestorer(unittest2.TestCase):
             r = BulkRestorer()
         
         content = json.loads(raw_item_json)
-        pprint(content['item'][0])
-        self.assertEqual(r.remap_metadata(content['item'][0]), remapped_document)
+        
+        remapped_data = r.remap_metadata(content['item'][0])
+        
+        pprint(remapped_data)
+        self.assertDictContainsSubset(remapped_document,remapped_data['fields'])
+        

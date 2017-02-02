@@ -45,11 +45,17 @@ class BulkRestorer(VSMixin):
         return dict(map(lambda field: (field['name'],self.collapse_field(field),), group['field']))
     
     def collapse_timespan(self, timespan):
+        """
+        this function iterates through all groups, collapsing each into a dictionary of field name->value list mappings
+        to this, it adds another item of all fields not within supplementary groups
+        and returns a list of these dictionaries
+        :param timespan: timespan to work on
+        :return: list of dictionaries
+        """
         return \
             map(lambda group: self.collapse_group(group), timespan['group']) + \
-            filter(lambda entry: len(entry)>0,
-                map(lambda field: self.collapse_field(field), timespan['field'])
-            )
+            [dict(map(lambda field: (field['name'], self.collapse_field(field), ), timespan['field']))]
+            
     
     def remerge(self, iterator):
         """
@@ -57,7 +63,6 @@ class BulkRestorer(VSMixin):
         :param iterator:
         :return:
         """
-        from pprint import pprint
         rtn = {}
         for item in iterator:
             try:
@@ -67,7 +72,7 @@ class BulkRestorer(VSMixin):
                     else:
                         rtn[k].append(v)
             except AttributeError:
-                pprint(item)
+                print "WARNING: got AttributeError on {0}".format(item)
                 
         return rtn
     

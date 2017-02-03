@@ -14,7 +14,7 @@ class BulkRestorer(VSMixin):
         'Archived'
     ]
     
-    def initiate_bulk(self, user, project_id, selection=None):
+    def initiate_bulk(self, user, project_id, selection=None, inTest=False):
         """
         This is called from a view to initiate the restore, we store the information and then call out to Celery
         to do the actual work
@@ -32,9 +32,14 @@ class BulkRestorer(VSMixin):
             bulk_request = BulkRestore()
             bulk_request.parent_collection = project_id
             bulk_request.username = user.name
+            bulk_request.number_already_going = 0
+            bulk_request.number_queued = 0
+            bulk_request.current_status = "Queued"
+            bulk_request.number_requested = 0
             bulk_request.save()
             
-        bulk_restore_main.delay(requestid=bulk_request.pk)
+        if not inTest:
+            bulk_restore_main.delay(requestid=bulk_request.pk)
         return bulk_request.pk
     
     def collapse_field(self, field):
@@ -156,6 +161,7 @@ class BulkRestorer(VSMixin):
             
             #wait for the previous page to complete and get the results
             resultdoc = search_futures.pop(0).waitfor_json()
+            pprint(resultdoc)
             
             remapped_items = map(lambda item: self.remap_metadata(item), resultdoc['item'])
 

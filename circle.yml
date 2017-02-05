@@ -28,6 +28,7 @@ test:
   override:
     - nosetests -v gnmawsgr/tests
     - npm run test
+    - npm run testcss
 
 deployment:
   master:

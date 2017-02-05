@@ -41,9 +41,8 @@ function test_itemid_changed(){
     var value = $('#id_test_itemid').val();
 
     parts = value.match(/http:\/\/.*\/(\w{2}-\d+)\/*$/);
-    console.log(parts)
     if(parts){
-        value = parts.pop()
+        value = parts.pop();
     }
 
     console.log("Getting info for item ID " + value);
@@ -57,12 +56,12 @@ function test_itemid_changed(){
         var containerDiv = $('<div>', {'class': 'item_container'});
         var textDiv = $('<div>', {'class': 'item_meta_text'});
 
-        var htmlstring = '<span style="font-size: 1.1em"><a target="_blank" href="/vs/item/' + escapeHtml(data['item']) + '">'+ escapeHtml(data['item']) + "</a></span><br>"
-        htmlstring += 'Title: <strong>' + escapeHtml(data['metadata']['title']) + '</strong><br>'
-        /*htmlstring += "GNM Type: " + data['metadata']['gnm_type'] + '<br>'
-        htmlstring += "Asset Category: " + data['metadata']['gnm_asset_category'] + '<br>'
+        var htmlstring = '<span style="font-size: 1.1em"><a target="_blank" href="/vs/item/' + escapeHtml(data.item) + '">'+ escapeHtml(data.item) + "</a></span><br>";
+        htmlstring += 'Title: <strong>' + escapeHtml(data.metadata.title) + '</strong><br>';
+        /*htmlstring += "GNM Type: " + data.metadata.gnm_type + '<br>';
+        htmlstring += "Asset Category: " + data.metadata.gnm_asset_category + '<br>';
         */
-        $.each(data['metadata'], function(key,value){
+        $.each(data.metadata, function(key,value){
             if(key=='representativeThumbnailNoAuth') return;
             if(key=='title') return;
             if(key=='gnm_grid_image_refs') return;
@@ -70,9 +69,9 @@ function test_itemid_changed(){
         });
 
         var numGridImgs = 0;
-        if(data['metadata']['gnm_grid_image_refs']!=null){
-            if(Array.isArray(data['metadata']['gnm_grid_image_refs'])){
-                numGridImgs = data['metadata']['gnm_grid_image_refs'].length;
+        if(data.metadata.gnm_grid_image_refs!==null){
+            if(Array.isArray(data.metadata.gnm_grid_image_refs)){
+                numGridImgs = data.metadata.gnm_grid_image_refs.length;
             } else {
                 numGridImgs = 1;
             }
@@ -81,16 +80,16 @@ function test_itemid_changed(){
         htmlstring += "<hr>" + numGridImgs + " images already in the Grid";
         //htmlstring += "<br><button type=\"button\" onClicked=\"test_go_clicked('" + data['item'] + "');\">Test</button>";
 
-        textDiv.html(htmlstring)
+        textDiv.html(htmlstring);
         textDiv.append($('<img>', {'class': 'simple_expander', 'onMouseOver': 'expanderMouseOver(this);',
                                    'onMouseOut': 'expanderMouseOut(this);', 'onClick': 'expanderClicked(this);',
                                    'src': '/sitemedia/gnmgridintegration/arrow_unsel.svg'}));
 
         var gridInfo = $('<div>', {'id': 'grid_info_area', 'style': 'display: none;'});
         //var gridInfo = $('#grid_info_area');
-        if(data['metadata']['gnm_grid_image_refs']!=null){
-            $.each(data['metadata']['gnm_grid_image_refs'],function(idx,value){
-                if(value!=null){
+        if(data.metadata.gnm_grid_image_refs!==null){
+            $.each(data.metadata.gnm_grid_image_refs,function(idx,value){
+                if(value!==null){
                     var fronturl = value.replace(/\/\/api\./,'//');
                     gridInfo.append($('<p>', {'class': 'grid_image_ref'}).html('<a href="' + fronturl + '" target="_blank">' + fronturl + '</a>'));
                 }
@@ -98,10 +97,10 @@ function test_itemid_changed(){
         }
         //textDiv.append(gridInfo);
 
-        containerDiv.append($('<img>', {'class': 'item_meta_image', 'src': data['metadata']['representativeThumbnailNoAuth']}))
-        $(containerDiv).append(textDiv)
+        containerDiv.append($('<img>', {'class': 'item_meta_image', 'src': data.metadata.representativeThumbnailNoAuth}));
+        $(containerDiv).append(textDiv);
 
-        $(containerDiv).append($('<button>', {'type': 'button', 'onClick': 'test_go_clicked("' + data['item'] + '");'}).html('Test'));
+        $(containerDiv).append($('<button>', {'type': 'button', 'onClick': 'test_go_clicked("' + data.item + '");'}).html('Test'));
         $(containerDiv).append(gridInfo);
 
         $('#testitem_loading').hide();

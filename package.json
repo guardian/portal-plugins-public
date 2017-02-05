@@ -6,6 +6,6 @@
     "jshint": "^2.9.4"
   },
   "scripts": {
-    "test": "find gnmawsgr -iname '*.js' | grep -v '^./static' | grep -v node_modules | xargs ./node_modules/.bin/jshint"
+    "test": "find gnm{awsgr,gridintegration} -iname '*.js' | grep -v '^./static' | grep -v node_modules | xargs ./node_modules/.bin/jshint"
   }
 }

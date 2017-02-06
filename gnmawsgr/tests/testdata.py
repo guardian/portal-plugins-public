@@ -3195,7 +3195,8 @@ raw_item_json = """{
       },
       "id": "VX-17"
     }
-  ]
+  ],
+  "hits": 1
 }"""
 
 remapped_document = {

@@ -1,0 +1,3 @@
+[submodule "deps/gnmvidispine"]
+	path = deps/gnmvidispine
+	url = https://github.com/fredex42/gnmvidispine

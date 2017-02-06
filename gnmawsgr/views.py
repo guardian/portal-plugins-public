@@ -12,6 +12,10 @@ from rest_framework import permissions
 from vsmixin import VSMixin, VSWrappedSearch
 from utils import metadataValueInGroup
 from portal.plugins.gnmawsgr import archive_test_value
+import logging
+import traceback
+
+logger = logging.getLogger(__name__)
 
 @login_required
 def index(request):
@@ -117,7 +121,10 @@ def rc(request):
     collection = res['response']
     content = collection.getItems()
 
+    count = 0
+    total=0
     for data in content:
+        total +=1
         ith = ItemHelper()
         itemid = data.getId()
         res2 = performVSAPICall(func=ith.getItemMetadata, \
@@ -125,26 +132,31 @@ def rc(request):
                                     vsapierror_templateorcode='template.html')
         itemdata = res2['response']
 
-        test_value = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_status',itemdata['item'])
-        if test_value == archive_test_value:
-            path = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_path',itemdata['item'])
-
-            try:
-                rq = RestoreRequest.objects.get(item_id=itemid)
-            except RestoreRequest.DoesNotExist:
-                rq = RestoreRequest()
-                rq.requested_at = datetime.now()
-                rq.username = request.user.username
-                rq.status = "READY"
-                rq.attempts = 1
-                rq.item_id = itemid
-                rq.parent_collection = collid
-                rq.save()
-
-            if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER") or (rq.status == "COMPLETED"):
-                do_task = glacier_restore.delay(rq.pk,itemid,path)
-
-    return render(request,"restore_collection.html")
+        try:
+            if metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_status',itemdata['item'])\
+                    == archive_test_value:
+                path = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_path',itemdata['item'])
+    
+                try:
+                    rq = RestoreRequest.objects.get(item_id=itemid)
+                except RestoreRequest.DoesNotExist:
+                    rq = RestoreRequest()
+                    rq.requested_at = datetime.now()
+                    rq.username = request.user.username
+                    rq.status = "READY"
+                    rq.attempts = 1
+                    rq.item_id = itemid
+                    rq.parent_collection = collid
+                    rq.save()
+    
+                if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER") or (rq.status == "COMPLETED"):
+                    do_task = glacier_restore.delay(rq.pk,itemid,path)
+                    count+=1
+        except ValueError as e:
+            logger.warning("Unable to get archive information from item {0}, probably because it has not been archived.".format(itemid))
+            logger.warning(traceback.format_exc())
+            
+    return render(request,"restore_collection.html", context={'count': count, 'total': total})
 
 @login_required
 @has_group('AWS_GR_Restore')

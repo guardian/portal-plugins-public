@@ -9,3 +9,8 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'djangotestdb.sqlite3'),
     }
 }
+
+VIDISPINE_URL="http://localhost"
+VIDISPINE_PORT=8080
+VIDISPINE_USERNAME="fakeuser"
+VIDISPINE_PASSWORD="fakepassword"

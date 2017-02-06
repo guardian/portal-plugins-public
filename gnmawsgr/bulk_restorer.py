@@ -31,7 +31,7 @@ class BulkRestorer(VSMixin):
         except BulkRestore.DoesNotExist:
             bulk_request = BulkRestore()
             bulk_request.parent_collection = project_id
-            bulk_request.username = user.name
+            bulk_request.username = user.username
             bulk_request.number_already_going = 0
             bulk_request.number_queued = 0
             bulk_request.current_status = "Queued"

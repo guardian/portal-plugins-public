@@ -150,9 +150,10 @@ def download_callback(rq, current_progress,total):
 
 
 @celery.task
-def glacier_restore(request_id,itemid):
+def glacier_restore(request_id,itemid,inTest=False):
     from models import RestoreRequest
     from gnmvidispine.vs_item import VSItem
+    from datetime import datetime
     import re
     import traceback
     try:
@@ -180,7 +181,24 @@ def glacier_restore(request_id,itemid):
         logger.error(e)
         logger.error(traceback.format_exc())
         raise  # re-raise the exception, so it shows as Failed in Celery Flower
-    
+
+    try:
+        new_report_line = "Initiating item restore"
+        new_log = "\n".join([
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " " + new_report_line,
+            item_obj.get('gnm_external_archive_external_archive_report')
+        ])
+
+        item_obj.set_metadata({
+            'gnm_external_archive_external_archive_status': "Restore In Progress",
+            'gnm_asset_status': 'Waiting for Archive Restore',
+            'gnm_external_archive_external_archive_report': new_log
+        })
+    except Exception as e:
+        raven_client.captureException()
+        logger.error(e)
+        if inTest: raise
+        
     try:
         do_glacier_restore(request_id,item_obj, archived_path)
         
@@ -310,7 +328,10 @@ def do_glacier_restore(request_id,item_obj, archived_path):
             rq.filepath_original = archived_path
             rq.filepath_destination = filename
             rq.save()
-            item_obj.set_metadata({'gnm_asset_status': 'Ready for Editing (from Archive)'})
+            item_obj.set_metadata({
+                'gnm_asset_status': 'Ready for Editing (from Archive)',
+                'gnm_external_archive_external_archive_status': "Restore Completed",
+            })
             break
 
         except IOError as e:
@@ -355,7 +376,12 @@ def do_glacier_restore(request_id,item_obj, archived_path):
                 rq.status = 'FAILED'
                 rq.completed_at = datetime.now()
                 rq.save()
-                item_obj.set_metadata({'gnm_asset_status': 'Archived to External'})
+                item_obj.set_metadata({
+                    'gnm_asset_status': 'Archived to External',
+                    'gnm_external_archive_external_archive_request': 'None',
+                    'gnm_external_archive_external_archive_status': 'Restore Failed'
+                })
+                
                 logger.error(e)
                 logger.error(traceback.format_exc())
                 raise

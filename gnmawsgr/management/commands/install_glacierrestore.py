@@ -105,7 +105,7 @@ class Command(VSMixin, BaseCommand):
 
         print "Ensuring that asset status values are present"
         self.add_choices_to_field('gnm_asset_status', ['Waiting for Archive Restore'])
-        self.add_choices_to_field('gnm_external_archive_external_archive_status', ['Restore in Progress','Restore Failed'])
+        self.add_choices_to_field('gnm_external_archive_external_archive_status', ['Restore in Progress','Restore Failed', 'Restore Completed'])
         print "Done"
 
         print "Installing glacier restore role..."

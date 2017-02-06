@@ -1,4 +1,4 @@
-from vsmixin import VSMixin, VSWrappedSearch
+from vsmixin import VSMixin
 import httplib2
 from itertools import chain, imap
 import logging
@@ -119,7 +119,84 @@ class BulkRestorer(VSMixin):
             bulk_request.last_error = str(e)
             bulk_request.save()
             raise
+    
+    def process_item(self,item,bulk_request):
+        """
+        Checks the archive status of an item and asynchrnously requests a restore via Glacier if it's archived.
+        :param item: item metadata dictionary
+        :param bulk_request: valid bulk_request model object
+        :return: VSItem object from gnmvidispine
+        """
+        from tasks import glacier_restore
+        from models import restore_request_for
+        from gnmvidispine.vs_item import VSItem
+        from django.conf import settings
+        from datetime import datetime
         
+        if item['fields']['gnm_external_archive_external_archive_status'][0] == 'Archived':
+            rq = restore_request_for(item['itemId'], bulk_request.username, bulk_request.parent_collection, "READY")
+            glacier_restore.delay(rq.pk, item['itemId'])
+            new_report_line = "Initiating restore from collection {0}".format(bulk_request.parent_collection)
+            new_request = "Requested Restore"
+            bulk_request.number_queued += 1
+        else:
+            logger.warning("item {0} from collection {1} is not being restored because its status is {2}".format(
+                item['itemId'],
+                bulk_request.parent_collection,
+                item['fields']['gnm_external_archive_external_archive_status'][0]
+            ))
+            new_report_line = "Not restoring with collection {0} because archive status was {1}".format(
+                bulk_request.parent_collection,
+                item['fields']['gnm_external_archive_external_archive_status'][0]
+            )
+            new_request = item['fields']['gnm_external_archive_external_archive_request']
+        vsi = VSItem(url=settings.VIDISPINE_URL, user=settings.VIDISPINE_USERNAME, passwd=settings.VIDISPINE_PASSWORD)
+        vsi.name = item['itemId']
+        report_content = "\n".join([
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " " + new_report_line,
+            item['fields']['gnm_external_archive_external_archive_report'][0]
+        ])
+        vsi.set_metadata({
+            'gnm_external_archive_external_archive_report' : report_content,
+            'gnm_external_archive_external_archive_request': new_request
+        }, group="Asset")
+        return vsi
+    
+    def _get_searchpages(self, bulk_request):
+        from .vsmixin import VSWrappedSearch
+        page_size = 20
+        counter = 1
+        search_futures = []
+
+        search_request = VSWrappedSearch({'__collection': bulk_request.parent_collection}, pagesize=page_size)
+        search_futures.append(search_request.execute(start_at=counter, fieldlist=[
+            'gnm_external_archive_external_archive_device',
+            'gnm_external_archive_external_archive_path',
+            'gnm_external_archive_external_archive_status',
+            'gnm_external_archive_external_archive_report',
+            'gnm_external_archive_external_archive_request'
+        ]))
+    
+        while True:
+            # have the next page request going in the background while we process the results from the first one
+            search_futures.append(search_request.execute(start_at=counter * page_size, fieldlist=[
+                'gnm_external_archive_external_archive_device',
+                'gnm_external_archive_external_archive_path',
+                'gnm_external_archive_external_archive_status',
+                'gnm_external_archive_external_archive_report',
+                'gnm_external_archive_external_archive_request'
+            ]))
+
+            # wait for the previous page to complete and get the results
+            resultdoc = search_futures.pop(0).waitfor_json()
+            remapped_items = map(lambda item: self.remap_metadata(item), resultdoc['item'])
+            for i in remapped_items:
+                yield i
+
+            counter += 1
+            if counter * page_size > resultdoc['hits']:
+                break
+                
     def _bulk_restore_main(self, bulk_request):
         """
         This is called from a Celery task to actually do the restore
@@ -127,76 +204,13 @@ class BulkRestorer(VSMixin):
         :return: None
         """
         from pprint import pprint
-        from tasks import glacier_restore
-        from models import BulkRestore, restore_request_for
-        from gnmvidispine.vs_item import VSItem
-        from django.conf import settings
-        from datetime import datetime
-        
-        page_size = 20
-        counter = 1
-        search_futures = []
-        
+        from models import BulkRestore
 
-        search_request = VSWrappedSearch({'__collection': bulk_request.parent_collection}, pagesize=page_size)
-        search_futures.append(search_request.execute(start_at=counter,fieldlist=[
-                                             'gnm_external_archive_external_archive_device',
-                                             'gnm_external_archive_external_archive_path',
-                                             'gnm_external_archive_external_archive_status',
-                                             'gnm_external_archive_external_archive_report',
-                                             'gnm_external_archive_external_archive_request'
-                                         ])
-                              )
-        
-        while True:
-            #have the next page request going in the background while we process the results from the first one
-            search_futures.append(search_request.execute(start_at=counter * page_size,fieldlist=[
-                                             'gnm_external_archive_external_archive_device',
-                                             'gnm_external_archive_external_archive_path',
-                                             'gnm_external_archive_external_archive_status',
-                                             'gnm_external_archive_external_archive_report',
-                                             'gnm_external_archive_external_archive_request'
-                                         ])
-                                  )
+        for item in self._get_searchpages(bulk_request):
+            bulk_request.number_requested += 1
+            try:
+                self.process_item(item, bulk_request)
+            except KeyError:    #raised if an item does not have archive fields set on it. If so, just leave it and move on.
+                pass
+            bulk_request.save()
             
-            #wait for the previous page to complete and get the results
-            resultdoc = search_futures.pop(0).waitfor_json()
-            pprint(resultdoc)
-            
-            remapped_items = map(lambda item: self.remap_metadata(item), resultdoc['item'])
-
-            for item in remapped_items:
-                bulk_request.number_requested += 1
-                if item['fields']['gnm_external_archive_external_archive_status'][0] == 'Archived':
-                    rq = restore_request_for(item['itemId'], bulk_request.username, bulk_request.parent_collection, "READY")
-                    glacier_restore.delay(rq.pk,item['itemId'])
-                    new_report_line = "Initiating restore from collection {0}".format(bulk_request.parent_collection)
-                    new_request = "Requested Restore"
-                    bulk_request.number_queued += 1
-                else:
-                    logger.warning("item {0} from collection {1} is not being restored because its status is {2}".format(
-                        item['itemId'],
-                        bulk_request.parent_collection,
-                        item['fields']['gnm_external_archive_external_archive_status'][0]
-                    ))
-                    new_report_line = "Not restoring with collection {0} because archive status was {1}".format(
-                        bulk_request.parent_collection,
-                        item['fields']['gnm_external_archive_external_archive_status'][0]
-                    )
-                    new_request = item['fields']['gnm_external_archive_external_archive_request']
-                vsi = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
-                vsi.name = item['itemId']
-                report_content = "\n".join([
-                    datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " " + new_report_line,
-                    item['fields']['gnm_external_archive_external_archive_report'][0]
-                ])
-                vsi.set({
-                    'gnm_external_archive_external_archive_report': report_content,
-                    'gnm_external_archive_external_archive_request': new_request
-                },group="Asset")
-                bulk_request.save()
-                
-            counter +=1
-            if counter*page_size > resultdoc['hits']:
-                break
-        

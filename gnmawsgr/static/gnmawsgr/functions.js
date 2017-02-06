@@ -1,7 +1,7 @@
 function restoring_message()
 //builds a DOM fragment to issue a holding message
 {
-    return $("<img>", {'src': '/sitemedia/img/loading.gif'}).append(
+    return $("<img>", {'src': '/sitemedia/img/load.gif'}).append(
             $("<p>", {'text': 'Requesting restore, please wait...'})
            );
 }

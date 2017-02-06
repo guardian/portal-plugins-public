@@ -152,7 +152,13 @@ class ProjectInfoView(APIView):
             promises = {
                 'total_items': VSWrappedSearch({'__collection': projectid}).execute(),
                 'archived_items': VSWrappedSearch(
-                    {'__collection': projectid, 'gnm_external_archive_external_archive_status': "Archived"}).execute()
+                    {'__collection': projectid, 'gnm_asset_status': "Archived to External"}).execute(),
+                'restored_items': VSWrappedSearch(
+                    {'__collection': projectid, 'gnm_asset_status': "Ready for Editing (from Archive)"}
+                ).execute(),
+                'waiting_items': VSWrappedSearch(
+                    {'__collection': projectid, 'gnm_asset_status': "Waiting for Archive Restore"}
+                ).execute()
             }
             
             results = dict(

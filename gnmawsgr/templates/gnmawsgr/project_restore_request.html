@@ -1,8 +1,8 @@
 {% load static %}
 
+<script src="{% static 'gnmawsgr/project_stuff.js' %}"></script>
 {% if is_allowed %}
 <script src="{% static 'gnmawsgr/functions.js' %}"></script>
-<script src="{% static 'gnmawsgr/project_stuff.js' %}"></script>
 <script>
   $(function() {
     $( "#dialog_{{ collection }}" ).dialog({

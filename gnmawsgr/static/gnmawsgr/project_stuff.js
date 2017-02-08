@@ -17,8 +17,12 @@ function check_has_in_glacier(endpoint){
         ];
 
         $("#info_text").html(lines.join(" "));
-        if(percentage_in_archive===0) $("#restore_{{ collection }}").hide();
-        $("#glacier_restore_button_container").fadeIn();
+        if(percentage_in_archive===0){
+            console.log("project is not archived");
+            $("#glacier_restore_button_container").hide();
+        } else {
+            $("#glacier_restore_button_container").fadeIn();
+        }
     }).fail(function(jqXHR,errorThrown,detail){
         console.error("receiving project info: errorThrown");
         $("glacier_restore_button_loading").hide();

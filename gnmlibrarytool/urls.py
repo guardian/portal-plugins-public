@@ -4,7 +4,7 @@
 import logging
 from django.contrib.auth.decorators import login_required,permission_required
 from .views import MainAppView, LibraryListView, CreateLibraryView, DeleteLibraryView, SaveStorageRuleView, \
-    DeleteStorageRuleView, RuleDiagramDataView, DiagramMainView, NicknameQueryViewset, StorageRuleInfoView
+    DeleteStorageRuleView, RuleDiagramDataView, DiagramMainView, NicknameQueryViewset, StorageRuleInfoView, rule_form
 from django.conf.urls.defaults import patterns, url
 from django.conf.urls import include
 from rest_framework import routers
@@ -30,4 +30,5 @@ urlpatterns = patterns('portal.plugins.gnmlibrarytool.views',
     url(r'^diagram$', login_required(DiagramMainView.as_view())),
     url(r'^endpoint/', include(router.urls)),
     url(r'^storageruleinfo/(\w{2}-\d+)$',StorageRuleInfoView.as_view(), name="libtool_storage_info_view"),
+    url(r'^rules/$', rule_form),
 )

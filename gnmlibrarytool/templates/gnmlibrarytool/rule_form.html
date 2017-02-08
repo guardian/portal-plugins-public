@@ -1,0 +1,11 @@
+{% themeextends "base.html" %}
+{% load static from staticfiles %}
+{% block title %}Vidispine Library Management{% endblock %}
+
+{% block body %}
+<form action="/gnmlibarytool/rules/" method="post">
+    {% csrf_token %}
+    {{ form }}
+    <input type="submit" value="Submit" />
+</form>
+{% endblock %}

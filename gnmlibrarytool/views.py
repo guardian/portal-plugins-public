@@ -7,6 +7,8 @@ from rest_framework.renderers import JSONRenderer, XMLRenderer
 from vsmixin import HttpError, VSMixin
 from models import LibraryNickname, LibraryNicknameSerializer
 import logging
+from django.shortcuts import render
+from forms import LibraryStorageRuleForm
 
 logger = logging.getLogger(__name__)
 
@@ -493,3 +495,8 @@ class StorageRuleInfoView(APIView):
 
         except Exception as e:
             return Response({'status': 'error', 'error': str(e), 'trace': traceback.format_exc()})
+
+
+def rule_form(request):
+    form = LibraryStorageRuleForm
+    return render(request, 'gnmlibrarytool/rule_form.html', {'form': form})

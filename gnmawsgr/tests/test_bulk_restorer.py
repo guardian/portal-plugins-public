@@ -2,10 +2,6 @@ from __future__ import absolute_import
 from django.core.management import execute_manager
 import unittest2
 from mock import MagicMock, patch
-import httplib
-import base64
-import logging
-import tempfile
 from os import environ, system, unlink
 import os.path
 
@@ -28,7 +24,6 @@ class TestBulkRestorer(unittest2.TestCase):
         """
         from gnmawsgr.bulk_restorer import BulkRestorer
         import json
-        from pprint import pprint
         from .testdata import raw_item_json, remapped_document
         from .FakeSettings import settings
         
@@ -39,7 +34,6 @@ class TestBulkRestorer(unittest2.TestCase):
         
         remapped_data = r.remap_metadata(content['item'][0])
         
-        #pprint(remapped_data)
         self.assertDictContainsSubset(remapped_document,remapped_data['fields'])
 
     def test_1initiate(self):   #the 1 ensures that this test gets run first, otherwise the id checks below fail

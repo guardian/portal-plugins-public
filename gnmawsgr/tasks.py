@@ -228,6 +228,24 @@ def glacier_restore(request_id,itemid,inTest=False):
         raise #re-raise the exception, so it shows as Failed in Celery Flower
 
 
+def update_item_restored(item_obj,raven_client):
+    import traceback
+    import time
+    while True:
+        try:
+            item_obj.set_metadata({
+                'gnm_asset_status': 'Ready for Editing (from Archive)',
+                'gnm_external_archive_external_archive_status': "Restore Completed",
+            })
+            break
+        except Exception as e:
+            time.sleep(1)
+            if raven_client is not None:
+                raven_client.captureException()
+            logger.error(str(e))
+            logger.error(traceback.format_exc())
+
+
 def do_glacier_restore(request_id,item_obj, archived_path):
     import os
     from django.conf import settings
@@ -328,10 +346,7 @@ def do_glacier_restore(request_id,item_obj, archived_path):
             rq.filepath_original = archived_path
             rq.filepath_destination = filename
             rq.save()
-            item_obj.set_metadata({
-                'gnm_asset_status': 'Ready for Editing (from Archive)',
-                'gnm_external_archive_external_archive_status': "Restore Completed",
-            })
+            update_item_restored(item_obj,raven_client)
             break
 
         except IOError as e:

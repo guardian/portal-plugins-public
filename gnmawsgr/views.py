@@ -39,7 +39,7 @@ class GenericRequestRestoreView(APIView):
         rq = restore_request_for(itemid, username=self.request.user.username, parent_project=parent_project, rqstatus=rqstatus)
         
         if rq.status in self.should_restore_statuses:
-            do_task = glacier_restore.delay(rq.pk, itemid, path)
+            do_task = glacier_restore.delay(rq.pk, itemid, path).id
         else:
             do_task = None
             
@@ -69,7 +69,7 @@ class RestoreItemRequestView(GenericRequestRestoreView):
         from traceback import format_exc
         try:
             if 'id' in request.GET:
-                itemid = request.GET['itemid']
+                itemid = request.GET['id']
             else:
                 return Response({'status': "error", "error": "Need an item id"}, status=400)
 

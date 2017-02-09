@@ -7,7 +7,7 @@
 
     $( "#opener{{ collection }}" ).click(function() {
       $( "#dialog{{ collection }}" ).dialog( "open" );
-      $( "#dialog{{ collection }}" ).load( "/gnmawsgr/rc/?id={{ collection }}" );
+      $( "#dialog{{ collection }}" ).load( "{% url gnmawsgr:request_collection %}?id={{ collection }}" );
     });
 
     $( "#dialog2{{ collection }}" ).dialog({
@@ -20,7 +20,7 @@
 
       var selected = cntmo.app.page.collectionitemresults.getSelectedItemIds();
 
-      $( "#dialog2{{ collection }}" ).load( "/gnmawsgr/rcs/?id={{ collection }}&selected="+selected+"" );
+      $( "#dialog2{{ collection }}" ).load( "{% url gnmawsgr:request_collection %}?id={{ collection }}&selected="+selected+"" );
     });
   });
 

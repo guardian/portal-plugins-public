@@ -7,14 +7,14 @@
 
     $( "#opener{{ itemid }}" ).click(function() {
       $( "#dialog{{ itemid }}" ).dialog( "open" );
-      $( "#dialog{{ itemid }}" ).load( "/gnmawsgr/r/?id={{ itemid }}" );
+      $( "#dialog{{ itemid }}" ).load( "{% url gnmawsgr:request_item %}?id={{ itemid }}" );
     });
   });
 
 </script>
 
 <li>
-<a id="opener{{ itemid }}">Restore from Glacier</a>
+    <a id="opener{{ itemid }}">Restore from Glacier</a>
 </li>
 
 <div id="dialog{{ itemid }}" title="Restore from Glacier">

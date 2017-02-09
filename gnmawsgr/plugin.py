@@ -70,13 +70,8 @@ class Gnm_GlacierCSS(Plugin):
         :param item: item ref
         :return: dictionary
         """
-        from pprint import pprint
-        from utils import metadataValueInGroup, item_is_archived, item_is_restoring, item_will_be_archived
-        
-        print item.__class__.__name__
-        print dir(item)
-        pprint(item.item_metadata)
-        
+        from portal.plugins.gnmawsgr.utils import metadataValueInGroup, item_is_archived, item_is_restoring, item_will_be_archived
+
         return {
             'object_class': 'item',
             'is_archiving': item_will_be_archived(item.item_metadata),
@@ -233,8 +228,8 @@ class GNMAWSGRGearboxMenuPlugin(Plugin):
                 return map(lambda x: x['value'], f['value'])
     
     def recurse_group(self, mdkey, data):
-        self.recurse_for_field(data['field'])
-        self.recurse_group(data['group'])
+        self.recurse_for_field(mdkey,data['field'])
+        self.recurse_group(mdkey,data['group'])
     
     def metadataValueForKey(self, mdkey, meta):
         for item_data in meta:
@@ -273,31 +268,23 @@ class GNMAWSGRGearboxMenuPlugin(Plugin):
         raise ValueError("Could not find metadata key {0}".format(mdkey))
     
     def return_string(self, tagname, *args):
-        display = 0
-        
+        from . import archive_test_value
         context = args[1]
         item = context['item']
         itemid = item.getId()
         
         from portal.vidispine.iitem import ItemHelper
-        from pprint import pprint
         
         ith = ItemHelper()
-        
         res = ith.getItemMetadata(itemid)
-        # pprint(res)
 
-        # print "gnm_external_archive_external_archive_status = {0}".format(self.metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_status',res['item']))
-        
         test_value = self.metadataValueInGroup('ExternalArchiveRequest', 'gnm_external_archive_external_archive_status',
                                                res['item'])
         path = self.metadataValueInGroup('ExternalArchiveRequest', 'gnm_external_archive_external_archive_path',
                                          res['item'])
         
+        print "test_value: {0}, path: {1}".format(test_value,path)
         if test_value == archive_test_value:
-            display = 1
-        
-        if display == 1:
             return {'guid'   : self.plugin_guid, 'template': 'gearbox_menu.html',
                     'context': {'itemid': itemid, 'path': path}}
 
@@ -360,21 +347,17 @@ class GNMAWSGRCollectionGearboxMenuPlugin(Plugin):
     
     def return_string(self, tagname, *args):
         display = 0
+        from . import archive_test_value
         from portal.vidispine.iitem import ItemHelper
-        from pprint import pprint
         
         context = args[1]
         collection = context['collection']
         content = collection.getItems()
         collid = collection.getId()
 
-        # pprint(content[0].getId())
-        
         for data in content:
-            
             ith = ItemHelper()
             res = ith.getItemMetadata(data.getId())
-            # pprint(data.getId())
             try:
                 test_value = self.metadataValueInGroup('ExternalArchiveRequest',
                                                        'gnm_external_archive_external_archive_status', res['item'])

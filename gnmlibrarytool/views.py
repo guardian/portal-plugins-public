@@ -500,3 +500,11 @@ class StorageRuleInfoView(APIView):
 def rule_form(request):
     form = LibraryStorageRuleForm
     return render(request, 'gnmlibrarytool/rule_form.html', {'form': form})
+
+def add_rule(request):
+    from .models import LibraryStorageRule
+
+    lsrm = LibraryStorageRule
+    #lsrm.objects.create(storagerule_name=request.GET['storagerule_name'], storagerule_xml_source=request.GET['storagerule_xml_source'])
+
+    return render(request, 'gnmlibrarytool/form.html')

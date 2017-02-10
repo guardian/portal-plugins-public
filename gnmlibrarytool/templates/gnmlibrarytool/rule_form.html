@@ -3,9 +3,11 @@
 {% block title %}Vidispine Library Management{% endblock %}
 
 {% block body %}
-<form action="/gnmlibarytool/rules/" method="post">
-    {% csrf_token %}
-    {{ form }}
-    <input type="submit" value="Submit" />
-</form>
+<div style="width: 540px;">
+    <form action="/gnmlibrarytool/add/" method="post">
+            {% csrf_token %}
+            {{ form.as_table }}
+        <input type="submit" value="Submit" />
+    </form>
+</div>
 {% endblock %}

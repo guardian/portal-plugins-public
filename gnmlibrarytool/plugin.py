@@ -122,6 +122,8 @@ class GnmlibrarytoolStorageRulesViewPlugin(Plugin):
         self.plugin_guid = "2b849f0f-0509-4edb-98a0-78da05e60682"
 
     def return_string(self,tagname,*args):
-        return {'guid': self.plugin_guid, 'template': 'gnmlibrarytool/mediaview_storagerules.html'}
+        from models import LibraryStorageRule
+        rules = LibraryStorageRule.objects.all()
+        return {'guid': self.plugin_guid, 'template': 'gnmlibrarytool/mediaview_storagerules.html', 'context': {'rules': rules}}
 
 gnmlibrarytoolSRviewplugin = GnmlibrarytoolStorageRulesViewPlugin()

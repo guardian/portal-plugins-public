@@ -503,8 +503,12 @@ def rule_form(request):
 
 def add_rule(request):
     from .models import LibraryStorageRule
+    from pprint import pprint
 
-    lsrm = LibraryStorageRule
-    #lsrm.objects.create(storagerule_name=request.GET['storagerule_name'], storagerule_xml_source=request.GET['storagerule_xml_source'])
+    pprint(request.POST['storagerule_name'])
+    pprint(request.POST['storagerule_xml_source'])
+
+    lsrm = LibraryStorageRule(storagerule_name=request.POST['storagerule_name'], storagerule_xml_source=request.POST['storagerule_xml_source'])
+    lsrm.save()
 
     return render(request, 'gnmlibrarytool/form.html')

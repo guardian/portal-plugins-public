@@ -10,4 +10,13 @@
     <table id="mvlibtool_sr_info">
 
     </table>
+    <div class="panel-header"><h2>Available Storage Rules</h2></div>
+    <form>
+         <select name="cars">
+             {% for rule in rules %}
+                <option value="{{ rule.storagerule_name }}">{{ rule.storagerule_name }}</option>
+             {% endfor %}
+        </select>
+        <input type="submit">
+    </form>
 </div>

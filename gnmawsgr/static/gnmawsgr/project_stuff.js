@@ -1,6 +1,6 @@
 function check_has_in_glacier(endpoint){
     //ask the server whether this project has any assets externally archived. If so, return true
-    $("#gnmawsgr_loading_info").html("Checking how much of the project is in archive...");
+    $("#gnmawsgr_loading_info").html("Checking how much of the project is in deep archive...");
     $.ajax(endpoint).done(function(data){
         console.log("received project info data: " + data);
         $("#glacier_restore_button_loading").hide();

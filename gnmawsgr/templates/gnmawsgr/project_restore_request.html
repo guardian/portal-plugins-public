@@ -7,7 +7,7 @@
   $(function() {
     $( "#dialog_{{ collection }}" ).dialog({
       autoOpen: false,
-      width:480,
+      width:480
     });
 
     $( "#restore_{{ collection }}" ).click(function() {
@@ -36,10 +36,10 @@
     <div id="glacier_restore_button_container">
         <div style="display: block;">
             {% if is_allowed %}
-            <button type="button" id="restore_{{ collection }}">Restore from Glacier</button>
+            <button type="button" id="restore_{{ collection }}">Restore from Deep Archive</button>
             {% else %}
-            <button type="button" id="disabled_restore_button" style="background-color: LightGrey;">Restore from Glacier</button>
-            <span style="font-style: italic; text-align: right;">Only admins are allowed to restore entire projects from Glacier</span>
+            <button type="button" id="disabled_restore_button" style="background-color: LightGrey;">Restore from Deep Archive</button>
+            <span style="font-style: italic; text-align: right;">Only admins are allowed to restore entire projects from Deep Archive</span>
             {% endif %}
         </div>
         <div>

@@ -503,12 +503,24 @@ def rule_form(request):
 
 def add_rule(request):
     from .models import LibraryStorageRule
-    from pprint import pprint
-
-    pprint(request.POST['storagerule_name'])
-    pprint(request.POST['storagerule_xml_source'])
 
     lsrm = LibraryStorageRule(storagerule_name=request.POST['storagerule_name'], storagerule_xml_source=request.POST['storagerule_xml_source'])
     lsrm.save()
 
-    return render(request, 'gnmlibrarytool/form.html')
+    return render(request, 'gnmlibrarytool/rule_form_done.html')
+
+def add_rule_to_item(request):
+    from .models import LibraryStorageRule
+    from gnmvidispine.vs_storage_rule import VSStorageRuleNew
+    from django.conf import settings
+    from pprint import pprint
+
+    pprint(request.POST['itemid'])
+    pprint(request.POST['rulexml'])
+
+    newrule = VSStorageRuleNew(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,run_as=request.user.username)
+    newrule.populate_from_xml(request.POST['rulexml'])
+    newrule.applies_to(o_id=request.POST['itemid'])
+
+
+    return render(request, 'gnmlibrarytool/rule_done.html')

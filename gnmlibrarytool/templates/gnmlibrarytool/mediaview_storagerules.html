@@ -11,12 +11,14 @@
 
     </table>
     <div class="panel-header"><h2>Available Storage Rules</h2></div>
-    <form>
-         <select name="cars">
+    <form action="/gnmlibrarytool/addrule/" method="post">
+         {% csrf_token %}
+         <select name="rulexml">
              {% for rule in rules %}
-                <option value="{{ rule.storagerule_name }}">{{ rule.storagerule_name }}</option>
+                <option value="{{ rule.storagerule_xml_source }}">{{ rule.storagerule_name }}</option>
              {% endfor %}
         </select>
+        <input type="hidden" name="itemid" value="{{ item_id }}">
         <input type="submit">
     </form>
 </div>

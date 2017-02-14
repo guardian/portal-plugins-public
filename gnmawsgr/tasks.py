@@ -165,9 +165,13 @@ def glacier_restore(request_id,itemid,inTest=False):
 
     try:
         new_report_line = "Initiating item restore"
+        existing_report = item_obj.get('gnm_external_archive_external_archive_report')
+        if existing_report is None:
+            existing_report = ""
+
         new_log = "\n".join([
             datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " " + new_report_line,
-            item_obj.get('gnm_external_archive_external_archive_report')
+            existing_report
         ])
 
         item_obj.set_metadata({

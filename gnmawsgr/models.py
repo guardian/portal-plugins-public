@@ -4,6 +4,7 @@ from datetime import datetime
 
 is_vidispine_id = re.compile(r'^\w{2}-\d+')
 
+
 class RestoreRequest(Model):
     requested_at = DateTimeField()
     completed_at = DateTimeField(blank=True,null=True)
@@ -18,6 +19,7 @@ class RestoreRequest(Model):
     filepath_destination = CharField(max_length=32768,null=True)
     failure_reason = CharField(max_length=32768,blank=True,null=True)
     file_size_check = CharField(max_length=32768,null=True)
+    import_job = CharField(max_length=64,null=True,blank=True)
     status = CharField(max_length=64,choices=(
         ('READY','Ready'),
         ('AWAITING_RESTORE','Awaiting Restore'),
@@ -26,6 +28,7 @@ class RestoreRequest(Model):
         ('COMPLETED','Completed'),
         ('RETRY','Retry'),
         ('FAILED','Failed'),
+        ('IMPORT_FAILED','Import Failed'),
         ('NOT_GLACIER','Not Glacier')
     ))
 

@@ -48,25 +48,6 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
     return (rtn_headers,content)
 
 
-def makeshape(itemid,uri,tagname='original',agent=None):
-    import json
-    import re
-    if agent is None:
-        import httplib2
-        agent = httplib2.Http()
-
-    if not re.match(r'^\w+:/',uri):
-        uri = 'file:' + uri
-
-    uri = uri.replace(' ','%2520')
-
-    url = "/API/item/{0}/shape?uri={1}&tag={2}".format(itemid,uri,tagname)
-
-    (headers,content) = make_vidispine_request(agent,"POST",url,body="",headers={'Accept': 'application/json'})
-
-    return json.loads(content)
-
-
 class MiniItem(object):
     def __init__(self,raw_json):
         import json
@@ -253,10 +234,8 @@ def do_glacier_restore(request_id,item_obj, archived_path):
     from boto.exception import S3ResponseError
     from models import RestoreRequest
     from datetime import datetime
-    import httplib2
     import traceback
     from functools import partial
-    import re
     
     try:
         import raven
@@ -276,28 +255,6 @@ def do_glacier_restore(request_id,item_obj, archived_path):
         temp_path = settings.GLACIER_TEMP_PATH
     if hasattr(settings,'GLACIER_RESTORE_TIME'):
         restore_time = settings.GLACIER_RESTORE_TIME
-
-    interesting_fields = [
-        'title',
-        'gnm_external_archive_external_archive_device',
-        'gnm_external_archive_external_archive_path',
-        'gnm_external_archive_external_archive_status',
-        'gnm_external_archive_external_archive_report',
-    ]
-    agent = httplib2.Http()
-
-    try:
-        headers, content = make_vidispine_request(agent,"GET","/API/item/{id}/metadata?fields={fieldlist}"
-                                                  .format(id=item_obj.name,fieldlist=','.join(interesting_fields)),
-                                                  "",
-                                                  {'Accept': 'application/json'},
-                                                  )
-    except HttpError as e:
-        if e.code == 404:
-            logger.error("Item {0} does not exist".format(item_obj.name))
-        else:
-            logger.error(e)
-        return
         
     rq = RestoreRequest.objects.get(pk=request_id)
 
@@ -312,7 +269,6 @@ def do_glacier_restore(request_id,item_obj, archived_path):
         #raise StandardError("No credentials in settings")
         conn = S3Connection()
 
-    checksum = "(not found)"
     try:
         bucket = conn.get_bucket(item_obj.get('gnm_external_archive_external_archive_device'))
         key = bucket.get_key(archived_path)
@@ -325,7 +281,9 @@ def do_glacier_restore(request_id,item_obj, archived_path):
         rq.save()
         return
 
-    filename = os.path.join(temp_path, os.path.basename(item_obj.get('gnm_external_archive_external_archive_path')))
+    filename = os.path.join(temp_path, item_obj.get('gnm_external_archive_external_archive_path'))
+    os.makedirs(os.path.dirname(filename),exist_ok=True)
+
     n=0
     while True:
         try:
@@ -340,9 +298,8 @@ def do_glacier_restore(request_id,item_obj, archived_path):
                 rq.save()
                 break
             rq.save()
-            post_restore_actions(item_obj.name,filename)
-            rq.status = 'COMPLETED'
-            rq.completed_at = datetime.now()
+            post_restore_actions(item_obj,rq,filename)
+            #we've NOT completed here - import is still going on in VS.
             rq.filepath_original = archived_path
             rq.filepath_destination = filename
             rq.save()
@@ -402,14 +359,50 @@ def do_glacier_restore(request_id,item_obj, archived_path):
                 raise
 
 
-def post_restore_actions(itemid, downloaded_filename):
-    logger.info("Creating shape for {0}...".format(itemid))
-    try:
-        makeshape(itemid,downloaded_filename,tagname='original')
-    except HttpError as e:
-        logger.error(unicode(e))
-        raise
-    logger.info("Done.")
+def filepath_to_uri(filepath):
+    from urllib2 import quote
+    return "file://" + quote(filepath,safe="/")
+
+
+def post_restore_actions(item_obj, request, downloaded_filename):
+    logger.info("Creating shape for {0}...".format(item_obj.name))
+
+    vsjob = item_obj.import_to_shape(uri=filepath_to_uri(downloaded_filename))
+    request.import_job = vsjob.name
+    request.save()
+
+    logger.info("Import job for {0} ({1}) is {2}. Requestid={3}".format(item_obj.name,downloaded_filename,vsjob.name,request.pk))
+    check_import_completed.apply_async((), {'requestid': request.pk}, countdown=20)
+
+
+@celery.task
+def check_import_completed(requestid=None,in_test=False):
+    from django.conf import settings
+    from gnmvidispine.vs_job import VSJob
+    from models import RestoreRequest
+    from datetime import datetime
+
+    logger.info("Checking import status for request id {0}".format(requestid))
+    rq = RestoreRequest.objects.get(pk=requestid)
+    j = VSJob(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+    j.populate(rq.import_job)
+    logger.info("Import status for {0} ({1}) is {2}, job id is {3}".format(rq.item_id,requestid,j.status(),j.name))
+
+    if j.didFail():
+        logger.info("Import for {0} failed with error message {1}".format(rq.item_id,j.errorMessage))
+        rq.failure_reason = j.errorMessage
+        rq.status="IMPORT_FAILED"
+        rq.completed_at = datetime.now()
+        rq.save()
+    elif j.finished(): #finished and not failed => success
+        logger.info("Import for {0} completed successfully".format(rq.item_id))
+        rq.status = 'COMPLETED'
+        rq.completed_at = datetime.now()
+        rq.save()
+    else:
+        #otherwise reschedule another check
+        if not in_test:
+            check_import_completed.apply_async((), {'requestid': requestid}, countdown=20)
 
 
 @celery.task

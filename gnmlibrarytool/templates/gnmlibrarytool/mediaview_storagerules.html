@@ -10,20 +10,24 @@
     <table id="mvlibtool_sr_info">
 
     </table>
-    <div class="panel-header"><h2>Available Storage Rules</h2></div>
-    <form action="/gnmlibrarytool/addrule/" method="post">
-         {% csrf_token %}
-         <select name="rulexml">
-             {% for rule in rules %}
-                <option value="{{ rule.storagerule_xml_source }}">{{ rule.storagerule_name }}</option>
-             {% endfor %}
-        </select>
-        <select name="ruleshape" id="ruleshape_selector">
+    {% for group in user.groups.all %}
+        {% if group.name == 'Admin' %}
+        <div class="panel-header"><h2>Available Storage Rules</h2></div>
+        <form action="/gnmlibrarytool/addrule/" method="post">
+             {% csrf_token %}
+             <select name="rulexml">
+                 {% for rule in rules %}
+                    <option value="{{ rule.storagerule_xml_source }}">{{ rule.storagerule_name }}</option>
+                 {% endfor %}
+            </select>
+            <select name="ruleshape" id="ruleshape_selector">
 
-        </select>
-        <input type="hidden" name="itemid" value="{{ item_id }}">
-        <input type="submit" value="Apply Rule">
-    </form>
-    <br />
-    <br />
+            </select>
+            <input type="hidden" name="itemid" value="{{ item_id }}">
+            <input type="submit" value="Apply Rule">
+        </form>
+        <br />
+        <br />
+        {% endif %}
+    {% endfor %}
 </div>

@@ -9,6 +9,7 @@ from models import LibraryNickname, LibraryNicknameSerializer
 import logging
 from django.shortcuts import render
 from forms import LibraryStorageRuleForm
+from decorators import has_group
 
 logger = logging.getLogger(__name__)
 
@@ -496,11 +497,12 @@ class StorageRuleInfoView(APIView):
         except Exception as e:
             return Response({'status': 'error', 'error': str(e), 'trace': traceback.format_exc()})
 
-
+@has_group('Admin')
 def rule_form(request):
     form = LibraryStorageRuleForm
     return render(request, 'gnmlibrarytool/rule_form.html', {'form': form})
 
+@has_group('Admin')
 def add_rule(request):
     from .models import LibraryStorageRule
 
@@ -509,18 +511,36 @@ def add_rule(request):
 
     return render(request, 'gnmlibrarytool/rule_form_done.html')
 
+@has_group('Admin')
 def add_rule_to_item(request):
-    from .models import LibraryStorageRule
+    from xml.etree.cElementTree import fromstring
+    from gnmvidispine.vs_item import VSItem, VSNotFound
     from gnmvidispine.vs_storage_rule import VSStorageRuleNew
     from django.conf import settings
-    from pprint import pprint
-
-    pprint(request.POST['itemid'])
-    pprint(request.POST['rulexml'])
+    from django.http import HttpResponseRedirect
+    from django.core.urlresolvers import reverse,reverse_lazy
 
     newrule = VSStorageRuleNew(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,run_as=request.user.username)
-    newrule.populate_from_xml(request.POST['rulexml'])
-    newrule.applies_to(o_id=request.POST['itemid'])
 
+    try:
+        newrule.populate_from_xml(fromstring(request.POST['rulexml']))
+    except Exception:
+        return render(request, 'gnmlibrarytool/rule_failed.html')
+
+    i = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,run_as=request.user.username)
+    try:
+        i.populate(request.POST['itemid'])
+    except Exception:
+        return render(request, 'gnmlibrarytool/rule_failed.html')
+    try:
+        shape = i.get_shape(request.POST['ruleshape'])
+    except Exception:
+        return render(request, 'gnmlibrarytool/rule_failed.html')
+    try:
+        shape.add_storage_rule(newrule)
+    except Exception:
+        return render(request, 'gnmlibrarytool/rule_failed.html')
+
+    #return HttpResponseRedirect(request.referer)
 
     return render(request, 'gnmlibrarytool/rule_done.html')

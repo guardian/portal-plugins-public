@@ -230,6 +230,9 @@ def update_item_restored(itemid,raven_client=None):
             logger.error("Raven client either not installed (pip install raven) or set up (RAVEN_CONFIG in localsettings.py).  Unable to report errors to Sentry")
             raven_client = None
 
+    attempts=0
+    max_attempts=20
+
     while True:
         try:
             item_obj.set_metadata({
@@ -238,11 +241,16 @@ def update_item_restored(itemid,raven_client=None):
             })
             break
         except Exception as e:
+            attempts+=1
+
             time.sleep(1)
             if raven_client is not None:
                 raven_client.captureException()
             logger.error(str(e))
             logger.error(traceback.format_exc())
+
+            if attempts>max_attempts:
+                raise
 
 def mkdir_p(path):
     import os

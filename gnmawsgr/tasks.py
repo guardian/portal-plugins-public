@@ -230,6 +230,17 @@ def update_item_restored(item_obj,raven_client):
             logger.error(str(e))
             logger.error(traceback.format_exc())
 
+def mkdir_p(path):
+    import os
+    import errno
+
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
 
 def do_glacier_restore(request_id,item_obj, archived_path):
     import os
@@ -286,7 +297,7 @@ def do_glacier_restore(request_id,item_obj, archived_path):
         return
 
     filename = os.path.join(temp_path, item_obj.get('gnm_external_archive_external_archive_path'))
-    os.makedirs(os.path.dirname(filename),exist_ok=True)
+    mkdir_p(os.path.dirname(filename))
 
     n=0
     while True:

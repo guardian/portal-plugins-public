@@ -23,6 +23,7 @@ function load_storage_rule_info(itemid)
         $.each(data, function(idx,ptr){
             var row=$('<tr>').appendTo(table);
             $('<td>').html(ptr['shapetag']).appendTo(row);
+            $('<option>', {'value': ptr['shapetag'],'text': ptr['shapetag']}).appendTo($("#ruleshape_selector"));
             var rules_cell=$('<td>').appendTo(row);
             if(ptr['rules']==null || ptr['rules'].length==0){
                 $('<p>').html("No storage rule applied").appendTo(rules_cell);

@@ -1,12 +1,14 @@
-{% themeextends "base.html" %}
-{% load static from staticfiles %}
-{% block title %}Vidispine Library Management{% endblock %}
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress staticfiles %}
+{% block title %}{% trans 'Add Storage Rule' %}{% endblock %}
+{% block heading %}{% trans 'Add Storage Rule' %}{% endblock %}
 
-{% block body %}
-<div style="width: 540px;">
+{% block content %}
+<div style="width: 574px;">
     <form action="/gnmlibrarytool/add/" method="post">
             {% csrf_token %}
             {{ form.as_table }}
+        <br />
         <input type="submit" value="Submit" />
     </form>
 </div>

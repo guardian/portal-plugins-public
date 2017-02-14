@@ -18,7 +18,12 @@
                 <option value="{{ rule.storagerule_xml_source }}">{{ rule.storagerule_name }}</option>
              {% endfor %}
         </select>
+        <select name="ruleshape" id="ruleshape_selector">
+
+        </select>
         <input type="hidden" name="itemid" value="{{ item_id }}">
-        <input type="submit">
+        <input type="submit" value="Apply Rule">
     </form>
+    <br />
+    <br />
 </div>

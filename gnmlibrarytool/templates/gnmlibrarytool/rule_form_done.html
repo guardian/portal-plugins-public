@@ -1,8 +1,9 @@
-{% themeextends "base.html" %}
-{% load static from staticfiles %}
-{% block title %}Vidispine Library Management{% endblock %}
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress staticfiles %}
+{% block title %}{% trans 'Add Storage Rule' %}{% endblock %}
+{% block heading %}{% trans 'Add Storage Rule' %}{% endblock %}
 
-{% block body %}
+{% block content %}
 <br />
 <br />
 An attempt has been made to add the new rule to the Pluto interface.

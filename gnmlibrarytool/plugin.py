@@ -124,6 +124,7 @@ class GnmlibrarytoolStorageRulesViewPlugin(Plugin):
     def return_string(self,tagname,*args):
         from models import LibraryStorageRule
         rules = LibraryStorageRule.objects.all()
+        rules = sorted(rules.values("storagerule_name"))
         context = args[1]
         item = context['item']
         iid = item.getId()

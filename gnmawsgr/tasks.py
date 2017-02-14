@@ -213,9 +213,23 @@ def glacier_restore(request_id,itemid,inTest=False):
         raise #re-raise the exception, so it shows as Failed in Celery Flower
 
 
-def update_item_restored(item_obj,raven_client):
+def update_item_restored(itemid,raven_client=None):
     import traceback
     import time
+    from gnmvidispine.vs_item import VSItem
+    from django.conf import settings
+
+    item_obj = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+    item_obj.name = itemid
+    if raven_client is None:
+        try:
+            import raven
+            from django.conf import settings
+            raven_client = raven.Client(settings.RAVEN_CONFIG['dsn'])
+        except StandardError as e:
+            logger.error("Raven client either not installed (pip install raven) or set up (RAVEN_CONFIG in localsettings.py).  Unable to report errors to Sentry")
+            raven_client = None
+
     while True:
         try:
             item_obj.set_metadata({
@@ -318,7 +332,6 @@ def do_glacier_restore(request_id,item_obj, archived_path):
             rq.filepath_original = archived_path
             rq.filepath_destination = filename
             rq.save()
-            update_item_restored(item_obj,raven_client)
             break
 
         except IOError as e:
@@ -414,6 +427,7 @@ def check_import_completed(requestid=None,in_test=False):
         rq.status = 'COMPLETED'
         rq.completed_at = datetime.now()
         rq.save()
+        update_item_restored(rq.item_id,raven_client=None)
     else:
         #otherwise reschedule another check
         if not in_test:

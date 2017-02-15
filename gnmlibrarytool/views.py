@@ -524,22 +524,22 @@ def add_rule_to_item(request):
 
     try:
         newrule.populate_from_xml(fromstring(request.POST['rulexml']))
-    except Exception:
-        return render(request, 'gnmlibrarytool/rule_failed.html')
+    except VSNotFound as e:
+        return render(request, 'gnmlibrarytool/rule_failed.html', {'error': e})
 
     i = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,run_as=request.user.username)
     try:
         i.populate(request.POST['itemid'])
-    except Exception:
-        return render(request, 'gnmlibrarytool/rule_failed.html')
+    except VSNotFound as e:
+        return render(request, 'gnmlibrarytool/rule_failed.html', {'error': e})
     try:
         shape = i.get_shape(request.POST['ruleshape'])
-    except Exception:
-        return render(request, 'gnmlibrarytool/rule_failed.html')
+    except VSNotFound as e:
+        return render(request, 'gnmlibrarytool/rule_failed.html', {'error': e})
     try:
         shape.add_storage_rule(newrule)
-    except Exception:
-        return render(request, 'gnmlibrarytool/rule_failed.html')
+    except VSNotFound as e:
+        return render(request, 'gnmlibrarytool/rule_failed.html', {'error': e})
 
     #return HttpResponseRedirect(request.referer)
 

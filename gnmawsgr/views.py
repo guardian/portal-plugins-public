@@ -13,6 +13,10 @@ from vsmixin import VSMixin, VSWrappedSearch
 from utils import metadataValueInGroup
 from portal.plugins.gnmawsgr import archive_test_value
 from datetime import datetime
+import logging
+import traceback
+
+logger = logging.getLogger(__name__)
 
 @login_required
 def index(request):
@@ -133,7 +137,7 @@ class DeleteRestoreRequest(DeleteView):
     def dispatch(self, request, *args, **kwargs):
         return super(DeleteRestoreRequest,self).dispatch(request,*args,**kwargs)
 
-
+      
 class ProjectInfoView(APIView):
     renderer_classes = (JSONRenderer, )
     permission_classes = (permissions.IsAuthenticated, )

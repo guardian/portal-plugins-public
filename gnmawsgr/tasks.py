@@ -214,6 +214,19 @@ def glacier_restore(request_id,itemid,inTest=False):
 
 
 def update_item_restored(itemid,raven_client=None):
+    update_item_meta(itemid,{
+        'gnm_asset_status': 'Ready for Editing (from Archive)',
+        'gnm_external_archive_external_archive_status': "Restore Completed",
+    },raven_client)
+
+
+def update_item_failed(itemid,raven_client=None):
+    update_item_meta(itemid,{
+        'gnm_external_archive_external_archive_status': "Restore Failed",
+    },raven_client)
+
+
+def update_item_meta(itemid,content,raven_client=None):
     import traceback
     import time
     from gnmvidispine.vs_item import VSItem
@@ -235,10 +248,7 @@ def update_item_restored(itemid,raven_client=None):
 
     while True:
         try:
-            item_obj.set_metadata({
-                'gnm_asset_status': 'Ready for Editing (from Archive)',
-                'gnm_external_archive_external_archive_status': "Restore Completed",
-            })
+            item_obj.set_metadata(content)
             break
         except Exception as e:
             attempts+=1
@@ -430,13 +440,14 @@ def check_import_completed(requestid=None,in_test=False):
         rq.status="IMPORT_FAILED"
         rq.completed_at = datetime.now()
         rq.save()
-    elif j.finished(): #finished and not failed => success
+        update_item_failed(rq.item_id)
+    if j.finished() and not j.didFail(): #finished and not failed => success
         logger.info("Import for {0} completed successfully".format(rq.item_id))
         rq.status = 'COMPLETED'
         rq.completed_at = datetime.now()
         rq.save()
-        update_item_restored(rq.item_id,raven_client=None)
-    else:
+        update_item_restored(rq.item_id)
+    if not j.finished():
         #otherwise reschedule another check
         if not in_test:
             check_import_completed.apply_async((), {'requestid': requestid}, countdown=20)

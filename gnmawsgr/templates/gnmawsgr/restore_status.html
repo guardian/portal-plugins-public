@@ -14,7 +14,7 @@
 
     $( "#opener{{ entry.item_id }}" ).click(function() {
       $( "#dialog{{ entry.item_id }}" ).dialog( "open" );
-      $( "#dialog{{ entry.item_id }}" ).load( "/gnmawsgr/re/?id={{ entry.item_id }}" );
+      $( "#dialog{{ entry.item_id }}" ).load( "{% url gnmawsgr:request_item %}?id={{ entry.item_id }}" );
     });
   });
   {% endfor %}

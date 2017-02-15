@@ -7,9 +7,9 @@ function regex_test_string()
     console.log("Match result is " + result);
 
     if(result){
-        var match_html = $('#id_test_string').val().slice(0,result['index']);
+        var match_html = $('#id_test_string').val().slice(0,result.index);
         match_html += '<span class="matched">' + result[0] + '</span>';
-        match_html += $('#id_test_string').val().slice(result['index']+result[0].length);
+        match_html += $('#id_test_string').val().slice(result.index+result[0].length);
 
         $('#test_result_area').empty();
         $('#test_result_area').append($('<div>', {'style': 'display: inline-block;'}).html('Result: Matched'));

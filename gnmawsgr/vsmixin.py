@@ -2,6 +2,7 @@ from xml.etree.cElementTree import Element,SubElement,tostring
 import time
 from threading import Thread, currentThread
 
+
 class HttpError(StandardError):
     """
     Class to represent a generic HTTP error (non-2xx response)
@@ -19,24 +20,30 @@ class HttpError(StandardError):
     def __str__(self):
         return self.__unicode__().encode('ascii')
 
-from django.conf import settings
-
 
 class VSMixin(object):
     """
     Class to perform Vidispine search for purgemeister
     """
     _ns = "{http://xml.vidispine.com/schema/vidispine}"
-
+    
     #only return these fields. Saves a LOT of time for metadata-heavy items.
+    #overload this in a mixed-in class to get your own list of fields.
     interesting_fields = [
         'created',
         'title',
         'gnm_asset_category',
         'original_filename',
     ]
-    vidispine_url = settings.VIDISPINE_URL
-    vidispine_port = settings.VIDISPINE_PORT
+    
+    vidispine_url = ""
+    vidispine_port = 0
+    
+    def __init__(self,*args,**kwargs):
+        super(VSMixin, self).__init__(*args,**kwargs)
+        from django.conf import settings
+        self.vidispine_url = settings.VIDISPINE_URL
+        self.vidispine_port = settings.VIDISPINE_PORT
 
     def _make_vidispine_request(self,agent,method,urlpath,body,headers,content_type='application/xml'):
         """
@@ -62,7 +69,7 @@ class VSMixin(object):
             urlpath = '/' + urlpath
 
         url = "{0}:{1}{2}".format(self.vidispine_url,self.vidispine_port,urlpath)
-        logging.debug("URL is %s" % url)
+        
         (headers,content) = agent.request(url,method=method,body=body,headers=headers)
 
         st = int(headers['status'])
@@ -72,7 +79,7 @@ class VSMixin(object):
         return (headers,content)
 
 
-class VSFuture(Thread, VSMixin):
+class VSFuture(VSMixin, Thread):
     """
     Scala-style asynchronous request for Vidispine. Usage:
     myrequst = VSFuture(None,"GET","/API/requestpath","",{})
@@ -91,7 +98,7 @@ class VSFuture(Thread, VSMixin):
     
     def __init__(self, agent, method, urlpath, body, headers, content_type='application/xml', *args, **kwargs):
         super(VSFuture, self).__init__(*args, **kwargs)
-        
+
         self.agent = agent if agent else self.httplib2.Http()
         self.method = method if method else "GET"
         self.urlpath = urlpath
@@ -202,6 +209,13 @@ class VSWrappedSearch(object):
                     SubElement(field_el, "value").text = val
         return tostring(root_el)
     
-    def execute(self, http=None):
-        return VSFuture(http, "PUT", "/API/item;number={0}".format(self.pagesize), self.make_searchdoc(),
-                        {'Accept': 'application/json'}).start()
+    def execute(self, http=None, start_at=1, fieldlist=None):
+        if fieldlist is not None:
+            querypart = "?content=metadata&field=" + ",".join(fieldlist)
+        else:
+            querypart = ""
+            
+        return VSFuture(http, "PUT", "/API/item;first={0};number={1}{2}".format(start_at, self.pagesize, querypart),
+                        self.make_searchdoc(),
+                        {'Accept': 'application/json'}
+                        ).start()

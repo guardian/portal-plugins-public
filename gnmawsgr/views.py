@@ -1,7 +1,7 @@
 from django.views.generic import ListView, DeleteView
 from django.http import HttpResponse
 from django.shortcuts import render
-from models import RestoreRequest
+from models import RestoreRequest, restore_request_for
 from decorators import has_group
 from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
@@ -12,6 +12,7 @@ from rest_framework import permissions
 from vsmixin import VSMixin, VSWrappedSearch
 from utils import metadataValueInGroup
 from portal.plugins.gnmawsgr import archive_test_value
+from datetime import datetime
 import logging
 import traceback
 
@@ -21,44 +22,102 @@ logger = logging.getLogger(__name__)
 def index(request):
     return render(request,"gnmawsgr.html")
 
-@login_required
-@has_group('AWS_GR_Restore')
-def r(request):
-    from tasks import glacier_restore
-    from datetime import datetime
-    from portal.vidispine.igeneral import performVSAPICall
-    from portal.vidispine.iitem import ItemHelper
 
-    itemid = request.GET.get('id', '')
-    ith = ItemHelper()
-    res = performVSAPICall(func=ith.getItemMetadata, \
-                                    args={'item_id':itemid}, \
-                                    vsapierror_templateorcode='template.html')
+class GenericRequestRestoreView(APIView):
+    renderer_classes = (JSONRenderer,)
+    
+    @method_decorator(has_group('AWS_GR_Restore'))
+    def dispatch(self, request, *args, **kwargs):
+        return super(GenericRequestRestoreView,self).dispatch(request,*args,**kwargs)
 
-    itemdata = res['response']
+    #if restore request status is any of these, then proceed with the restore
+    should_restore_statuses = [
+        "READY", "FAILED", "NOT_GLACIER", "COMPLETED", "RETRY"
+    ]
+    
+    def request_item_restore(self, itemid, itemdata, parent_project=None, rqstatus="READY"):
+        from tasks import glacier_restore
+        path = metadataValueInGroup('ExternalArchiveRequest', 'gnm_external_archive_external_archive_path',
+                                    itemdata['item'])
 
-    path = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_path',itemdata['item'])
-
-    try:
-        rq = RestoreRequest.objects.get(item_id=itemid)
-    except RestoreRequest.DoesNotExist:
-        rq = RestoreRequest()
-        rq.requested_at = datetime.now()
-        rq.username = request.user.username
-        rq.status = "READY"
-        rq.attempts = 1
-        rq.item_id = itemid
-        rq.save()
-
-    if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER") or (rq.status == "COMPLETED"):
-        do_task = glacier_restore.delay(rq.pk,itemid,path)
-        return render(request,"restore.html")
-    else:
-        if (rq.requested_at == '') or (rq.username == '') or (rq.status == ''):
-            return render(request,"do_not_restore_no_data.html")
+        rq = restore_request_for(itemid, username=self.request.user.username, parent_project=parent_project, rqstatus=rqstatus)
+        
+        if rq.status in self.should_restore_statuses:
+            do_task = glacier_restore.delay(rq.pk, itemid, path).id
         else:
-            return render(request,"do_not_restore.html", {"at": rq.requested_at, "user": rq.username, "status": rq.status})
+            do_task = None
+            
+        return (rq,do_task)
+    
+    def get_item_data(self,itemid):
+        from portal.vidispine.igeneral import performVSAPICall
+        from portal.vidispine.iitem import ItemHelper
+        ith = ItemHelper()
+        res = performVSAPICall(func=ith.getItemMetadata,
+                               args={'item_id': itemid},
+                               vsapierror_templateorcode='template.html')
+    
+        return res['response']
+    
+    def make_response(self, requesttuple):
+        return {
+            "status": "ok",
+            "request_id": requesttuple[0].pk,
+            "request_attempt": requesttuple[0].attempts,
+            "task_id": requesttuple[1]
+        }
+    
+    
+class RestoreItemRequestView(GenericRequestRestoreView):
+    def get(self, request):
+        from traceback import format_exc
+        try:
+            if 'id' in request.GET:
+                itemid = request.GET['id']
+            else:
+                return Response({'status': "error", "error": "Need an item id"}, status=400)
 
+            if 'retry' in request.GET:
+                should_status = "RETRY"
+            else:
+                should_status = "READY"
+
+            itemdata = self.get_item_data(itemid)
+
+            return Response(
+                self.make_response(self.request_item_restore(itemid, itemdata, should_status))
+            )
+        
+        except Exception as e:
+            return Response({"status": "error", "error": str(e), "trace": format_exc()}, status=500)
+    
+
+class RestoreCollectionRequestView(GenericRequestRestoreView):
+    def get(self, request):
+        from traceback import format_exc
+        try:
+            from bulk_restorer import BulkRestorer
+            r = BulkRestorer()
+            
+            if not 'id' in request.GET:
+                return Response({'status': 'error', 'detail': "Need an item ID"},status=400)
+            
+            if 'selected' in request.GET:
+                selection_list = request.GET['selected'].split(",")
+            else:
+                selection_list = None
+                
+            job_id = r.initiate_bulk(request.user,request.GET['id'],selection=selection_list)
+            
+            return Response(
+                {
+                    "status": "ok",
+                    "bulk_restore_request": job_id
+                }
+            )
+        except Exception as e:
+            return Response({"status": "error", "error": str(e), "trace": format_exc()}, status=500)
+        
 
 class CurrentStatusView(ListView):
     model = RestoreRequest
@@ -78,143 +137,7 @@ class DeleteRestoreRequest(DeleteView):
     def dispatch(self, request, *args, **kwargs):
         return super(DeleteRestoreRequest,self).dispatch(request,*args,**kwargs)
 
-@login_required
-@has_group('AWS_GR_Restore')
-def re(request):
-    from tasks import glacier_restore
-    from portal.vidispine.igeneral import performVSAPICall
-    from portal.vidispine.iitem import ItemHelper
-
-    itemid = request.GET.get('id', '')
-
-    ith = ItemHelper()
-
-    res = performVSAPICall(func=ith.getItemMetadata, \
-                                    args={'item_id':itemid}, \
-                                    vsapierror_templateorcode='template.html')
-
-    itemdata = res['response']
-
-    path = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_path',itemdata['item'])
-
-    rq = RestoreRequest.objects.get(item_id=itemid)
-    rq.status = "RETRY"
-    rq.attempts = rq.attempts + 1
-    rq.save()
-    do_task = glacier_restore.delay(rq.pk,itemid,path)
-    return render(request,"restore.html")
-
-@login_required
-@has_group('AWS_GR_Restore')
-def rc(request):
-    from tasks import glacier_restore
-    from datetime import datetime
-    from portal.vidispine.icollection import CollectionHelper
-    from portal.vidispine.igeneral import performVSAPICall
-    from portal.vidispine.iitem import ItemHelper
-
-    collid = request.GET.get('id', '')
-    ch = CollectionHelper()
-    res = performVSAPICall(func=ch.getCollection, \
-                                args={'collection_id':collid}, \
-                                vsapierror_templateorcode='template.html')
-    collection = res['response']
-    content = collection.getItems()
-
-    count = 0
-    total=0
-    for data in content:
-        total +=1
-        ith = ItemHelper()
-        itemid = data.getId()
-        res2 = performVSAPICall(func=ith.getItemMetadata, \
-                                    args={'item_id':itemid}, \
-                                    vsapierror_templateorcode='template.html')
-        itemdata = res2['response']
-
-        try:
-            if metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_status',itemdata['item'])\
-                    == archive_test_value:
-                path = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_path',itemdata['item'])
-    
-                try:
-                    rq = RestoreRequest.objects.get(item_id=itemid)
-                except RestoreRequest.DoesNotExist:
-                    rq = RestoreRequest()
-                    rq.requested_at = datetime.now()
-                    rq.username = request.user.username
-                    rq.status = "READY"
-                    rq.attempts = 1
-                    rq.item_id = itemid
-                    rq.parent_collection = collid
-                    rq.save()
-    
-                if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER") or (rq.status == "COMPLETED"):
-                    do_task = glacier_restore.delay(rq.pk,itemid,path)
-                    count+=1
-        except ValueError as e:
-            logger.warning("Unable to get archive information from item {0}, probably because it has not been archived.".format(itemid))
-            logger.warning(traceback.format_exc())
-            
-    return render(request,"restore_collection.html", context={'count': count, 'total': total})
-
-@login_required
-@has_group('AWS_GR_Restore')
-def rcs(request):
-    from tasks import glacier_restore
-    from datetime import datetime
-    from portal.vidispine.icollection import CollectionHelper
-    from portal.vidispine.igeneral import performVSAPICall
-    from portal.vidispine.iitem import ItemHelper
-
-    collid = request.GET.get('id', '')
-    selected = request.GET.get('selected', '')
-    selectedready = selected.split(",")
-    ch = CollectionHelper()
-    res = performVSAPICall(func=ch.getCollection, \
-                                args={'collection_id':collid}, \
-                                vsapierror_templateorcode='template.html')
-    collection = res['response']
-    content = collection.getItems()
-
-    for data in content:
-        ith = ItemHelper()
-        itemid = data.getId()
-        res2 = performVSAPICall(func=ith.getItemMetadata, \
-                                    args={'item_id':itemid}, \
-                                    vsapierror_templateorcode='template.html')
-        itemdata = res2['response']
-
-        try:
-            test_value = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_status',itemdata['item'])
-        except:
-            print 'An error broke the call'
-
-        if (test_value == archive_test_value) and itemid in selectedready:
-
-            try:
-                path = metadataValueInGroup('ExternalArchiveRequest','gnm_external_archive_external_archive_path',itemdata['item'])
-            except:
-                print 'An error broke the call'
-
-            try:
-                rq = RestoreRequest.objects.get(item_id=itemid)
-            except RestoreRequest.DoesNotExist:
-                rq = RestoreRequest()
-                rq.requested_at = datetime.now()
-                rq.username = request.user.username
-                rq.status = "READY"
-                rq.attempts = 1
-                rq.item_id = itemid
-                rq.parent_collection = collid
-                rq.save()
-
-            if (rq.status == "READY") or (rq.status == "FAILED") or (rq.status == "NOT_GLACIER") or (rq.status == "COMPLETED"):
-                do_task = glacier_restore.delay(rq.pk,itemid,path)
-
-    return render(request,"restore_selected.html")
-
-
+      
 class ProjectInfoView(APIView):
     renderer_classes = (JSONRenderer, )
     permission_classes = (permissions.IsAuthenticated, )
@@ -233,7 +156,13 @@ class ProjectInfoView(APIView):
             promises = {
                 'total_items': VSWrappedSearch({'__collection': projectid}).execute(),
                 'archived_items': VSWrappedSearch(
-                    {'__collection': projectid, 'gnm_external_archive_external_archive_status': "Archived"}).execute()
+                    {'__collection': projectid, 'gnm_asset_status': "Archived to External"}).execute(),
+                'restored_items': VSWrappedSearch(
+                    {'__collection': projectid, 'gnm_asset_status': "Ready for Editing (from Archive)"}
+                ).execute(),
+                'waiting_items': VSWrappedSearch(
+                    {'__collection': projectid, 'gnm_asset_status': "Waiting for Archive Restore"}
+                ).execute()
             }
             
             results = dict(
@@ -244,3 +173,29 @@ class ProjectInfoView(APIView):
         except Exception as e:
             traceback.print_exc()
             return Response({'status': "error", "detail": str(e)},status=500)
+        
+        
+class BulkRestoreStatusView(APIView):
+    renderer_classes = (JSONRenderer, )
+    permission_classes = (permissions.IsAuthenticated, )
+    
+    def get(self, request, vsid):
+        """
+        Returns information about the current state of the bulk restore request, so long as the requesting user
+        is an admin or the owner of the request.
+        :param request: Django request object
+        :param pk: primary key of a bulk restore request
+        :return: json response of information
+        """
+        from models import BulkRestore
+        from serializers import BulkRestoreSerializer
+        try:
+            bulk_request = BulkRestore.objects.get(parent_collection=vsid)
+            s = BulkRestoreSerializer(bulk_request, many=False)
+            if request.user.is_superuser or bulk_request.username == request.user.name:
+                return Response(s.data)
+            else:
+                raise BulkRestore.DoesNotExist  #default behaviour, mask the auth error by returning 404
+        except BulkRestore.DoesNotExist:
+            return Response({'status': 'error'},status=404)
+        

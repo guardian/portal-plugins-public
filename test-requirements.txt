@@ -17,8 +17,6 @@ django-s3direct==0.3.15
 django-tastypie==0.9.10
 djangorestframework==2.3.12
 celery==3.1.16
-django-celery==3.1.16
-django-celery-email==1.0.4
 amqp==1.4.6
 python-dateutil==2.1
 python-digest==1.7
@@ -36,3 +34,6 @@ elasticutils==0.10
 certifi==2015.4.28
 M2Crypto==0.22.3
 South==0.7.6
+unittest2==1.1.0
+mock==2.0.0
+httplib2==0.9.2

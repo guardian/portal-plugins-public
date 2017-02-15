@@ -2,13 +2,16 @@ import logging
 logger = logging.getLogger(__name__)
 
 #see http://thecodeship.com/patterns/guide-to-python-function-decorators/ for more information on how/why this works
-def has_group(groupname):
+def has_group(groupname, allow_admin=True):
     def hasgroup_inner(func):
         def func_wrapper(request):
             from pprint import pprint
             from django.core.exceptions import PermissionDenied
             #logger.debug("Current group list: {0}".format(",".join(request.user.groups.all())))
-
+            #allow admins access
+            if allow_admin and request.user.is_superuser:
+                return func(request)
+            
             #pprint(request.user.__dict__)
             for g in request.user.groups.all():
                 pprint(g)

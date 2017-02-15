@@ -2,17 +2,17 @@
   $(function() {
     $( "#dialog{{ collection }}" ).dialog({
       autoOpen: false,
-      width:480,
+      width:480
     });
 
     $( "#opener{{ collection }}" ).click(function() {
       $( "#dialog{{ collection }}" ).dialog( "open" );
-      $( "#dialog{{ collection }}" ).load( "/gnmawsgr/rc/?id={{ collection }}" );
+      $( "#dialog{{ collection }}" ).load( "{% url gnmawsgr:request_collection %}?id={{ collection }}" );
     });
 
     $( "#dialog2{{ collection }}" ).dialog({
       autoOpen: false,
-      width:480,
+      width:480
     });
 
     $( "#opener2{{ collection }}" ).click(function() {
@@ -20,7 +20,7 @@
 
       var selected = cntmo.app.page.collectionitemresults.getSelectedItemIds();
 
-      $( "#dialog2{{ collection }}" ).load( "/gnmawsgr/rcs/?id={{ collection }}&selected="+selected+"" );
+      $( "#dialog2{{ collection }}" ).load( "{% url gnmawsgr:request_collection %}?id={{ collection }}&selected="+selected+"" );
     });
   });
 

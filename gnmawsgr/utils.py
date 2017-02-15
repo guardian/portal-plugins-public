@@ -1,5 +1,6 @@
 from portal.plugins.gnmawsgr import archive_test_value, restoring_test_value, archiving_test_value
 
+
 def _find_group(groupname,meta):
     if not 'group' in meta:
         return None
@@ -8,6 +9,7 @@ def _find_group(groupname,meta):
         if g['name'] == groupname:
             return g
         _find_group(groupname,g)
+
 
 def metadataValueInGroup(groupname, mdkey, meta):
     if not isinstance(meta, list):

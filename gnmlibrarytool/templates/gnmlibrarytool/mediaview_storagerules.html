@@ -6,10 +6,13 @@
     <span id="mvlibtool_sr_loading">
         <img src="/sitemedia/load.gif" height="64"><span>Loading...</span>
     </span>
+    <form action="/gnmlibrarytool/delete/" method="post">
+        <input type="hidden" name="itemid" value="{{ item_id }}">
+        {% csrf_token %}
+        <table id="mvlibtool_sr_info">
 
-    <table id="mvlibtool_sr_info">
-
-    </table>
+        </table>
+    </form>
     {% for group in user.groups.all %}
         {% if group.name == 'Admin' %}
         <div class="panel-header"><h2>Available Storage Rules</h2></div>

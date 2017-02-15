@@ -518,7 +518,6 @@ def add_rule_to_item(request):
     from gnmvidispine.vs_storage_rule import VSStorageRuleNew
     from django.conf import settings
     from django.http import HttpResponseRedirect
-    from django.core.urlresolvers import reverse,reverse_lazy
 
     newrule = VSStorageRuleNew(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,run_as=request.user.username)
 
@@ -541,6 +540,33 @@ def add_rule_to_item(request):
     except VSNotFound as e:
         return render(request, 'gnmlibrarytool/rule_failed.html', {'error': e})
 
-    #return HttpResponseRedirect(request.referer)
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER')+"#shortcutmv_storage_rule_menu")
 
-    return render(request, 'gnmlibrarytool/rule_done.html')
+@has_group('Admin')
+def delete_rule(request):
+    from django.http import HttpResponseRedirect
+    from pprint import pprint
+    from django.conf import settings
+    from gnmvidispine.vs_item import VSItem, VSNotFound
+
+    try:
+        pprint(request.POST['delete'])
+    except Exception:
+        pass
+
+    i = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,run_as=request.user.username)
+    try:
+        i.populate(request.POST['itemid'])
+    except VSNotFound as e:
+        return render(request, 'gnmlibrarytool/rule_failed.html', {'error': e})
+    try:
+        shape = i.get_shape(request.POST['delete'])
+    except VSNotFound as e:
+        return render(request, 'gnmlibrarytool/rule_failed.html', {'error': e})
+    try:
+        shape.delete_storage_rule()
+    except VSNotFound as e:
+        return render(request, 'gnmlibrarytool/rule_failed.html', {'error': e})
+
+
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER')+"#shortcutmv_storage_rule_menu")

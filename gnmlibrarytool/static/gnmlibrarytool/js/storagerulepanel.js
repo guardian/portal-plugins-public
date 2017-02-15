@@ -42,6 +42,9 @@ function load_storage_rule_info(itemid)
                                     "; Exclude: " + excludestr
                                     )
                 $('<p>').append($('<a>',{'href': '/gnmlibrarytool/' + ptr['applies_to'][1]}).html('Applied from ' + ptr['applies_to'][0] + ' ' + ptr['applies_to'][1])).appendTo(rules_cell);
+                if(ptr['applies_to'][0] == 'ITEM') {
+                    $('<p>').append($(' <button type="submit" name="delete" value="'+ptr['name']+'">Delete</button>')).appendTo(rules_cell);
+                }
             });
         });
     }).fail(function(jqXHR, textStatus, errorThrown){

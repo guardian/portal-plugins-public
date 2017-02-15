@@ -46,10 +46,12 @@ class TestTasks(unittest2.TestCase):
             pass
 
         def status(self):
-            if self._success:
+            if self._success and self._finished:
                 return "SUCCESS"
             elif self._finished:
                 return "FAILURE"
+            else:
+                return "RUNNING"
 
     def test_post_restore_actions(self):
         from gnmawsgr.tasks import post_restore_actions, check_import_completed
@@ -92,25 +94,41 @@ class TestTasks(unittest2.TestCase):
 
         fakejob = self.fake_job("VX-456",success=True,finished=False)
         fakejob.populate=MagicMock()
-        with patch('gnmvidispine.vs_job.VSJob',return_value=fakejob) as mockjob:
-            check_import_completed(rq.pk,in_test=True)
-            fakejob.populate.assert_called_with("VX-456")
-            newrq = RestoreRequest.objects.get(pk=rq.pk)
-            self.assertEqual(newrq.status,"IMPORTING")
 
-        fakejob = self.fake_job("VX-456",success=True,finished=True)
-        fakejob.populate=MagicMock()
-        with patch('gnmvidispine.vs_job.VSJob',return_value=fakejob) as mockjob:
-            check_import_completed(rq.pk)
-            fakejob.populate.assert_called_with("VX-456")
-            newrq = RestoreRequest.objects.get(pk=rq.pk)
-            self.assertEqual(newrq.status,"COMPLETED")
+        with patch('gnmvidispine.vs_item.VSItem.set_metadata') as mockset:
+            with patch('gnmvidispine.vs_job.VSJob',return_value=fakejob) as mockjob:
+                with patch('gnmawsgr.tasks.check_import_completed.apply_async') as mockasync:
+                    check_import_completed(rq.pk)
+                    fakejob.populate.assert_called_with("VX-456")
+                    mockset.assert_not_called()
+                    newrq = RestoreRequest.objects.get(pk=rq.pk)
+                    self.assertEqual(newrq.status,"IMPORTING")
+                    mockasync.assert_called_once_with((), {'requestid': rq.pk}, countdown=20)
 
-        fakejob = self.fake_job("VX-456",success=False,finished=True,error_message="it blew up kaboom")
-        fakejob.populate=MagicMock()
-        with patch('gnmvidispine.vs_job.VSJob',return_value=fakejob) as mockjob:
-            check_import_completed(rq.pk)
-            fakejob.populate.assert_called_with("VX-456")
-            newrq = RestoreRequest.objects.get(pk=rq.pk)
-            self.assertEqual(newrq.status,"IMPORT_FAILED")
-            self.assertEqual(newrq.failure_reason,"it blew up kaboom")
+            mockset.reset_mock()
+            mockasync.reset_mock()
+            fakejob = self.fake_job("VX-456",success=True,finished=True)
+            fakejob.populate=MagicMock()
+            with patch('gnmvidispine.vs_job.VSJob',return_value=fakejob) as mockjob:
+                check_import_completed(rq.pk)
+                fakejob.populate.assert_called_with("VX-456")
+                mockset.assert_called_once_with({
+                    'gnm_asset_status': 'Ready for Editing (from Archive)',
+                    'gnm_external_archive_external_archive_status': "Restore Completed",
+                })
+                newrq = RestoreRequest.objects.get(pk=rq.pk)
+                self.assertEqual(newrq.status,"COMPLETED")
+                mockasync.assert_not_called()
+
+            mockset.reset_mock()
+            mockasync.reset_mock()
+            fakejob = self.fake_job("VX-456", success=False,finished=True,error_message="it blew up kaboom")
+            fakejob.populate=MagicMock()
+            with patch('gnmvidispine.vs_job.VSJob',return_value=fakejob) as mockjob:
+                check_import_completed(rq.pk)
+                fakejob.populate.assert_called_with("VX-456")
+                mockset.assert_called_once_with({'gnm_external_archive_external_archive_status': 'Restore Failed'})
+                newrq = RestoreRequest.objects.get(pk=rq.pk)
+                self.assertEqual(newrq.status,"IMPORT_FAILED")
+                self.assertEqual(newrq.failure_reason,"it blew up kaboom")
+                mockasync.assert_not_called()

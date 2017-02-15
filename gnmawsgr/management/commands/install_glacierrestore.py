@@ -1,7 +1,11 @@
 __author__ = 'Andy Gallagher <andy.gallagher@theguardian.com>'
 
 from django.core.management.base import BaseCommand, CommandError
-from portal.plugins.gnmawsgr.vsmixin import VSMixin
+import os
+if "CI" in os.environ:
+    from gnmawsgr.vsmixin import VSMixin, HttpError
+else:
+    from portal.plugins.gnmawsgr.vsmixin import VSMixin, HttpError
 
 
 class Command(VSMixin, BaseCommand):
@@ -34,12 +38,12 @@ class Command(VSMixin, BaseCommand):
         n = self._field_extra_data_node(doc)
         n.text = json.dumps(newval)
 
-    def add_choices_to_field(self, fieldname, choices):
+    def add_choices_to_field(self, fieldname, choices, conn=None):
         import httplib2
         import xml.etree.cElementTree as ET
         from pprint import pprint
 
-        h=httplib2.Http()
+        h=httplib2.Http() if conn is None else conn
         headers, content = self._make_vidispine_request(h,"GET","/API/metadata-field/{0}?data=all".format(fieldname),
                                                         body=None,headers={'Accept': 'application/xml'})
         rootEl = ET.fromstring(content)
@@ -65,7 +69,6 @@ class Command(VSMixin, BaseCommand):
 
     def make_group(self, groupname, groupdesc=None):
         from xml.etree.ElementTree import Element,SubElement,tostring
-        from portal.plugins.gnmawsgr.tasks import make_vidispine_request,HttpError
         import httplib2
 
         agent = httplib2.Http()
@@ -76,7 +79,7 @@ class Command(VSMixin, BaseCommand):
 
         #print tostring(root_el)
         try:
-            make_vidispine_request(agent,"PUT","/API/group/{groupname}".format(groupname=groupname),tostring(root_el),
+            self._make_vidispine_request(agent,"PUT","/API/group/{groupname}".format(groupname=groupname),tostring(root_el),
                                {'Accept': 'application/json'})
         except HttpError as e:
             if e.code == 409: #conflicterror=>group already exists
@@ -85,15 +88,14 @@ class Command(VSMixin, BaseCommand):
                 raise
 
         if groupdesc is not None:
-            make_vidispine_request(agent,"PUT","/API/group/{groupname}/description".format(groupname=groupname),unicode(groupdesc),
+            self._make_vidispine_request(agent,"PUT","/API/group/{groupname}/description".format(groupname=groupname),unicode(groupdesc),
                                    {'Accept': 'application/json'},content_type='text/plain')
 
     def remove_group(self, rolename):
-        from portal.plugins.gnmawsgr.tasks import make_vidispine_request
         import httplib2
 
         agent = httplib2.Http()
-        make_vidispine_request(agent,"DELETE","/API/group/{groupname}".format(groupname=rolename))
+        self._make_vidispine_request(agent,"DELETE","/API/group/{groupname}".format(groupname=rolename))
 
     def handle(self, *args, **options):
         import shutil
@@ -103,6 +105,7 @@ class Command(VSMixin, BaseCommand):
 
         print "Ensuring that asset status values are present"
         self.add_choices_to_field('gnm_asset_status', ['Waiting for Archive Restore'])
+        self.add_choices_to_field('gnm_external_archive_external_archive_status', ['Restore in Progress','Restore Failed', 'Restore Completed'])
         print "Done"
 
         print "Installing glacier restore role..."

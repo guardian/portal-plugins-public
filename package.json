@@ -1,0 +1,15 @@
+{
+  "name": "portal-plugins-public",
+  "description": "Plugins for cantemo portal",
+  "version": "1.0.0",
+  "devDependencies": {
+    "css-lint": "^1.0.1",
+    "jshint": "^2.9.4"
+  },
+  "scripts": {
+    "test":
+      "bash -c \"find gnm{awsgr,gridintegration} -iname '*.js' | grep -v '^./static' | grep -v node_modules | xargs ./node_modules/.bin/jshint\"",
+    "testcss":
+       "bash -c \"find gnm{awsgr,gridintegration} -iname '*.css' | grep -v '^./static' | grep -v node_modules | xargs ./node_modules/.bin/sass-lint\""
+  }
+}

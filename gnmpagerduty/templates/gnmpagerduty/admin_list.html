@@ -1,0 +1,83 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress staticfiles %}
+{% block title %}{% trans 'PagerDuty configuration' %}{% endblock %}
+{% block heading %}{% trans 'PagerDuty configuration' %}{% endblock %}
+
+{% block extra_script %}
+<script>
+    function setStorageLimit(storageName){
+        var newvalue = $('#' + storageName + '_limit_control').val();
+        console.log("Setting new value " + newvalue + " for " + storageName);
+
+        $.ajax('{% url gnmpagerduty_storage_add %}',{
+            'type': 'POST',
+            'data': JSON.stringify({'storage_id': storageName, 'trigger_size': newvalue}),
+            'dataType': "json",
+            'contentType': 'application/json'
+        }
+        ).success(function(){
+           $('#' + storageName + "_response").html("New value saved");
+        }).fail(function(jqXHR, errorThrown){
+            $('#' + storageName + "_response").html(errorThrown);
+        });
+    }
+
+    function updateStorageLimit(storageName){
+        var newvalue = $('#' + storageName + '_limit_control').val();
+        console.log("Setting new value " + newvalue + " for " + storageName);
+
+        $.ajax('{% url gnmpagerduty_storage_update %}',{
+            'type': 'PUT',
+            'data': JSON.stringify({'storage_id': storageName, 'trigger_size': newvalue}),
+            'dataType': "json",
+            'contentType': 'application/json'
+        }
+        ).success(function(){
+           $('#' + storageName + "_response").html("New value saved");
+        }).fail(function(jqXHR, errorThrown){
+            $('#' + storageName + "_response").html(errorThrown);
+        });
+    }
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+
+{% for wibble in modelready %}
+    {{ wibble.trigger_size }}
+
+{% endfor %}
+
+<table style="width: 100%">
+    <thead>
+    <tr>
+        <td>Storage ID</td>
+        <td>Name</td>
+        <td>Free capacity</td>
+        <td>Total capacity</td>
+        <td>Type</td>
+        <td>State</td>
+        <td>Size limit</td>
+    </tr>
+    </thead>
+
+    <tbody>
+    {% for storage in map %}
+    <tr>
+        <td>{{ storage.name }}</td>
+        <td>{{ storage.contentDict.name }}</td>
+        <td>{{ storage.freeCapacity|filesizeformat }}</td>
+        <td>{{ storage.capacity|filesizeformat }}</td>
+        <td>{{ storage.type }}</td>
+        <td>{{ storage.state }}</td>
+        <td><input type="text" id="{{ storage.name }}_limit_control" class="limit_control" value="{{ data }}"></td>
+        <td><button type="button" onClick="setStorageLimit('{{ storage.name }}');"></button></td>
+        <td><button type="button" onClick="updateStorageLimit('{{ storage.name }}');"></button></td>
+        <td class="responsearea" id="{{ storage.name }}_response"></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

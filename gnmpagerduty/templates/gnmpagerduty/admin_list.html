@@ -5,23 +5,6 @@
 
 {% block extra_script %}
 <script>
-    function setStorageLimit(storageName){
-        var newvalue = $('#' + storageName + '_limit_control').val();
-        console.log("Setting new value " + newvalue + " for " + storageName);
-
-        $.ajax('{% url gnmpagerduty_storage_add %}',{
-            'type': 'POST',
-            'data': JSON.stringify({'storage_id': storageName, 'trigger_size': newvalue}),
-            'dataType': "json",
-            'contentType': 'application/json'
-        }
-        ).success(function(){
-           $('#' + storageName + "_response").html("New value saved");
-        }).fail(function(jqXHR, errorThrown){
-            $('#' + storageName + "_response").html(errorThrown);
-        });
-    }
-
     function updateStorageLimit(storageName){
         var newvalue = $('#' + storageName + '_limit_control').val();
         console.log("Setting new value " + newvalue + " for " + storageName);
@@ -38,28 +21,43 @@
             $('#' + storageName + "_response").html(errorThrown);
         });
     }
+
+    function setStorageLimit(storageName){
+        var newvalue = $('#' + storageName + '_limit_control').val();
+        console.log("Setting new value " + newvalue + " for " + storageName);
+
+        $.ajax('{% url gnmpagerduty_storage_add %}',{
+            'type': 'POST',
+            'data': JSON.stringify({'storage_id': storageName, 'trigger_size': newvalue}),
+            'dataType': "json",
+            'contentType': 'application/json'
+        }
+        ).success(function(){
+           $('#' + storageName + "_response").html("New value saved");
+        }).fail(function(jqXHR, errorThrown){
+            $('#' + storageName + "_response").html(errorThrown);
+            updateStorageLimit(storageName);
+        });
+    }
 </script>
 
 {% endblock %}
 
 {% block content %}
 
-
-{% for wibble in modelready %}
-    {{ wibble.trigger_size }}
-
-{% endfor %}
-
 <table style="width: 100%">
     <thead>
     <tr>
         <td>Storage ID</td>
         <td>Name</td>
-        <td>Free capacity</td>
-        <td>Total capacity</td>
+        <td>Free Capacity</td>
+        <td>Total Capacity</td>
         <td>Type</td>
         <td>State</td>
-        <td>Size limit</td>
+        <td>Trigger Size (Bytes)</td>
+        <!--<td>Add</td>-->
+        <td>Update</td>
+        <td>Output</td>
     </tr>
     </thead>
 
@@ -72,9 +70,9 @@
         <td>{{ storage.capacity|filesizeformat }}</td>
         <td>{{ storage.type }}</td>
         <td>{{ storage.state }}</td>
-        <td><input type="text" id="{{ storage.name }}_limit_control" class="limit_control" value="{{ data }}"></td>
-        <td><button type="button" onClick="setStorageLimit('{{ storage.name }}');"></button></td>
-        <td><button type="button" onClick="updateStorageLimit('{{ storage.name }}');"></button></td>
+        <td><input style="width:160px;" type="text" id="{{ storage.name }}_limit_control" class="limit_control" value="{{ storage.triggerSize }}"></td>
+        <td><button type="button" onClick="setStorageLimit('{{ storage.name }}');">Update</button></td>
+        <!--<td><button type="button" onClick="updateStorageLimit('{{ storage.name }}');"></button></td>-->
         <td class="responsearea" id="{{ storage.name }}_response"></td>
     </tr>
     {% endfor %}

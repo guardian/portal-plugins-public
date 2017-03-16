@@ -71,7 +71,6 @@ class StorageDataUpdate(UpdateAPIView):
             data = self.request.DATA
 
             record = StorageData.objects.get(storage_id=data['storage_id'])
-            #record = StorageData.objects.get(storage_id='VX-1')
             record.trigger_size = data['trigger_size']
             record.save()
 
@@ -100,10 +99,29 @@ class ConfigAlertsView(ListView):
         pprint(self.map)
 
         ctx['map'] = map(lambda (k,v): v.__dict__, self.map.items())
-        pprint(ctx['map'])
-        pprint(modelready.objects.values_list())
-        dirty = modelready.objects.values_list('trigger_size', flat=True)
-        ctx['data'] = int(dirty[0])
+
+        n = 0
+
+        for val in ctx['map']:
+            print(val['name'])
+            try:
+                record = StorageData.objects.get(storage_id=val['name'])
+                ctx['map'][n]['triggerSize'] = int(record.trigger_size)
+            except Exception as e:
+                ctx['map'][n]['triggerSize'] = 0
+                print 'try code went wrong'
+
+            n = (n + 1)
+
+        #pprint(ctx['map'])
+        #pprint(ctx['map'][0]['name'])
+        #pprint(modelready.objects.values_list())
+        #dirty = modelready.objects.values_list('trigger_size', flat=True)
+        #try:
+        #    ctx['data'] = int(dirty[0])
+        #except Exception as e:
+        #    ctx['data'] = 0
+
         return ctx
 
 

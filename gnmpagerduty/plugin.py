@@ -3,6 +3,7 @@ import logging
 from portal.pluginbase.core import Plugin, implements
 from portal.generic.plugin_interfaces import (IPluginURL, IPluginBlock, IAppRegister,)
 
+
 log = logging.getLogger(__name__)
 
 class GnmpagerdutyPluginURL(Plugin):
@@ -71,3 +72,6 @@ class GnmpagerdutyAdminPlugin(Plugin):
         return {'guid': self.plugin_guid, 'template': 'gnmpagerduty/navigation.html'}
 
 adminplug = GnmpagerdutyAdminPlugin()
+
+
+

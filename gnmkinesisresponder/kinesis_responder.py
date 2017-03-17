@@ -42,12 +42,13 @@ class KinesisResponder(object):
         pprint(record)
 
     def run(self):
+        from pprint import pprint
         sleep_delay = 1
         iterator = self.new_shard_iterator()
         print "shard iterator is {0}".format(iterator)
         while iterator is not None:
             try:
-                record = self._conn.get_records(iterator,limit=1)
+                record = self._conn.get_records(iterator,limit=10)
                 if sleep_delay>1:
                     sleep_delay /= 2
             except kinesis.exceptions.ProvisionedThroughputExceededException:
@@ -59,22 +60,24 @@ class KinesisResponder(object):
             print "Time lag to this record set is {0}".format(time_lag)
             print "Record set is dated {0}".format(datetime.now() - time_lag)
 
-            dbrec = KinesisTracker()
-            dbrec.shard_id = self.shard_id
-            dbrec.created = datetime.now()
-            dbrec.updated = datetime.now()
-            #dbrec.sequence_number = record['sequence_number']
-            dbrec.status = KinesisTracker.ST_SEEN
-            dbrec.processing_host = "myhost"
-            dbrec.millis_behind_latest = record['MillisBehindLatest']
-            dbrec.save()
+            pprint(record)
+            for rec in record['Records']:
+                dbrec = KinesisTracker()
+                dbrec.shard_id = self.shard_id
+                dbrec.created = datetime.now()
+                dbrec.updated = datetime.now()
+                dbrec.sequence_number = rec['SequenceNumber']
+                dbrec.status = KinesisTracker.ST_SEEN
+                dbrec.processing_host = "myhost"
+                dbrec.millis_behind_latest = record['MillisBehindLatest']
+                dbrec.save()
 
-            dbrec.status = KinesisTracker.ST_PROCESSING
-            dbrec.save()
-            self.process(record)
+                dbrec.status = KinesisTracker.ST_PROCESSING
+                dbrec.save()
+                self.process(rec['Data'])
 
-            dbrec.status = KinesisTracker.ST_DONE
-            dbrec.save()
+                dbrec.status = KinesisTracker.ST_DONE
+                dbrec.save()
 
             iterator = record['NextShardIterator']
             if len(record['Records'])==0 and record['MillisBehindLatest']==0:

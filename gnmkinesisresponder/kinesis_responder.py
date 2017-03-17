@@ -4,13 +4,27 @@ from models import KinesisTracker
 from datetime import datetime, timedelta
 import logging
 from time import sleep
+from threading import Thread
+
 logger = logging.getLogger(__name__)
 
 TRIM_HORIZON = 'TRIM_HORIZON'
 AFTER_SEQUENCE_NUMBER = 'AFTER_SEQUENCE_NUMBER'
 
-class KinesisResponder(object):
-    def __init__(self, conn, stream_name, shard_id):
+
+class KinesisResponder(Thread):
+    """
+    Kinesis responder class that deals with getting stuff from a stream shard.  You can subclass this to do interesting
+    things with the messages - simply over-ride the process() method to get called whenever something comes in from the stream.
+    """
+    def __init__(self, conn, stream_name, shard_id, *args,**kwargs):
+        """
+        Initialise
+        :param conn: Kinesis connection object from boto
+        :param stream_name: The name, not ARN, of the stream
+        :param shard_id: Shard to connect to
+        """
+        super(KinesisResponder, self).__init__(*args,**kwargs)
         if not isinstance(conn,kl1.KinesisConnection): raise TypeError
 
         self._conn = conn
@@ -18,8 +32,12 @@ class KinesisResponder(object):
         self.shard_id = shard_id
 
     def most_recent_message_id(self):
+        """
+        Scans the data model to find the most recent message ID, where we want to resume processing from
+        :return: String of the sequence number or None of nothing was found
+        """
         try:
-            record = KinesisTracker.objects.all().order_by('-created')[0]
+            record = KinesisTracker.objects.filter(shard_id=self.shard_id).order_by('-created')[0]
             return record.sequence_number
 
         except IndexError:
@@ -27,6 +45,11 @@ class KinesisResponder(object):
             return None
 
     def new_shard_iterator(self):
+        """
+        Return a shard iterator either pointing to just after the last message we processed (based on our data model)
+        or the earliest available point in the stream if no message is available
+        :return: Shard iterator
+        """
         last_seq_number = self.most_recent_message_id()
 
         if last_seq_number is None or last_seq_number=='':
@@ -36,14 +59,28 @@ class KinesisResponder(object):
             rtn= self._conn.get_shard_iterator(self.stream_name,self.shard_id,AFTER_SEQUENCE_NUMBER,starting_sequence_number=last_seq_number)
             return rtn['ShardIterator']
 
-    def process(self,record):
+    def process(self,record, approx_arrival):
+        """
+        Do something interesting with the data.  Subclass this method to do something useful
+        :param record: String of the record content from the stream
+        :param approx_arrival: datetime object of the approximate time that this message was put to the stream
+        :return: None
+        """
         from pprint import pprint
+        import json
         print "----------------------------------------------------------"
-        pprint(record)
+        print "Message posted at approximately: " + str(approx_arrival)
+        pprint(json.loads(record))
 
     def run(self):
+        """
+        Main loop for processing the stream
+        :return:
+        """
         from pprint import pprint
         sleep_delay = 1
+
+        print "Starting up responder thread for shard {0}".format(self.shard_id)
         iterator = self.new_shard_iterator()
         print "shard iterator is {0}".format(iterator)
         while iterator is not None:
@@ -74,7 +111,7 @@ class KinesisResponder(object):
 
                 dbrec.status = KinesisTracker.ST_PROCESSING
                 dbrec.save()
-                self.process(rec['Data'])
+                self.process(rec['Data'], datetime.fromtimestamp(rec['ApproximateArrivalTimestamp']))
 
                 dbrec.status = KinesisTracker.ST_DONE
                 dbrec.save()

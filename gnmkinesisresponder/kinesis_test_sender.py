@@ -6,6 +6,8 @@ import json
 import hashlib
 from time import sleep
 from datetime import datetime
+from pprint import pprint
+
 
 STREAM_NAME = 'TestContentAtom2'
 #START MAIN

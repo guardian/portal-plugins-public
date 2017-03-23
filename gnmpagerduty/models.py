@@ -6,4 +6,8 @@ class StorageData(Model):
     maximum_size = BigIntegerField(blank=True,null=True)
     current_size = BigIntegerField(blank=True,null=True)
     trigger_size = BigIntegerField(blank=True,null=True)
+    incident_key = CharField(max_length=64,blank=True, default='')
 
+class IncidentKeys(Model):
+    storage_id = CharField(max_length=64,unique=True)
+    incident_key = CharField(max_length=64,blank=True, default='')

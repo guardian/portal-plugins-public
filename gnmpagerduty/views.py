@@ -12,6 +12,7 @@ from rest_framework.generics import ListAPIView, CreateAPIView, UpdateAPIView
 from rest_framework.renderers import JSONRenderer
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
+import traceback
 from gnmvidispine.vs_storage import VSStoragePathMap
 import pprint as pprint
 log = logging.getLogger(__name__)
@@ -67,16 +68,16 @@ class StorageDataUpdate(UpdateAPIView):
         #    return Response({'status': 'error','exception': str(e), 'trace': traceback.format_exc()}, status=500)
 
         try:
-            print 'Running from try 1'
             data = self.request.DATA
 
             record = StorageData.objects.get(storage_id=data['storage_id'])
-            record.trigger_size = data['trigger_size']
+            record.trigger_size = int(data['trigger_size'])
+            if record.incident_key is None:
+                record.incident_key = ""
             record.save()
 
         except Exception as e:
-            print e
-            print 'try code went wrong'
+            return Response({'status': 'error','exception': str(e), 'trace': traceback.format_exc()}, status=500)
 
         #except StorageData.DoesNotExist:
         #    record = StorageData()

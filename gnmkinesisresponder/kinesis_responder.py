@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import logging
 from time import sleep
 from threading import Thread
-
+import traceback
 logger = logging.getLogger(__name__)
 
 TRIM_HORIZON = 'TRIM_HORIZON'
@@ -111,10 +111,16 @@ class KinesisResponder(Thread):
 
                 dbrec.status = KinesisTracker.ST_PROCESSING
                 dbrec.save()
-                self.process(rec['Data'], datetime.fromtimestamp(rec['ApproximateArrivalTimestamp']))
-
-                dbrec.status = KinesisTracker.ST_DONE
-                dbrec.save()
+                try:
+                    self.process(rec['Data'], datetime.fromtimestamp(rec['ApproximateArrivalTimestamp']))
+                    dbrec.status = KinesisTracker.ST_DONE
+                    dbrec.save()
+                except Exception as e:
+                    #FIXME: put a call to Raven here too
+                    dbrec.status = KinesisTracker.ST_ERROR
+                    dbrec.last_exception = str(e)
+                    dbrec.exception_trace = traceback.format_exc()
+                    dbrec.save()
 
             iterator = record['NextShardIterator']
             if len(record['Records'])==0 and record['MillisBehindLatest']==0:

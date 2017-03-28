@@ -117,6 +117,8 @@ class KinesisResponder(Thread):
                     dbrec.save()
                 except Exception as e:
                     #FIXME: put a call to Raven here too
+                    traceback.print_exc()
+                    print str(e)
                     dbrec.status = KinesisTracker.ST_ERROR
                     dbrec.last_exception = str(e)
                     dbrec.exception_trace = traceback.format_exc()

@@ -2,7 +2,7 @@
 from django.core.management.base import BaseCommand
 import os
 from boto import kinesis
-from portal.plugins.gnmkinesisresponder.kinesis_responder import KinesisResponder
+from portal.plugins.gnmkinesisresponder.master_importer import MasterImportResponder
 from pprint import pprint
 from time import sleep
 
@@ -20,7 +20,7 @@ class Command(BaseCommand):
 
         pprint(streaminfo)
 
-        threadlist = map(lambda shardinfo: KinesisResponder(conn,STREAM_NAME,shardinfo['ShardId']), streaminfo['StreamDescription']['Shards'])
+        threadlist = map(lambda shardinfo: MasterImportResponder(conn,STREAM_NAME,shardinfo['ShardId']), streaminfo['StreamDescription']['Shards'])
 
         print "Stream {0} has {1} shards".format(STREAM_NAME,len(threadlist))
 
@@ -28,13 +28,10 @@ class Command(BaseCommand):
             t.daemon = True
             t.start()
 
+        print "Started up and processing. Hit CTRL-C to stop."
         #simplest way to allow ctrl-C when dealing with threads
         try:
             while True:
                 sleep(3600)
         except KeyboardInterrupt:
             print "CTRL-C caught, cleaning up"
-
-        # r = KinesisResponder(conn,STREAM_NAME,SHARD_NAME)
-        # print "Running kinesis responder..."
-        # r.run()

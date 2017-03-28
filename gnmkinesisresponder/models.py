@@ -13,7 +13,7 @@ class KinesisTracker(Model):
     status = IntegerField(default=ST_NONE)
     processing_host = CharField(max_length=255, null=True)
     millis_behind_latest = BigIntegerField()
-    last_exception = CharField(max_length=255, null=True)
+    last_exception = CharField(max_length=2048, null=True)
     exception_trace = CharField(max_length=32768, null=True)
     created = DateTimeField()
     updated = DateTimeField()

@@ -52,7 +52,7 @@ function build_rpm {
         S3SUBDIR=/public_repo
     fi
 
-    aws s3 cp ${HOME}/rpmbuild/RPMS/noarch/${RPM_BASE}*.rpm s3://gnm-multimedia-archivedtech/gnm_portal_plugins${S3SUBDIR} --acl public-read
+    aws s3 cp ${HOME}/rpmbuild/RPMS/noarch/${RPM_BASE}*.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins${S3SUBDIR} --acl public-read
 }
 
 if [ "$1" == "" ]; then

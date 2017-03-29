@@ -15,7 +15,7 @@ BuildRoot: %{_tmppath}/gnmuploadprofiler
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: Andy Gallagher <andy.gallagher@theguardian.com>
-Requires: Portal pluto portal_gnm_vidispine
+Requires: Portal
 
 %description
 Plugin to capture timings for the upload process of GNM videos

@@ -15,7 +15,7 @@ BuildRoot: %{_tmppath}/gnmsyndication
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: David Allison <david.allison@theguardian.com> and Andy Gallagher <andy.gallagher@theguardian.com>
-Requires: Portal pluto portal_gnm_vidispine
+Requires: Portal
 
 %description
 Businesslogic rule enabled plugin to propagate flag values down commissions and items

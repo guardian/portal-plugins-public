@@ -21,8 +21,6 @@ class GnmpagerdutyPluginURL(Plugin):
 pluginurls = GnmpagerdutyPluginURL()
 
 class GnmpagerdutyAdminNavigationPlugin(Plugin):
-    # This adds your app to the navigation bar
-    # Please update the information below with the author etc..
     implements(IPluginBlock)
 
     def __init__(self):
@@ -30,16 +28,12 @@ class GnmpagerdutyAdminNavigationPlugin(Plugin):
         self.plugin_guid = 'a592ba56-f5b1-71a1-af5d-efa50e2e15ca'
         log.debug('Initiated navigation plugin')
 
-    # Returns the template file navigation.html
-    # Change navigation.html to the string that you want to use
     def return_string(self, tagname, *args):
         return {'guid': self.plugin_guid, 'template': 'gnmpagerduty/menu_nav.html'}
 
 navplug = GnmpagerdutyAdminNavigationPlugin()
 
 class GnmpagerdutyRegister(Plugin):
-    # This adds it to the list of installed Apps
-    # Please update the information below with the author etc..
     implements(IAppRegister)
 
     def __init__(self):
@@ -50,11 +44,11 @@ class GnmpagerdutyRegister(Plugin):
     def __call__(self):
         from __init__ import __version__ as versionnumber
         _app_dict = {
-                'name': 'Gnmpagerduty',
-                'version': '0.0.1',
+                'name': 'GNM PagerDuty',
+                'version': '1.0.0',
                 'author': 'Dave Allison and Andy Gallagher',
                 'author_url': 'www.theguardian.com/',
-                'notes': 'Copyright GNM 2017.'}
+                'notes': 'Allows alerts to be sent to PagerDuty when storages get too full'}
         return _app_dict
 
 gnmpagerdutyplugin = GnmpagerdutyRegister()
@@ -68,7 +62,6 @@ class GnmpagerdutyAdminPlugin(Plugin):
         log.debug('initiated GNMpagerduty admin panel')
 
     def return_string(self,tagname,*args):
-        #raise StandardError("testing")
         return {'guid': self.plugin_guid, 'template': 'gnmpagerduty/navigation.html'}
 
 adminplug = GnmpagerdutyAdminPlugin()

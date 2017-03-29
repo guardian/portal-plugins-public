@@ -14,6 +14,15 @@ from gnmvidispine.vs_storage import VSStoragePathMap
 
 log = logging.getLogger(__name__)
 
+raven_client = None
+try:
+    import raven
+    raven_client = raven.Client(settings.RAVEN_CONFIG['dsn'])
+except ImportError:
+    log.error("Raven client not installed - can't log errors to Sentry")
+except KeyError, AttributeError:
+    log.error("Raven is installed but RAVEN_CONFIG is not set up properly. Can't log errors to Sentry.")
+
 class GenericAppView(ClassView):
     """ Show the page. Add your python code here to show dynamic content or feed information in
         to external apps
@@ -56,14 +65,15 @@ class StorageDataUpdate(UpdateAPIView):
 
             record = StorageData.objects.get(storage_id=data['storage_id'])
             record.trigger_size = int(data['trigger_size'])
-            if record.incident_key is None:
-                record.incident_key = ""
             record.save()
 
-        except Exception as e:
+        except StandardError as e:
+            log.error(traceback.format_exc())
+            if raven_client is not None:
+                raven_client.captureException()
             return Response({'status': 'error','exception': str(e), 'trace': traceback.format_exc()}, status=500)
 
-        return self.response
+        return Response({'status': "ok"})
 
 
 class ConfigAlertsView(ListView):
@@ -87,9 +97,11 @@ class ConfigAlertsView(ListView):
             try:
                 record = StorageData.objects.get(storage_id=val['name'])
                 ctx['map'][n]['triggerSize'] = int(record.trigger_size)
-            except Exception as e:
+            except StandardError as e:
+                log.error(traceback.format_exc())
+                if raven_client is not None:
+                    raven_client.captureException()
                 ctx['map'][n]['triggerSize'] = 0
-                print 'try code went wrong'
 
             n = (n + 1)
 

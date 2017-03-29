@@ -1,6 +1,6 @@
 %define name portal-pluto-gnmpagerduty
-%define version 0.1
-%define unmangled_version 0.1
+%define version 1.0
+%define unmangled_version 1.0
 %define release 1
 
 Summary: Pluto PagerDuty plugin
@@ -18,7 +18,7 @@ Vendor: David Allison <david.allison@theguardian.com> and Andy Gallagher <andy.g
 Requires: Portal pluto portal_gnm_vidispine
 
 %description
-PagerDuty plugin
+A Portal plugin that allows alerts to be sent to PagerDuty when storages get too full.
 
 %prep
 
@@ -36,6 +36,7 @@ rm -rf $RPM_BUILD_ROOT
 /opt/cantemo/portal/portal/plugins/gnmpagerduty
 
 %post
+/opt/cantemo/portal/manage.py collectstatic --noinput
 /opt/cantemo/portal/manage.py migrate gnmpagerduty --noinput
 
 %preun

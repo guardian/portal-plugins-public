@@ -55,7 +55,6 @@
         <td>Type</td>
         <td>State</td>
         <td>Trigger Size (Bytes)</td>
-        <!--<td>Add</td>-->
         <td>Update</td>
         <td>Output</td>
     </tr>
@@ -72,7 +71,6 @@
         <td>{{ storage.state }}</td>
         <td><input style="width:160px;" type="text" id="{{ storage.name }}_limit_control" class="limit_control" value="{{ storage.triggerSize }}"></td>
         <td><button type="button" onClick="setStorageLimit('{{ storage.name }}');">Update</button></td>
-        <!--<td><button type="button" onClick="updateStorageLimit('{{ storage.name }}');"></button></td>-->
         <td class="responsearea" id="{{ storage.name }}_response"></td>
     </tr>
     {% endfor %}

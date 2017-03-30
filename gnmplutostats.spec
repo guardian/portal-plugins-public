@@ -3,11 +3,6 @@
 %define unmangled_version 1.0
 %define release 5
 
-#%signature gpg
-#%_gpg_name Andy Gallagher <andy.gallagher@theguardian.com>
-#%_gpgpath /usr
-#%_gpgbin /usr/bin/gpg
-
 Summary: Simple statistics plugin for Pluto. Lives in the Admin interface.
 Name: %{name}
 Version: %{version}

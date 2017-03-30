@@ -1,3 +1,4 @@
 *.pyc
 secure/*
 node_modules
+/gnmawsgr/static/gnmawsgr/js/bundle.js

@@ -16,6 +16,7 @@ dependencies:
   cache_directories:
     - node_modules
     - "/home/ubuntu/.cache/pip"
+    - gnmawsgr/node_modules
 
 checkout:
   post:
@@ -34,5 +35,6 @@ deployment:
   master:
     branch: /.*/
     commands:
+      - for dir in `find . -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do echo Trying to run "${PWD}/$dir/pre_deploy.sh"; if [ -x "${PWD}/$dir/pre_deploy.sh" ]; then ${PWD}/$dir/pre_deploy.sh; fi; done
       - chmod a+x buildrpms.sh
       - ./buildrpms.sh

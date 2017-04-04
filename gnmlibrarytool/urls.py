@@ -4,10 +4,11 @@
 import logging
 from django.contrib.auth.decorators import login_required,permission_required
 from .views import MainAppView, LibraryListView, CreateLibraryView, DeleteLibraryView, SaveStorageRuleView, \
-    DeleteStorageRuleView, RuleDiagramDataView, DiagramMainView, NicknameQueryViewset, StorageRuleInfoView, rule_form, add_rule, add_rule_to_item, delete_rule
+    DeleteStorageRuleView, RuleDiagramDataView, DiagramMainView, NicknameQueryViewset, StorageRuleInfoView, rule_form, add_rule, add_rule_to_item, delete_rule, rule_list, rule_edit
 from django.conf.urls.defaults import patterns, url
 from django.conf.urls import include
 from rest_framework import routers
+
 
 # This new app handles the request to the URL by responding with the view which is loaded 
 # from portal.plugins.gnmlibrarytool.views.py. Inside that file is a class which responsedxs to the 
@@ -34,4 +35,6 @@ urlpatterns = patterns('portal.plugins.gnmlibrarytool.views',
     url(r'^add/$', login_required(add_rule)),
     url(r'^addrule/$', login_required(add_rule_to_item)),
     url(r'^delete/$', login_required(delete_rule)),
+    url(r'^list/$', login_required(rule_list), name='rules-list'),
+    url(r'^edit/(?P<id>.*)/$', rule_edit, name='edit'),
 )

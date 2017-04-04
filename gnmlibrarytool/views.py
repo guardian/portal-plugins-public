@@ -5,11 +5,15 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, XMLRenderer
 from vsmixin import HttpError, VSMixin
-from models import LibraryNickname, LibraryNicknameSerializer
+from models import LibraryNickname, LibraryNicknameSerializer, LibraryStorageRule
 import logging
 from django.shortcuts import render
 from forms import LibraryStorageRuleForm
 from decorators import has_group
+from django.utils.decorators import method_decorator
+from django.views.generic import ListView, CreateView, DeleteView, UpdateView
+from django.contrib.auth.decorators import permission_required
+from django.core.urlresolvers import reverse_lazy
 
 logger = logging.getLogger(__name__)
 
@@ -504,7 +508,6 @@ def rule_form(request):
 
 @has_group('Admin')
 def add_rule(request):
-    from .models import LibraryStorageRule
 
     lsrm = LibraryStorageRule(storagerule_name=request.POST['storagerule_name'], storagerule_xml_source=request.POST['storagerule_xml_source'])
     lsrm.save()
@@ -544,6 +547,7 @@ def add_rule_to_item(request):
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER')+"#shortcutmv_storage_rule_menu")
 
+
 @has_group('Admin')
 def delete_rule(request):
     from django.http import HttpResponseRedirect
@@ -565,3 +569,15 @@ def delete_rule(request):
         return render(request, 'gnmlibrarytool/delete_failed.html', {'error': e})
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER')+"#shortcutmv_storage_rule_menu")
+
+
+@has_group('Admin')
+def rule_list(request):
+    rules = LibraryStorageRule.objects.values()
+    return render(request, 'gnmlibrarytool/rule_list.html', {'rules': rules})
+
+
+def rule_edit(request, id):
+    form = LibraryStorageRuleForm
+    return render(request, 'gnmlibrarytool/rule_edit.html', {'form': form})
+

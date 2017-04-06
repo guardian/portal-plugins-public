@@ -58,6 +58,7 @@ if [ "$1" == "" ]; then
 	for dir in `find . -iname gnm\* -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do
 	    build_rpm $dir
 	done
+	build_rpm ravenjs
 else
 	build_rpm $1
 fi

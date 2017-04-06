@@ -1,0 +1,6 @@
+<!-- Raven javascript injection template -->
+{% load static %}
+<script src="{%  static "ravenjs/raven.min.js" %}"></script>
+<script>
+    Raven.config('https://1e0eb356904541949bb0eefbba402a81@sentry.multimedia.theguardian.com/23').install()
+</script>

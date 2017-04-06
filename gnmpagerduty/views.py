@@ -93,7 +93,7 @@ class ConfigAlertsView(ListView):
         n = 0
 
         for val in ctx['map']:
-            print(val['name'])
+
             try:
                 record = StorageData.objects.get(storage_id=val['name'])
                 ctx['map'][n]['triggerSize'] = int(record.trigger_size)

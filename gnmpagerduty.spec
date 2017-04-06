@@ -38,5 +38,6 @@ rm -rf $RPM_BUILD_ROOT
 %post
 /opt/cantemo/portal/manage.py collectstatic --noinput
 /opt/cantemo/portal/manage.py migrate gnmpagerduty --noinput
+/opt/cantemo/portal/manage.py install_pagerduty
 
 %preun

@@ -3,12 +3,13 @@ from celery.schedules import crontab
 from celery.decorators import periodic_task
 from celery import Celery
 
-app = Celery()
-
-log = logging.getLogger(__name__)
+log = logging.getLogger('main')
 
 pagerduty_url = 'https://events.pagerduty.com/generic/2010-04-15/create_event.json'
 
+MAX_RETRIES = 20    #max number of times to retry talking to pagerduty
+INITIAL_DELAY = 1   #initial wait time
+DELAY_FACTOR = 2    #multiply wait time by this every time it fails
 
 def human_friendly(num, suffix='B'):
     for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
@@ -80,17 +81,102 @@ def get_system_type():
     return system_type
 
 
+def return_percentage(integer_capacity, integer_free_capacity):
+    percent_free_float = (100.0 / integer_capacity) * integer_free_capacity
+    return int(percent_free_float)
+
+
+def notify_pagerduty(message, event_type, incident_key, vidis_id=None,storage_name=None,free_capacity=None,system_type=None):
+    import requests
+    import json
+    from django.conf import settings
+
+    payload = {
+        "service_key": settings.PAGERDUTY_KEY,
+        "event_type": event_type,
+        "incident_key": incident_key,
+        "description": message,
+        "details": {
+            "Vidispine ID": vidis_id,
+            "Name": storage_name,
+            "Free Capacity": free_capacity,
+            "System Type": system_type
+        }
+    }
+
+    r = requests.post(pagerduty_url, data=json.dumps(payload))
+    if r.status_code<200 or r.status_code>299:
+        raise HttpError(r.status_code,pagerduty_url,None,r.headers,r.content)
+
+    pddata = r.json()
+    return pddata
+
+
+def storage_below_safelevel(key,val):
+    """
+    Called by the main task when a storage has dropped below the minimum safe level
+    :param key: object from the incident_key model
+    :param val: metadata returned from storage_data map about the storage
+    :return: None
+    """
+    if key.incident_key == '':
+        #if no incident has yet been registered, send one to PD
+        percent_free = return_percentage(int(val['capacity']), int(val['freeCapacity']))
+
+        pddata = notify_pagerduty("Storage {0} lacks sufficient free space. It is {1}% full.".format(val['contentDict']['name'],percent_free),
+                         "trigger",
+                         key.incident_key,
+                         vidis_id=val['name'],
+                         storage_name=val['contentDict']['name'],
+                         free_capacity=human_friendly(int(val['freeCapacity'])),
+                         system_type=get_system_type(),
+                         )
+
+        key.incident_key = pddata['incident_key']
+        key.save()
+    else:
+        pass
+
+
+def storage_above_safelevel(key, val):
+    """
+    Called by the main task when a storage is above the minimum safe level
+    :param key: object from the incident_key model
+    :param val: metadata returned from storage_data map about the storage
+    :return: None
+    """
+    percent_free = return_percentage(int(val['capacity']), int(val['freeCapacity']))
+    if key.incident_key != '':
+        pddata = notify_pagerduty("Storage {0} no longer lacks sufficient free space. It is {1}% full.".format(val['contentDict']['name'],percent_free),
+                                  "resolve",
+                                  key.incident_key,
+                                  vidis_id=val['name'],
+                                  storage_name=val['contentDict']['name'],
+                                  free_capacity=human_friendly(int(val['freeCapacity'])),
+                                  system_type=get_system_type()
+                                  )
+        #if the HTTP request failed then we should have raised an exception
+        key.incident_key = ''
+        key.save()
+
 @periodic_task(run_every=(crontab(minute='*/10')), name="check_storage", ignore_result=True)
-def check_storage():
+def check_storage(celery_app=None):
+    """
+    Runs the main loop to check storages.  This is run as a periodic task by celery beat.
+    :param celery_app: pass in a fake celery app instance, for testing.  In production usage, leave this out and it defaults to None
+    :return: String indicating the system status, for celery flower
+    """
     from gnmvidispine.vs_storage import VSStoragePathMap
     from django.conf import settings
     from models import StorageData, IncidentKeys
-    import requests
-    import json
-
-    returnthis = "Under threshold:"
+    from time import sleep
 
     log.info("check_storage run by Celery.")
+
+    if celery_app is None:
+        app = Celery()
+    else:
+        app=celery_app
 
     i = app.control.inspect()
 
@@ -99,80 +185,54 @@ def check_storage():
     rnumber = running.count("check_storage")
 
     if rnumber > 1:
-        return "Task aborted to avoid duplication"
-
-    system_type = get_system_type()
+        raise RuntimeError("Task aborted to avoid duplication")
 
     storage_data = VSStoragePathMap(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
                                     user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,
                                     run_as=settings.VIDISPINE_USERNAME)
-    sd = {'data':'value', 'test':'value'}
-    sd['map'] = map(lambda (k,v): v.__dict__, storage_data.items())
+
+    sd = {
+        'map': map(lambda (k,v): v.__dict__, storage_data.items())
+    }
+
+    storages_below_thresold=[]
 
     for val in sd['map']:
-        record = StorageData.objects.get(storage_id=val['name'])
+        try:
+            record = StorageData.objects.get(storage_id=val['name'])
+        except StorageData.DoesNotExist:
+            continue
+
         try:
             key = IncidentKeys.objects.get(storage_id=val['name'])
-        except Exception as e:
+        except IncidentKeys.DoesNotExist:
             key = IncidentKeys.objects.create(storage_id=val['name'])
 
         integer_trigger_size = int(record.trigger_size)
         integer_free_capacity = int(val['freeCapacity'])
-        human_friendly_free_capacity = human_friendly(integer_free_capacity)
-        integer_capacity = int(val['capacity'])
-        percent_free_float = (100.0 / integer_capacity) * integer_free_capacity
-        percent_free = int(percent_free_float)
 
-        if integer_free_capacity < integer_trigger_size:
+        attempt=0
+        delay_time = INITIAL_DELAY
+        while True:
+            try:
+                if integer_free_capacity < integer_trigger_size:
+                    storage_below_safelevel(key,val)
+                    storages_below_thresold.append(val['contentDict']['name'])
+                else:
+                    storage_above_safelevel(key,val)
+                break
+            except HttpError as e:
+                if e.code==503 or e.code==500:
+                    attempt+=1
+                    if attempt>=MAX_RETRIES:
+                        log.error("Unable to contact pagerduty after {0} attempts.".format(attempt))
+                        raise
+                    log.warning("Received {0} error trying to contact pagerduty. Trying again after {1} seconds...".format(e.code,delay_time))
+                    sleep(delay_time)
+                    delay_time*=2
 
-            returnthis = returnthis + " " + val['name']
-            if key.incident_key == '':
+    if len(storages_below_thresold)==0:
+        return "No storages are under their thresholds."
+    else:
+        return "Storages below threshold: " + ",".join(storages_below_thresold)
 
-                payload = {
-                    "service_key": settings.PAGERDUTY_KEY,
-                    "event_type": "trigger",
-                    "description": "Storage {0} lacks sufficient free space. It is {1}% full.".format(val['contentDict']['name'],percent_free),
-                    "details": {
-                        "Vidispine ID": val['name'],
-                        "Name": val['contentDict']['name'],
-                        "Free Capacity": human_friendly_free_capacity,
-                        "System Type": system_type
-                        },
-                }
-
-                r = requests.post(pagerduty_url, data=json.dumps(payload))
-
-                pddata = json.loads(r.text)
-
-                key.incident_key = pddata['incident_key']
-                key.save()
-
-        else:
-
-            if key.incident_key != '':
-
-                payload = {
-                    "service_key": settings.PAGERDUTY_KEY,
-                    "event_type": "resolve",
-                    "description": "Storage {0} no longer lacks sufficient free space. It is {1}% full.".format(val['contentDict']['name'],percent_free),
-                    "incident_key": key.incident_key,
-                    "details": {
-                        "Vidispine ID": val['name'],
-                        "Name": val['contentDict']['name'],
-                        "Free Capacity": human_friendly_free_capacity,
-                        "System Type": system_type,
-                        "Space Used when Resolved": "{0}%".format(percent_free),
-                        },
-                }
-
-                r = requests.post(pagerduty_url, data=json.dumps(payload))
-
-                if r.status_code == 200:
-                    key.incident_key = ''
-                    key.save()
-
-
-    if returnthis is "Under threshold:":
-        returnthis = "No storages are under their thresholds."
-
-    return returnthis

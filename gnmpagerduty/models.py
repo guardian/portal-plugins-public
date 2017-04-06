@@ -3,7 +3,7 @@ from django.db.models import Model,BigIntegerField,IntegerField,CharField,DateTi
 
 class StorageData(Model):
     storage_id = CharField(max_length=64,unique=True)
-    trigger_size = BigIntegerField(blank=True,null=True)
+    trigger_size = BigIntegerField()
 
 
 class IncidentKeys(Model):

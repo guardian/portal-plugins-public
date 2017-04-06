@@ -1,4 +1,4 @@
-%define name portal-pluto-gnmyoutube
+%define name portal-ravenjs
 %define version 1.0
 %define unmangled_version 1.0
 %define release 4

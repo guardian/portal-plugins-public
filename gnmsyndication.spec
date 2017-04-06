@@ -15,7 +15,7 @@ BuildRoot: %{_tmppath}/gnmsyndication
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: David Allison <david.allison@theguardian.com> and Andy Gallagher <andy.gallagher@theguardian.com>
-Requires: Portal pluto
+Requires: Portal
 
 %description
 Fully featured interface to show what video and audio content is being produced and where it is being sent.

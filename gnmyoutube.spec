@@ -15,7 +15,7 @@ BuildRoot: %{_tmppath}/gnmyoutube
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: David Allison <david.allison@theguardian.com> and Andy Gallagher <andy.gallagher@theguardian.com>
-Requires: Portal pluto
+Requires: Portal
 
 %description
 Plugin that collects utilities to support Youtube. Current functionality: update of category IDs

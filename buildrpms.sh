@@ -47,10 +47,11 @@ function build_rpm {
     if [ "${CIRCLE_TAG}" != "" ]; then
         S3SUBDIR=/public_repo/${CIRCLE_TAG}
     elif [ "${CIRCLE_SHA1}" != "" ]; then
-        S3SUBDIR=/public_repo/${CIRCLE_SHA1}
+        S3SUBDIR=/public_repo/${CIRCLE_BUILD_NUM}
+    else
+        S3SUBDIR=/public_repo
     fi
-
-    aws s3 cp ${HOME}/rpmbuild/RPMS/noarch/${RPM_BASE}*.rpm s3://gnm-multimedia-archivedtech/gnm_portal_plugins${S3SUBDIR}/$x --acl public-read
+    aws s3 cp ${HOME}/rpmbuild/RPMS/noarch/${RPM_BASE}*.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins${S3SUBDIR}/ --acl public-read
 }
 
 if [ "$1" == "" ]; then

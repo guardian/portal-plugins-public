@@ -12,6 +12,7 @@
     {% for rule in rules %}
     <tr>
         <td><a href="/gnmlibrarytool/edit/{{ rule.id }}/">{{ rule.storagerule_name }}</a></td>
+        <td><a href="/gnmlibrarytool/delete/{{ rule.id }}/">Delete Rule</a></td>
     </tr>
     {% endfor %}
 </table>

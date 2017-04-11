@@ -1,12 +1,10 @@
 {% themeextends "admin/base_admin.html" %}
-{% load i18n datetimeformatting compress %}
-{% block title %}{% trans 'Rule enabling configuration' %}{% endblock %}
-{% block heading %}{% trans 'Rule enabling configuration' %}{% endblock %}
+{% load i18n datetimeformatting compress staticfiles %}
+{% block title %}{% trans 'Delete Storage Rule' %}{% endblock %}
+{% block heading %}{% trans 'Delete Storage Rule' %}{% endblock %}
 
 {% block content %}
-<form method="post">{% csrf_token %}
-    <p>Are you sure you want to delete "{{ object }}" ?</p>
-    <p><input type="submit" value="Yes" /></p>
-</form>
-
+<br />
+<br />
+An attempt has been made to delete the rule.
 {% endblock %}

@@ -4,7 +4,7 @@
 import logging
 from django.contrib.auth.decorators import login_required,permission_required
 from .views import MainAppView, LibraryListView, CreateLibraryView, DeleteLibraryView, SaveStorageRuleView, \
-    DeleteStorageRuleView, RuleDiagramDataView, DiagramMainView, NicknameQueryViewset, StorageRuleInfoView, rule_form, add_rule, add_rule_to_item, delete_rule, rule_list, rule_edit
+    DeleteStorageRuleView, RuleDiagramDataView, DiagramMainView, NicknameQueryViewset, StorageRuleInfoView, rule_form, add_rule, add_rule_to_item, delete_rule, rule_list, rule_edit, replace_rule, delete_rule
 from django.conf.urls.defaults import patterns, url
 from django.conf.urls import include
 from rest_framework import routers
@@ -36,5 +36,7 @@ urlpatterns = patterns('portal.plugins.gnmlibrarytool.views',
     url(r'^addrule/$', login_required(add_rule_to_item)),
     url(r'^delete/$', login_required(delete_rule)),
     url(r'^list/$', login_required(rule_list), name='rules-list'),
-    url(r'^edit/(?P<id>.*)/$', rule_edit, name='edit'),
+    url(r'^edit/(?P<rule>.*)/$', rule_edit, name='edit'),
+    url(r'^replace/(?P<rule>.*)/$', replace_rule),
+    url(r'^delete/(?P<rule>.*)/$', delete_rule),
 )

@@ -577,7 +577,25 @@ def rule_list(request):
     return render(request, 'gnmlibrarytool/rule_list.html', {'rules': rules})
 
 
-def rule_edit(request, id):
-    form = LibraryStorageRuleForm
-    return render(request, 'gnmlibrarytool/rule_edit.html', {'form': form})
+def rule_edit(request, rule=None):
+    item = LibraryStorageRule.objects.get(id=rule)
+    form = LibraryStorageRuleForm(initial={'storagerule_name': item.storagerule_name, 'storagerule_xml_source': item.storagerule_xml_source})
+    return render(request, 'gnmlibrarytool/rule_edit.html', {'form': form, 'rule': rule})
 
+
+def replace_rule(request, rule=None):
+
+    lsrm = LibraryStorageRule.objects.get(id=rule)
+    lsrm.storagerule_name=request.POST['storagerule_name']
+    lsrm.storagerule_xml_source=request.POST['storagerule_xml_source']
+    lsrm.save()
+
+    return render(request, 'gnmlibrarytool/replace_done.html')
+
+
+def delete_rule(request, rule=None):
+
+    lsrm = LibraryStorageRule.objects.get(id=rule)
+    lsrm.delete()
+
+    return render(request, 'gnmlibrarytool/rule_delete.html')

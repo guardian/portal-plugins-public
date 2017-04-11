@@ -4,12 +4,7 @@
 {% block heading %}{% trans 'Edit Storage Rule' %}{% endblock %}
 
 {% block content %}
-<div style="width: 574px;">
-    <form action="/gnmlibrarytool/replace/{{ rule }}/" method="post">
-            {% csrf_token %}
-            {{ form.as_table }}
-        <br />
-        <input type="submit" value="Submit" />
-    </form>
-</div>
+<br />
+<br />
+An attempt has been made to update the storage rule.
 {% endblock %}

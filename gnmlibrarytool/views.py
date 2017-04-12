@@ -7,13 +7,14 @@ from rest_framework.renderers import JSONRenderer, XMLRenderer
 from vsmixin import HttpError, VSMixin
 from models import LibraryNickname, LibraryNicknameSerializer, LibraryStorageRule
 import logging
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from forms import LibraryStorageRuleForm
 from decorators import has_group
 from django.utils.decorators import method_decorator
 from django.views.generic import ListView, CreateView, DeleteView, UpdateView
 from django.contrib.auth.decorators import permission_required
 from django.core.urlresolvers import reverse_lazy
+
 
 logger = logging.getLogger(__name__)
 
@@ -512,7 +513,7 @@ def add_rule(request):
     lsrm = LibraryStorageRule(storagerule_name=request.POST['storagerule_name'], storagerule_xml_source=request.POST['storagerule_xml_source'])
     lsrm.save()
 
-    return render(request, 'gnmlibrarytool/rule_form_done.html')
+    return redirect('rules-list')
 
 @has_group('Admin')
 def add_rule_to_item(request):

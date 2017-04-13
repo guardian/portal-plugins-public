@@ -13,24 +13,26 @@
 
         </table>
     </form>
-    {% for group in user.groups.all %}
-        {% if group.name == 'Admin' %}
+    {% if user.is_superuser %}
         <div class="panel-header"><h2>Available Storage Rules</h2></div>
-        <form action="/gnmlibrarytool/addrule/" method="post">
-             {% csrf_token %}
-             <select name="rulexml">
-                 {% for rule in rules %}
-                    <option value="{{ rule.storagerule_xml_source }}">{{ rule.storagerule_name }}</option>
-                 {% endfor %}
-            </select>
-            <select name="ruleshape" id="ruleshape_selector">
+        <form action="/gnmlibrarytool/addrule/" method="post">{% csrf_token %}
+            {% if rules|length %}
+                 <select name="rulexml" id="rulexml_selector">
+                     {% for rule in rules %}
+                        <option value="{{ rule.storagerule_xml_source }}">{{ rule.storagerule_name }}</option>
+                     {% endfor %}
+                </select>
+                <select name="ruleshape" id="ruleshape_selector">
 
-            </select>
-            <input type="hidden" name="itemid" value="{{ item_id }}">
-            <input type="submit" value="Apply Rule">
+                </select>
+                <span id="ruleshape_info" style="display: none; font-size: 0.8em; font-style: italic"></span>
+                <input type="hidden" name="itemid" value="{{ item_id }}">
+                <input type="submit" value="Apply Rule">
+            {% else %}
+                <span style="font-size: 0.8em; font-style: italic;">There are no predefined storage rules, so you can't add one to the item.  Go to the Admin interface to change this.</span>
+            {% endif %}
         </form>
         <br />
         <br />
-        {% endif %}
-    {% endfor %}
+    {% endif %}
 </div>

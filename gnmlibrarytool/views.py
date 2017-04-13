@@ -591,7 +591,7 @@ def replace_rule(request, rule=None):
     lsrm.storagerule_xml_source=request.POST['storagerule_xml_source']
     lsrm.save()
 
-    return render(request, 'gnmlibrarytool/replace_done.html')
+    return redirect('rules-list')
 
 
 def delete_rule(request, rule=None):
@@ -599,4 +599,4 @@ def delete_rule(request, rule=None):
     lsrm = LibraryStorageRule.objects.get(id=rule)
     lsrm.delete()
 
-    return render(request, 'gnmlibrarytool/rule_delete.html')
+    return redirect('rules-list')

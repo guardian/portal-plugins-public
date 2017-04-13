@@ -26,7 +26,6 @@ checkout:
 
 test:
   override:
-    - declare -x PYTHONPATH=$PYTHONPATH:deps/gnmvidispine; nosetests -v gnmawsgr/tests
     - npm run test
     - npm run testcss
 

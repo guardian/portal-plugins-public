@@ -550,7 +550,7 @@ def add_rule_to_item(request):
 
 
 @has_group('Admin')
-def delete_rule(request):
+def delete_rule_from_item(request):
     from django.http import HttpResponseRedirect
     from django.conf import settings
     from gnmvidispine.vs_item import VSItem, VSNotFound

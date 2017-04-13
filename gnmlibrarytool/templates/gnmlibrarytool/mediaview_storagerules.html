@@ -6,7 +6,7 @@
     <span id="mvlibtool_sr_loading">
         <img src="/sitemedia/load.gif" height="64"><span>Loading...</span>
     </span>
-    <form action="/gnmlibrarytool/delete/" method="post">
+    <form action="/gnmlibrarytool/item/delete/" method="post">
         <input type="hidden" name="itemid" value="{{ item_id }}">
         {% csrf_token %}
         <table id="mvlibtool_sr_info">

@@ -129,3 +129,17 @@ class GnmlibrarytoolStorageRulesViewPlugin(Plugin):
         return {'guid': self.plugin_guid, 'template': 'gnmlibrarytool/mediaview_storagerules.html', 'context': {'rules': rules, 'item_id': iid}}
 
 gnmlibrarytoolSRviewplugin = GnmlibrarytoolStorageRulesViewPlugin()
+
+
+class GnmlibrarytoolAdminPlugin(Plugin):
+    implements(IPluginBlock)
+
+    def __init__(self):
+        self.name = "AdminLeftPanelBottomPanePlugin"
+        self.plugin_guid = '285f1254-de2a-11e5-99ff-60030840043a'
+        log.debug('initiated GNMLibraryTool admin panel')
+
+    def return_string(self,tagname,*args):
+        return {'guid': self.plugin_guid, 'template': 'gnmlibrarytool/nav.html'}
+
+gnmlibrarytooladminplug = GnmlibrarytoolAdminPlugin()

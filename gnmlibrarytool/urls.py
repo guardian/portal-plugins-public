@@ -4,10 +4,11 @@
 import logging
 from django.contrib.auth.decorators import login_required,permission_required
 from .views import MainAppView, LibraryListView, CreateLibraryView, DeleteLibraryView, SaveStorageRuleView, \
-    DeleteStorageRuleView, RuleDiagramDataView, DiagramMainView, NicknameQueryViewset, StorageRuleInfoView
+    DeleteStorageRuleView, RuleDiagramDataView, DiagramMainView, NicknameQueryViewset, StorageRuleInfoView, rule_form, add_rule, add_rule_to_item, delete_rule_from_item, rule_list, rule_edit, replace_rule, delete_rule
 from django.conf.urls.defaults import patterns, url
 from django.conf.urls import include
 from rest_framework import routers
+
 
 # This new app handles the request to the URL by responding with the view which is loaded 
 # from portal.plugins.gnmlibrarytool.views.py. Inside that file is a class which responsedxs to the 
@@ -30,4 +31,12 @@ urlpatterns = patterns('portal.plugins.gnmlibrarytool.views',
     url(r'^diagram$', login_required(DiagramMainView.as_view())),
     url(r'^endpoint/', include(router.urls)),
     url(r'^storageruleinfo/(\w{2}-\d+)$',StorageRuleInfoView.as_view(), name="libtool_storage_info_view"),
+    url(r'^rules/$', login_required(rule_form), name='rules'),
+    url(r'^rule/add/$', login_required(add_rule)),
+    url(r'^item/add/$', login_required(add_rule_to_item)),
+    url(r'^item/delete/$', login_required(delete_rule_from_item)),
+    url(r'^rule/list/$', login_required(rule_list), name='rules-list'),
+    url(r'^rule/edit/(?P<rule>.*)/$', rule_edit, name='edit'),
+    url(r'^rule/replace/(?P<rule>.*)/$', replace_rule),
+    url(r'^rule/delete/(?P<rule>.*)/$', delete_rule),
 )

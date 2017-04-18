@@ -7,7 +7,7 @@ function iterate_query(rules, container, prefix){
         if(r['type']=='field'){
             var box = $("<div>", {'id': prefix + '_r' + idx, 'class': 'rule_box'});
             container.append(box);
-            box.append($("<p>", {'class': 'field_name'}).html(r['name']))
+            box.append($("<p>", {'class': 'field_name'}).html(r['name']));
             val_list = $("<ul>", {'class': 'rule_list'});
             $.each(r['values'], function(idx,v){
                 val_list.append($("<li>", {'class': 'rule_list'}).html(v))
@@ -17,7 +17,7 @@ function iterate_query(rules, container, prefix){
         } else if(r['type']=='operator'){
             var box = $("<div>", {'id': prefix + '_r' + idx, 'class': 'operator_box'});
             container.append(box);
-            box.append($("<p>", {'class': 'operator_type'}).html(r['operation']))
+            box.append($("<p>", {'class': 'operator_type'}).html(r['operation']));
             var members_box = $("<div>", {'id': prefix + '_r' + idx + '_members', 'class': 'operator_members'});
             box.append(members_box);
             iterate_query(r['members'], members_box, prefix + '_o' + idx);

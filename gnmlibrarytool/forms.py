@@ -53,3 +53,6 @@ class ConfigurationForm(Form):
 
         super(ConfigurationForm,self).__init__(*args,initial=initial,**kwargs)
 
+class LibraryStorageRuleForm(Form):
+    storagerule_name = CharField(max_length=256)
+    storagerule_xml_source = CharField(widget=Textarea)

@@ -23,6 +23,7 @@ function load_storage_rule_info(itemid)
         $.each(data, function(idx,ptr){
             var row=$('<tr>').appendTo(table);
             $('<td>').html(ptr['shapetag']).appendTo(row);
+            $('<option>', {'value': ptr['shapetag'],'text': ptr['shapetag']}).appendTo($("#ruleshape_selector"));
             var rules_cell=$('<td>').appendTo(row);
             if(ptr['rules']==null || ptr['rules'].length==0){
                 $('<p>').html("No storage rule applied").appendTo(rules_cell);
@@ -39,10 +40,19 @@ function load_storage_rule_info(itemid)
                 rule_container.html("Minimum copies: " + ptr['storage_count'] +
                                     ".  Include: " +  includestr +
                                     "; Exclude: " + excludestr
-                                    )
+                                    );
                 $('<p>').append($('<a>',{'href': '/gnmlibrarytool/' + ptr['applies_to'][1]}).html('Applied from ' + ptr['applies_to'][0] + ' ' + ptr['applies_to'][1])).appendTo(rules_cell);
+                if(ptr['applies_to'][0] == 'ITEM') {
+                    $('<p>').append($(' <button type="submit" name="delete" value="'+ptr['name']+'">Remove Rule</button>')).appendTo(rules_cell);
+                }
             });
         });
+        if(data.length==0){
+            /*if there are no shapes, we can't change 'em!*/
+            $('#rulexml_selector').hide();
+            $('#ruleshape_selector').hide();
+            $('#ruleshape_info').html("There are no shapes on this item").show();
+        }
     }).fail(function(jqXHR, textStatus, errorThrown){
         $('#mvlibtool_error').html(errorThrown);
     }).always(function(contentOrXhr, textStatus, xhrOrError){

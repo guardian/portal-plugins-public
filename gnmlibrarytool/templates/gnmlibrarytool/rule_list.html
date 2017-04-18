@@ -1,0 +1,18 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress staticfiles %}
+{% block title %}{% trans 'Edit Storage Rules' %}{% endblock %}
+{% block heading %}{% trans 'Edit Storage Rules' %}{% endblock %}
+
+{% block content %}
+<table>
+    {% for rule in rules %}
+    <tr>
+        <td><a href="/gnmlibrarytool/edit/{{ rule.id }}/">{{ rule.storagerule_name }}</a></td>
+        <td><button><a style="color:#ffffff;" href="/gnmlibrarytool/delete/{{ rule.id }}/">Delete</a></button></td>
+    </tr>
+    {% endfor %}
+</table>
+<br />
+<br />
+<a href="{% url gnmlibrarytool:rules %}">Add Storage Rule</a>
+{% endblock %}

@@ -11,7 +11,7 @@ License: Internal GNM software
 Source0: gnmlibrarytool.tar.gz
 Group: Applications/Productivity
 #BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-BuildRoot: %{_tmppath}/gnmlogsearch
+BuildRoot: %{_tmppath}/gnmlibrarytool
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: Andy Gallagher <andy.gallagher@theguardian.com> and David Allison <david.allison@theguardian.com>
@@ -27,7 +27,7 @@ and also to name them for easier reference.  It understands libraries attached e
 
 %install
 mkdir -p $RPM_BUILD_ROOT/opt/cantemo/portal/portal/plugins/gnmlibrarytool
-cp -a /opt/cantemo/portal/portal/plugins/gnmlogsearch/* $RPM_BUILD_ROOT/opt/cantemo/portal/portal/plugins/gnmlibrarytool
+cp -a /opt/cantemo/portal/portal/plugins/gnmlibrarytool/* $RPM_BUILD_ROOT/opt/cantemo/portal/portal/plugins/gnmlibrarytool
 
 %clean
 rm -rf $RPM_BUILD_ROOT

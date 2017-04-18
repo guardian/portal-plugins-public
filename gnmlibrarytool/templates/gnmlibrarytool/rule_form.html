@@ -1,0 +1,15 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress staticfiles %}
+{% block title %}{% trans 'Add Storage Rule' %}{% endblock %}
+{% block heading %}{% trans 'Add Storage Rule' %}{% endblock %}
+
+{% block content %}
+<div style="width: 574px;">
+    <form action="/gnmlibrarytool/add/" method="post">
+            {% csrf_token %}
+            {{ form.as_table }}
+        <br />
+        <input type="submit" value="Submit" />
+    </form>
+</div>
+{% endblock %}

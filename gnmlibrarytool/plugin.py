@@ -113,7 +113,6 @@ class GnmlibrarytoolSRViewJS(Plugin):
 
 gnmlibtooljsplugin = GnmlibrarytoolSRViewJS()
 
-
 class GnmlibrarytoolStorageRulesViewPlugin(Plugin):
     implements(IPluginBlock)
 
@@ -122,6 +121,25 @@ class GnmlibrarytoolStorageRulesViewPlugin(Plugin):
         self.plugin_guid = "2b849f0f-0509-4edb-98a0-78da05e60682"
 
     def return_string(self,tagname,*args):
-        return {'guid': self.plugin_guid, 'template': 'gnmlibrarytool/mediaview_storagerules.html'}
+        from models import LibraryStorageRule
+        rules = LibraryStorageRule.objects.order_by("storagerule_name")
+        context = args[1]
+        item = context['item']
+        iid = item.getId()
+        return {'guid': self.plugin_guid, 'template': 'gnmlibrarytool/mediaview_storagerules.html', 'context': {'rules': rules, 'item_id': iid}}
 
 gnmlibrarytoolSRviewplugin = GnmlibrarytoolStorageRulesViewPlugin()
+
+
+class GnmlibrarytoolAdminPlugin(Plugin):
+    implements(IPluginBlock)
+
+    def __init__(self):
+        self.name = "AdminLeftPanelBottomPanePlugin"
+        self.plugin_guid = '285f1254-de2a-11e5-99ff-60030840043a'
+        log.debug('initiated GNMLibraryTool admin panel')
+
+    def return_string(self,tagname,*args):
+        return {'guid': self.plugin_guid, 'template': 'gnmlibrarytool/nav.html'}
+
+gnmlibrarytooladminplug = GnmlibrarytoolAdminPlugin()

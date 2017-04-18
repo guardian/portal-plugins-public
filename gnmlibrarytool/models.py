@@ -11,3 +11,7 @@ class LibraryNicknameSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = LibraryNickname
         fields = ('library_id','nickname')
+
+class LibraryStorageRule(models.Model):
+    storagerule_name = models.CharField(max_length=256)
+    storagerule_xml_source = models.TextField()

@@ -5,8 +5,16 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, XMLRenderer
 from vsmixin import HttpError, VSMixin
-from models import LibraryNickname, LibraryNicknameSerializer
+from models import LibraryNickname, LibraryNicknameSerializer, LibraryStorageRule
 import logging
+from django.shortcuts import render, redirect
+from forms import LibraryStorageRuleForm
+from decorators import has_group
+from django.utils.decorators import method_decorator
+from django.views.generic import ListView, CreateView, DeleteView, UpdateView
+from django.contrib.auth.decorators import permission_required
+from django.core.urlresolvers import reverse_lazy
+
 
 logger = logging.getLogger(__name__)
 
@@ -493,3 +501,102 @@ class StorageRuleInfoView(APIView):
 
         except Exception as e:
             return Response({'status': 'error', 'error': str(e), 'trace': traceback.format_exc()})
+
+@has_group('Admin')
+def rule_form(request):
+    form = LibraryStorageRuleForm
+    return render(request, 'gnmlibrarytool/rule_form.html', {'form': form})
+
+@has_group('Admin')
+def add_rule(request):
+
+    lsrm = LibraryStorageRule(storagerule_name=request.POST['storagerule_name'], storagerule_xml_source=request.POST['storagerule_xml_source'])
+    lsrm.save()
+
+    return redirect('rules-list')
+
+@has_group('Admin')
+def add_rule_to_item(request):
+    from xml.etree.cElementTree import fromstring
+    from gnmvidispine.vs_item import VSItem, VSNotFound
+    from gnmvidispine.vs_storage_rule import VSStorageRuleNew
+    from django.conf import settings
+    from django.http import HttpResponseRedirect
+
+    newrule = VSStorageRuleNew(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,run_as=request.user.username)
+
+    try:
+        newrule.populate_from_xml(fromstring(request.POST['rulexml']))
+    except VSNotFound as e:
+        return render(request, 'gnmlibrarytool/rule_failed.html', {'error': e})
+    except SyntaxError as e:
+        return render(request, 'gnmlibrarytool/rule_failed.html', {'error': e})
+
+    i = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,run_as=request.user.username)
+    try:
+        i.populate(request.POST['itemid'])
+    except VSNotFound as e:
+        return render(request, 'gnmlibrarytool/rule_failed.html', {'error': e})
+    try:
+        shape = i.get_shape(request.POST['ruleshape'])
+    except VSNotFound as e:
+        return render(request, 'gnmlibrarytool/rule_failed.html', {'error': e})
+    try:
+        shape.add_storage_rule(newrule)
+    except VSNotFound as e:
+        return render(request, 'gnmlibrarytool/rule_failed.html', {'error': e})
+
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER')+"#shortcutmv_storage_rule_menu")
+
+
+@has_group('Admin')
+def delete_rule_from_item(request):
+    from django.http import HttpResponseRedirect
+    from django.conf import settings
+    from gnmvidispine.vs_item import VSItem, VSNotFound
+
+    i = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,run_as=request.user.username)
+    try:
+        i.populate(request.POST['itemid'])
+    except VSNotFound as e:
+        return render(request, 'gnmlibrarytool/delete_failed.html', {'error': e})
+    try:
+        shape = i.get_shape(request.POST['delete'])
+    except VSNotFound as e:
+        return render(request, 'gnmlibrarytool/delete_failed.html', {'error': e})
+    try:
+        shape.delete_storage_rule()
+    except VSNotFound as e:
+        return render(request, 'gnmlibrarytool/delete_failed.html', {'error': e})
+
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER')+"#shortcutmv_storage_rule_menu")
+
+
+@has_group('Admin')
+def rule_list(request):
+    rules = LibraryStorageRule.objects.values()
+    return render(request, 'gnmlibrarytool/rule_list.html', {'rules': rules})
+
+
+def rule_edit(request, rule=None):
+    item = LibraryStorageRule.objects.get(id=rule)
+    form = LibraryStorageRuleForm(initial={'storagerule_name': item.storagerule_name, 'storagerule_xml_source': item.storagerule_xml_source})
+    return render(request, 'gnmlibrarytool/rule_edit.html', {'form': form, 'rule': rule})
+
+
+def replace_rule(request, rule=None):
+
+    lsrm = LibraryStorageRule.objects.get(id=rule)
+    lsrm.storagerule_name=request.POST['storagerule_name']
+    lsrm.storagerule_xml_source=request.POST['storagerule_xml_source']
+    lsrm.save()
+
+    return redirect('rules-list')
+
+
+def delete_rule(request, rule=None):
+
+    lsrm = LibraryStorageRule.objects.get(id=rule)
+    lsrm.delete()
+
+    return redirect('rules-list')

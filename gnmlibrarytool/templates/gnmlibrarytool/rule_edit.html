@@ -1,0 +1,30 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress staticfiles %}
+{% block title %}{% trans 'Edit Storage Rule' %}{% endblock %}
+{% block heading %}{% trans 'Edit Storage Rule' %}{% endblock %}
+
+{% block extra_script %}
+<link rel="stylesheet" href="{% static 'gnmlibrarytool/codemirror/lib/codemirror.css' %}"/>
+<script src="{% static 'gnmlibrarytool/codemirror/lib/codemirror.js' %}"></script>
+<script src="{% static 'gnmlibrarytool/codemirror/mode/xml/xml.js' %}"></script>
+<script>
+    $(document).ready(function(){
+        $('#id_storagerule_xml_source').css({width: '100%'});
+        var myCodeMirror = CodeMirror.fromTextArea(document.getElementById('id_storagerule_xml_source'));
+        $('.CodeMirror').css({width: '100%'});
+        myCodeMirror.setOption('lineWrapping',true);
+        myCodeMirror.setOption('lineNumbers',true);
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+    <form action="/gnmlibrarytool/replace/{{ rule }}/" method="post">
+            {% csrf_token %}
+        <table>
+            {{ form.as_table }}
+        </table>
+        <br />
+        <input type="submit" value="Submit" />
+    </form>
+{% endblock %}

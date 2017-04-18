@@ -37,3 +37,4 @@ South==0.7.6
 unittest2==1.1.0
 mock==2.0.0
 httplib2==0.9.2
+requests==2.13.0

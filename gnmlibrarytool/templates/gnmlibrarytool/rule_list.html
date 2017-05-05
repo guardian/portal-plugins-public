@@ -7,8 +7,8 @@
 <table>
     {% for rule in rules %}
     <tr>
-        <td><a href="/gnmlibrarytool/edit/{{ rule.id }}/">{{ rule.storagerule_name }}</a></td>
-        <td><button><a style="color:#ffffff;" href="/gnmlibrarytool/delete/{{ rule.id }}/">Delete</a></button></td>
+        <td><a href="/gnmlibrarytool/rule/edit/{{ rule.id }}/">{{ rule.storagerule_name }}</a></td>
+        <td><button><a style="color:#ffffff;" href="/gnmlibrarytool/rule/delete/{{ rule.id }}/">Delete</a></button></td>
     </tr>
     {% endfor %}
 </table>

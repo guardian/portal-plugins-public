@@ -19,7 +19,7 @@
 {% endblock %}
 
 {% block content %}
-    <form action="/gnmlibrarytool/replace/{{ rule }}/" method="post">
+    <form action="/gnmlibrarytool/rule/replace/{{ rule }}/" method="post">
             {% csrf_token %}
         <table>
             {{ form.as_table }}

@@ -5,7 +5,7 @@
 
 {% block content %}
 <div style="width: 574px;">
-    <form action="/gnmlibrarytool/add/" method="post">
+    <form action="/gnmlibrarytool/rule/add/" method="post">
             {% csrf_token %}
             {{ form.as_table }}
         <br />

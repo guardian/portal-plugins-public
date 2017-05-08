@@ -66,7 +66,6 @@ class ConfigAlertsView(ListView):
     template_name = "gnmpagerduty/admin_list.html"
 
     def get_context_data(self, modelready=model, **kwargs):
-
         ctx = super(ConfigAlertsView, self).get_context_data(**kwargs)
         self.map = VSStoragePathMap(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
                                     user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,
@@ -77,7 +76,6 @@ class ConfigAlertsView(ListView):
         n = 0
 
         for val in ctx['map']:
-
             try:
                 record = StorageData.objects.get(storage_id=val['name'])
                 ctx['map'][n]['triggerSize'] = int(record.trigger_size)

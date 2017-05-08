@@ -1,22 +1,23 @@
 from __future__ import absolute_import
+from os import environ, unlink
+environ["DJANGO_SETTINGS_MODULE"] = "gnmpagerduty.tests.django_test_settings"
 from django.core.management import execute_manager
+import django.test
 import unittest
 from mock import patch, MagicMock
-from os import environ, unlink
 import os.path
 
 environ["CI"] = "True"  #simulate a CI environment even if we're not in one, this will stop trying to import portal-specific stuff
 #which breaks the tests
 import gnmpagerduty.tests.django_test_settings as django_test_settings
 
-environ["DJANGO_SETTINGS_MODULE"] = "gnmpagerduty.tests.django_test_settings"
 if os.path.exists(django_test_settings.DATABASES['default']['NAME']):
     unlink(django_test_settings.DATABASES['default']['NAME'])
-execute_manager(django_test_settings,['manage.py','syncdb'])
-execute_manager(django_test_settings,['manage.py','migrate'])
+execute_manager(django_test_settings,['manage.py','syncdb',"--noinput"])
+execute_manager(django_test_settings,['manage.py','migrate',"--noinput"])
 
 
-class TestViews(unittest.TestCase):
+class TestViews(django.test.TestCase):
 
     class MockObject(object):
         """
@@ -39,11 +40,23 @@ class TestViews(unittest.TestCase):
     }
 
     def test_get_context_data(self):
-        from gnmpagerduty.views.ConfigAlertsView import get_context_data
-        from gnmpagerduty.models import StorageData
+        from django.contrib.auth.models import User
+        from django.http import HttpResponse
+        import logging
 
-        model = StorageData
+        logging.basicConfig(level=logging.DEBUG)
+        u = User(first_name="test",last_name="test",username="test")
+        u.set_password("nothing")
+        u.is_active=True
+        u.is_superuser=False
+        u.save()
 
-        with patch('gnmvidispine.vs_storage.VSStoragePathMap', return_value={'/some/path/to': self.MockObject(self.TEST_STORAGE_DATA)}) as mock_path_map:
-            self.assertEqual(get_context_data(self, modelready=model),"Fix me")
+        self.client.login(username="test", passwd="nothing")
 
+        with patch('gnmpagerduty.views.VSStoragePathMap', return_value={'/some/path/to': self.MockObject(self.TEST_STORAGE_DATA)}) as mock_path_map:
+            with patch('gnmpagerduty.views.ConfigAlertsView.render_to_response', return_value=HttpResponse()) as mock_render:
+                result = self.client.get('/alerts/')
+                self.assertEqual(result.status_code,200)
+
+                mock_render.assert_called_once()
+                self.assertDictContainsSubset({'map': [{'contentDict': {'name': 'Kevin'}, 'triggerSize': 0, 'freeCapacity': 12345, 'capacity': 456780, 'name': 'VX-1234'}]}, mock_render.call_args[0][0])

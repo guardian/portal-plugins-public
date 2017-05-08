@@ -1,7 +1,7 @@
 import logging
-from portal.generic.baseviews import ClassView
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView
+from django.core.exceptions import ObjectDoesNotExist
 from models import StorageData
 from django.conf import settings
 from serializers import StorageDataSerializer
@@ -22,22 +22,6 @@ except ImportError:
     log.error("Raven client not installed - can't log errors to Sentry")
 except KeyError, AttributeError:
     log.error("Raven is installed but RAVEN_CONFIG is not set up properly. Can't log errors to Sentry.")
-
-class GenericAppView(ClassView):
-    """ Show the page. Add your python code here to show dynamic content or feed information in
-        to external apps
-    """
-    def __call__(self):
-        # __call__ responds to the incoming request. It will already have a information associated to it, such as self.template and self.request
-
-        log.debug("%s Viewing page" % self.request.user)
-        ctx = {}
-
-        # return a response to the request
-        return self.main(self.request, self.template, ctx)
-
-# setup the object, and decorate so that only logged in users can see it
-GenericAppView = GenericAppView._decorate(login_required)
 
 
 class StorageDataList(ListAPIView):
@@ -97,6 +81,11 @@ class ConfigAlertsView(ListView):
             try:
                 record = StorageData.objects.get(storage_id=val['name'])
                 ctx['map'][n]['triggerSize'] = int(record.trigger_size)
+            except ObjectDoesNotExist as e:
+                log.error(traceback.format_exc())
+                if raven_client is not None:
+                    raven_client.captureException()
+                ctx['map'][n]['triggerSize'] = 0
             except StandardError as e:
                 log.error(traceback.format_exc())
                 if raven_client is not None:

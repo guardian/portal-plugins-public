@@ -15,7 +15,7 @@
     </form>
     {% if user.is_superuser %}
         <div class="panel-header"><h2>Available Storage Rules</h2></div>
-        <form action="/gnmlibrarytool/addrule/" method="post">{% csrf_token %}
+        <form action="/gnmlibrarytool/item/add/" method="post">{% csrf_token %}
             {% if rules|length %}
                  <select name="rulexml" id="rulexml_selector">
                      {% for rule in rules %}

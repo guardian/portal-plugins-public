@@ -10,8 +10,18 @@ class LibraryNickname(models.Model):
 class LibraryNicknameSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = LibraryNickname
-        fields = ('library_id','nickname')
+        fields = ('library_id', 'nickname')
+
+
+blank_storagerule = """<?xml version="1.0" ?>
+<StorageRulesDocument xmlns:ns0="http://xml.vidispine.com/schema/vidispine">
+	<tag id="original">
+	    <storages>1</storages>
+		<precedence>MEDIUM</precedence>
+	</tag>
+</StorageRulesDocument>"""
+
 
 class LibraryStorageRule(models.Model):
     storagerule_name = models.CharField(max_length=256)
-    storagerule_xml_source = models.TextField()
+    storagerule_xml_source = models.TextField(default=blank_storagerule)

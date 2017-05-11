@@ -3,13 +3,51 @@
 {% block title %}{% trans 'Add Storage Rule' %}{% endblock %}
 {% block heading %}{% trans 'Add Storage Rule' %}{% endblock %}
 
+{%  block head %}
+    <link rel="stylesheet" href="{% static "gnmlibrarytool/css/rulesadmin.css" %}">
+{%  endblock %}
+{% block extra_script %}
+    <link rel="stylesheet" href="{% static 'gnmlibrarytool/codemirror/lib/codemirror.css' %}"/>
+    <script src="{% static 'gnmlibrarytool/codemirror/lib/codemirror.js' %}"></script>
+    <script src="{% static 'gnmlibrarytool/codemirror/mode/xml/xml.js' %}"></script>
+    <script src="{%  static 'gnmlibrarytool/js/xmllint.js' %}"></script>
+
+    <script>
+        function submit_clicked(event){
+            console.log("submit_clicked");
+
+            var result = xmllint({
+                xml: $('#id_storagerule_xml_source').val(),
+                schema: "",
+                arguments: ["--noout"]
+            });
+            console.log(result);
+            event.preventDefault();
+        }
+
+        $(document).ready(function(){
+            $('#id_storagerule_xml_source').css({width: '100%'});
+            var myCodeMirror = CodeMirror.fromTextArea(document.getElementById('id_storagerule_xml_source'));
+            $('.CodeMirror').css({width: '100%'});
+            myCodeMirror.setOption('lineWrapping',true);
+            myCodeMirror.setOption('lineNumbers',true);
+        });
+    </script>
+{% endblock %}
+
 {% block content %}
+    <p class="informative">For information on how to write a storage rule, visit
+        <a href="http://apidoc.vidispine.com/latest/storage/storage-rule.html?highlight=storage%20rule" target="_blank">
+            http://apidoc.vidispine.com/latest/storage/storage-rule.html?highlight=storage%20rule
+        </a>
+    </p>
 <div style="width: 574px;">
-    <form action="/gnmlibrarytool/rule/add/" method="post">
+    <form action="{% url gnmlibrarytool:rule-add %}" method="post">
             {% csrf_token %}
             {{ form.as_table }}
         <br />
-        <input type="submit" value="Submit" />
+        <input type="submit" onclick="submit_clicked" value="Submit" />
     </form>
 </div>
+
 {% endblock %}

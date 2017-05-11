@@ -10,6 +10,6 @@
     "test":
       "bash -c \"find gnm{awsgr,gridintegration} -iname '*.js' | grep -v '^./static' | grep -v node_modules | xargs ./node_modules/.bin/jshint\"",
     "testcss":
-       "bash -c \"find gnm{awsgr,gridintegration} -iname '*.css' | grep -v '^./static' | grep -v node_modules | xargs ./node_modules/.bin/sass-lint\""
+       "bash -c \"find gnm{librarytool,gridintegration} -iname '*.css' | grep -v '^./static' | grep -v node_modules | xargs ./node_modules/.bin/sass-lint\""
   }
 }

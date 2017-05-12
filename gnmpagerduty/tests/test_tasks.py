@@ -12,8 +12,8 @@ import gnmpagerduty.tests.django_test_settings as django_test_settings
 environ["DJANGO_SETTINGS_MODULE"] = "gnmpagerduty.tests.django_test_settings"
 if os.path.exists(django_test_settings.DATABASES['default']['NAME']):
     unlink(django_test_settings.DATABASES['default']['NAME'])
-execute_manager(django_test_settings,['manage.py','syncdb'])
-execute_manager(django_test_settings,['manage.py','migrate'])
+execute_manager(django_test_settings,['manage.py','syncdb', "--noinput"])
+execute_manager(django_test_settings,['manage.py','migrate', "--noinput"])
 
 
 

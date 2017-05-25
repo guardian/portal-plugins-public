@@ -13,13 +13,14 @@
 
     span.headline { font-size: 1em; font-weight: bold; }
     span.library_info { font-size: 0.7em; font-weight: normal }
-    p.error { color: red; };
+    p.error { color: red; }
 </style>
+
 <link rel="stylesheet" href='{% static "js/codemirror/lib/codemirror.css" %}'>
-<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+<script src="{% static "js/chartjs/Lib/js/jquery-1.10.2.js" %}"></script>
 <script src="//code.jquery.com/ui/1.11.0/jquery-ui.js"></script>
-<script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/globalize/0.1.1/globalize.min.js"></script>
-<script type="text/javascript" src="/sitemedia/js/chartjs/Lib/js/dx.chartjs.js"></script>
+<script type="text/javascript" src="{% static "js/chartjs/Lib/js/globalize.min.js" %}"></script>
+<script type="text/javascript" src="{% static "js/chartjs/Lib/js/dx.chartjs.js" %}"></script>
 <script type="text/javascript" src='{% static "js/jquery.cookie.js" %}'></script>
 <script src='{% static "js/codemirror/lib/codemirror.js" %}'></script>
 <script src='{% static "js/codemirror/mode/xml/xml.js" %}'></script>
@@ -308,16 +309,16 @@ $(document).ready(function() {
     $('#newlibrary_throbber').hide();
     $('#newlibrary_result').hide();
     populate_library_selector();
-    id_search_definition = document.getElementById('id_search_definition');
+    var id_search_definition = document.getElementById('id_search_definition');
     if(id_search_definition){
-        search_def_editor = CodeMirror.fromTextArea(id_search_definition, {
+        var search_def_editor = CodeMirror.fromTextArea(id_search_definition, {
             lineNumbers: true,
             lineWrapping: true
         });
     }
-    id_storage_rule_definition = document.getElementById('id_storage_rule_definition');
+    var id_storage_rule_definition = document.getElementById('id_storage_rule_definition');
     if(id_storage_rule_definition){
-         storage_rule_editor = CodeMirror.fromTextArea(id_storage_rule_definition, {
+         var storage_rule_editor = CodeMirror.fromTextArea(id_storage_rule_definition, {
             lineNumbers: true,
             lineWrapping: true
         });

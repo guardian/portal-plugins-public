@@ -25,7 +25,7 @@ The ChartJS graphing widgets for javascript
 
 %install
 mkdir -p $RPM_BUILD_ROOT/opt/cantemo/portal/portal_media/js/
-cp -a static/chartjs $RPM_BUILD_ROOT/opt/cantemo/portal/portal_media/js/chartjs
+cp -a static/chartjs $RPM_BUILD_ROOT/opt/cantemo/portal/portal_media/js
 
 %clean
 

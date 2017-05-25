@@ -37,7 +37,7 @@ deployment:
       - chmod a+x *.sh
       - ./buildrpms.sh
       - rpmbuild -bb portal-codemirror.spec
-      - ./upload_with_hash.sh ${HOME}/rpmbuild/RPMS/noarch/portal-codemirror-5.26.0-1.noarch.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins/static/portal-codemirror-5.26.0-1.noarch.rpm
+      - ./upload_with_hash.sh ${HOME}/rpmbuild/RPMS/noarch/portal-codemirror-5.26.0-2.noarch.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins/static/portal-codemirror-5.26.0-2.noarch.rpm
       - mkdir -p ${HOME}/rpmbuild/BUILD/static
       - cp -a static/chartjs ${HOME}/rpmbuild/BUILD/static
       - rpmbuild -bb portal-chartjs.spec

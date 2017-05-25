@@ -334,7 +334,7 @@ $(document).ready(function() {
     <div style="width: 15%; overflow: hidden; float: left" id="search_form_container">
         <span id="newlibrarycontrols">
             <button id="newlibrary_button" onclick="create_new_library();">New</button>
-            <img id="newlibrary_throbber" src="/sitemedia/img/gnm/load.gif" alt="waiting..." style="visible: false">
+            <img id="newlibrary_throbber" src="{% static "gnmlibrarytool/load.gif" %}" alt="waiting..." style="visible: false">
         </span>
         <p id="newlibrary_result"></p>
         <hr>
@@ -343,12 +343,12 @@ $(document).ready(function() {
         </ul>
         <button onclick="empty_library_selector(); populate_library_selector();">Update</button>
         <div id="library_selector_loading_indicator" style="display: hidden;">
-            <p><img src="/sitemedia/img/gnm/load.gif" alt="loading...">Refreshing libraries...</p>
+            <p><img src="{% static "gnmlibrarytool/load.gif" %}" alt="loading...">Refreshing libraries...</p>
         </div>
     </div>
     <div style="width:73%; overflow: hidden; float: right" id="graph_container">
         <div id="graph_loading_indicator" style="display: hidden;">
-            <p><img src="/sitemedia/img/gnm/loading.gif" alt="loading...">Waiting for data...</p>
+            <p><img src="/{% static "gnmlibrarytool/load.gif" %}" alt="loading...">Waiting for data...</p>
         </div>
         <div id="libraries_graph">
 

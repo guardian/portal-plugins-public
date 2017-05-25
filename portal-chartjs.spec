@@ -30,7 +30,7 @@ cp -a static/chartjs $RPM_BUILD_ROOT/opt/cantemo/portal/portal_media/js/chartjs
 %clean
 
 %files
-%defattr(-,root,root)
+%defattr(644,root,root,755)
 /opt/cantemo/portal/portal_media/js/chartjs
 
 %post

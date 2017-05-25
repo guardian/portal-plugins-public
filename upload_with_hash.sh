@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/bin/bash -e
 
-if [ -x /bin/shasum ]; then
-    SHASUM="/bin/shasum -a 256"
+if [ -x `which shasum` ]; then
+    SHASUM="`which shasum` -a 256"
 else
-    SHASUM="/bin/sha256sum"
+    SHASUM="`which sha256sum`"
 fi
 
 SHA=$(${SHASUM} $1  | cut -f 1 -d ' ')

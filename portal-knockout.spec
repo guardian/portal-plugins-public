@@ -1,19 +1,19 @@
-%define name portal-jquery-cookie
-%define version 1.4.1
-%define unmangled_version 1.4.1
+%define name portal-knockout
+%define version 3.3.0
+%define unmangled_version 3.3.0
 %define release 1
 
-Summary: Jquery cookie handling functions
+Summary: Provides the Knockout javascript library
 Name: %{name}
 Version: %{version}
 Release: %{release}
 License: MIT
 Source0: codemirror.zip
 Group: Applications/Productivity
-BuildRoot: %{_tmppath}/portal-codemirror
+BuildRoot: %{_tmppath}/portal-knockout
 Prefix: %{_prefix}
 BuildArch: noarch
-Vendor: Klaus Hartl
+Vendor: http://knockoutjs.com/
 Requires: Portal
 
 %description
@@ -25,13 +25,13 @@ Jquery cookie handling functions
 
 %install
 mkdir -p $RPM_BUILD_ROOT/opt/cantemo/portal/portal_media/js/
-cp -a static/jquery.cookie.js $RPM_BUILD_ROOT/opt/cantemo/portal/portal_media/js
+cp -a static/knockout-3.3.0.js $RPM_BUILD_ROOT/opt/cantemo/portal/portal_media/js
 
 %clean
 
 %files
 %defattr(644,root,root,755)
-/opt/cantemo/portal/portal_media/js/jquery.cookie.js
+/opt/cantemo/portal/portal_media/js/knockout-3.3.0.js
 
 %post
 /opt/cantemo/portal/manage.py collectstatic --noinput

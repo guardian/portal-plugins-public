@@ -34,7 +34,7 @@ cp -a CodeMirror-5.26.0 $RPM_BUILD_ROOT/opt/cantemo/portal/portal_media/js/codem
 rm -rf CodeMirror-5.26.0
 
 %files
-%defattr(-,root,root)
+%defattr(644,root,root,755)
 /opt/cantemo/portal/portal_media/js/codemirror
 
 %post

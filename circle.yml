@@ -45,3 +45,6 @@ deployment:
       - cp -a static/jquery.cookie.js ${HOME}/rpmbuild/BUILD/static
       - rpmbuild -bb portal-jquery-cookie.spec
       - ./upload_with_hash.sh ${HOME}/rpmbuild/RPMS/noarch/portal-jquery-cookie-1.4.1-1.noarch.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins/static/portal-jquery-cookie-1.4.1-1.noarch.rpm
+      - cp -a static/knockout-3.3.0.js ${HOME}/rpmbuild/BUILD/static
+      - rpmbuild -bb portal-knockout.spec
+      - ./upload_with_hash.sh ${HOME}/rpmbuild/RPMS/noarch/portal-knockout-3.3.0-1.noarch.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins/static/portal-knockout-3.3.0-1.noarch.rpm

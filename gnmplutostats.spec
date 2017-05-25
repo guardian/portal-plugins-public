@@ -20,7 +20,7 @@ BuildRoot: %{_tmppath}/gnmpurgemeister
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: Andy Gallagher <andy.gallagher@theguardian.com>
-Requires: Portal
+Requires: Portal portal-chartjs >= 1.4.0
 
 %description
 Simple statistics plugin that shows pie charts of the status of commissions, projects and masters in an Admin panel.

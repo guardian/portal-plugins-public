@@ -15,7 +15,7 @@ BuildRoot: %{_tmppath}/gnmlibrarytool
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: Andy Gallagher <andy.gallagher@theguardian.com> and David Allison <david.allison@theguardian.com>
-Requires: Portal
+Requires: Portal portal-chartjs >= 1.4.0 portal-codemirror >= 5.26.0 portal-jquery-cookie >= 1.4.0
 
 %description
 Portal plugin to show allow viewing currently available libraries, how many items they're matching, which ones have storage rules attached, etc.

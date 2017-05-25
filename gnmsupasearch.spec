@@ -14,7 +14,7 @@ BuildRoot: %{_tmppath}/gnmgridintegration
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: Andy Gallagher <andy.gallagher@theguardian.com>
-Requires: Portal
+Requires: Portal portal-codemirror >= 5.26.0
 
 %description
 Plugin for Cantemo Portal that provides an alternative search interface, talking directly to Vidispine.

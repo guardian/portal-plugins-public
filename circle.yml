@@ -27,6 +27,7 @@ checkout:
 test:
   override:
     - declare -x PYTHONPATH=$PYTHONPATH:deps/gnmvidispine; nosetests -v gnmpagerduty/tests
+    - declare -x DJANGO_SETTINGS_MODULE=gnmlibrarytool.tests.django_test_settings; nosetests -v gnmlibrarytool/tests
     - npm run test
     - npm run lint
     - npm run testcss

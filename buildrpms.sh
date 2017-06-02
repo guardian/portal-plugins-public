@@ -61,10 +61,15 @@ function build_rpm {
     done
 }
 
-if [ -x /bin/shasum ]; then
-    SHASUM="/bin/shasum -a 256"
+if [ -x `which shasum` ]; then
+    SHASUM=`which shasum`" -a 256"
 else
-    SHASUM="/bin/sha256sum"
+    SHASUM=`which sha256sum`
+fi
+
+if [ ! -x "${SHASUM}" ]; then
+    echo Unable to locate shasum or sha256sum, can\'t continue.
+    exit 1
 fi
 
 if [ "$1" == "" ]; then

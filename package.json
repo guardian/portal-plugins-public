@@ -3,13 +3,19 @@
   "description": "Plugins for cantemo portal",
   "version": "1.0.0",
   "devDependencies": {
+    "assert": "^1.4.1",
     "css-lint": "^1.0.1",
-    "jshint": "^2.9.4"
+    "expect": "^1.20.2",
+    "fs": "0.0.1-security",
+    "jshint": "^2.9.4",
+    "mocha": "^3.4.2",
+    "node-jsdom": "^3.1.5",
+    "should": "^11.2.1",
+    "sinon": "^2.3.2"
   },
   "scripts": {
-    "test":
-      "bash -c \"find gnm{awsgr,gridintegration} -iname '*.js' | grep -v '^./static' | grep -v node_modules | xargs ./node_modules/.bin/jshint\"",
-    "testcss":
-       "bash -c \"find gnm{librarytool,gridintegration} -iname '*.css' | grep -v '^./static' | grep -v node_modules | xargs ./node_modules/.bin/sass-lint\""
+    "lint": "bash -c \"find gnm{awsgr,gridintegration} -iname '*.js' | grep -v '^./static' | grep -v node_modules | xargs ./node_modules/.bin/jshint\"",
+    "test": "mocha gnmlibrarytool/jstest/*.js",
+    "testcss": "bash -c \"find gnm{librarytool,gridintegration} -iname '*.css' | grep -v '^./static' | grep -v node_modules | xargs ./node_modules/.bin/sass-lint\""
   }
 }

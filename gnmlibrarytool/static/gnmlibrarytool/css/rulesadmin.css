@@ -1,0 +1,9 @@
+p.informative {
+    font-style: italic;
+    margin-bottom: 1em;
+    text-align: center;
+}
+
+table.rulestable {
+    margin-bottom: 1em;
+}

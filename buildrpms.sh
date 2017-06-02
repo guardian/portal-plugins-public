@@ -51,8 +51,21 @@ function build_rpm {
     else
         S3SUBDIR=/public_repo
     fi
-    aws s3 cp ${HOME}/rpmbuild/RPMS/noarch/${RPM_BASE}*.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins${S3SUBDIR}/ --acl public-read
+
+    for x in `ls ${HOME}/rpmbuild/RPMS/noarch/${RPM_BASE}*.rpm`; do
+        SHA=$(${SHASUM} $x | cut -f 1 -d ' ')
+        echo SHA-256 checksum is ${SHA}
+        echo sha256=${SHA} > $x.sha
+        aws s3 cp $x s3://gnm-multimedia-deployables/gnm_portal_plugins${S3SUBDIR}/ --acl public-read
+        aws s3 cp $x.sha1 s3://gnm-multimedia-deployables/gnm_portal_plugins${S3SUBDIR}/ --acl public-read
+    done
 }
+
+if [ -x /bin/shasum ]; then
+    SHASUM="/bin/shasum -a 256"
+else
+    SHASUM="/bin/sha256sum"
+fi
 
 if [ "$1" == "" ]; then
 	for dir in `find . -iname gnm\* -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do

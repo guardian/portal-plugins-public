@@ -15,7 +15,7 @@ BuildRoot: %{_tmppath}/gnmpagerduty
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: David Allison <david.allison@theguardian.com> and Andy Gallagher <andy.gallagher@theguardian.com>
-Requires: Portal pluto portal_gnm_vidispine
+Requires: Portal pluto
 
 %description
 A Portal plugin that allows alerts to be sent to PagerDuty when storages get too full.

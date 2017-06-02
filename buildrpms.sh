@@ -67,11 +67,6 @@ else
     SHASUM=`which sha256sum`
 fi
 
-if [ ! -x "${SHASUM}" ]; then
-    echo Unable to locate shasum or sha256sum, can\'t continue.
-    exit 1
-fi
-
 if [ "$1" == "" ]; then
 	for dir in `find . -iname gnm\* -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do
 	    build_rpm $dir

@@ -14,7 +14,7 @@
     "sinon": "^2.3.2"
   },
   "scripts": {
-    "lint": "bash -c \"find gnm{awsgr,gridintegration} -iname '*.js' | grep -v '^./static' | grep -v node_modules | xargs ./node_modules/.bin/jshint\"",
+    "lint": "jshint gnmgridintegration/static/gnmgridintegration/grid_{meta,profile}_admin.js gnmlibrarytool/static/gnmlibrarytool/js/{diagramming,storagerulepanel}.js",
     "test": "mocha gnmlibrarytool/jstest/*.js",
     "testcss": "bash -c \"find gnm{librarytool,gridintegration} -iname '*.css' | grep -v '^./static' | grep -v node_modules | xargs ./node_modules/.bin/sass-lint\""
   }

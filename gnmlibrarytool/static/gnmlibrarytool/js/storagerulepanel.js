@@ -3,7 +3,13 @@ $(document).ready(function () {
 });
 
 function load_storage_rule_info(itemid) {
-    itemPlayer.playerResize("small");
+    try {
+        itemPlayer.playerResize("small");
+    } catch(error) {
+        console.log("Unable to resize player to small: ");
+        console.log(error);
+    }
+
     $('#mvlibtool_sr_loading').show();
     $('#mvlibtool_sr_info').empty();
     $('#mvlibtool_error').empty();
@@ -19,14 +25,14 @@ function load_storage_rule_info(itemid) {
                 }
             }
 
-            if(data.length===0){
+            if (data.length === 0) {
                 $('#mvlibtool_error').html("No shapes were found on this item");
                 return;
             }
 
             $.each(data, function (idx, ptr) {
                 var row = $('<tr>').appendTo(table);
-                $('<td>',{'class': 'shapetag-container'}).html(ptr.shapetag).appendTo(row);
+                $('<td>', {'class': 'shapetag-container'}).html(ptr.shapetag).appendTo(row);
                 $('<option>', {'value': ptr.shapetag, 'text': ptr.shapetag}).appendTo($("#ruleshape_selector"));
                 var rules_cell = $('<td>', {'class': 'rules-cell'}).appendTo(row);
                 if (ptr.rules === null || ptr.rules.length === 0) {
@@ -34,7 +40,7 @@ function load_storage_rule_info(itemid) {
                     return;
                 }
                 $.each(ptr.rules, function (idx, ptr) {
-                    var rule_container = $('<p>',{'class': 'rule-container'});
+                    var rule_container = $('<p>', {'class': 'rule-container'});
                     rule_container.appendTo(rules_cell);
                     var excludestr = ptr.not_storages.join() + "," + ptr.not_groups.join();
                     var includestr = ptr.storages.join() + "," + ptr.groups.join();
@@ -48,7 +54,7 @@ function load_storage_rule_info(itemid) {
                         "; Exclude: " + excludestr
                     );
 
-                    $('<p>',{'class': 'applies-container'}).append($('<a>', {'href': '/gnmlibrarytool/' + ptr.applies_to[1]}).html('Applied from ' + ptr.applies_to[0] + ' ' + ptr.applies_to[1])).appendTo(rules_cell);
+                    $('<p>', {'class': 'applies-container'}).append($('<a>', {'href': '/gnmlibrarytool/' + ptr.applies_to[1]}).html('Applied from ' + ptr.applies_to[0] + ' ' + ptr.applies_to[1])).appendTo(rules_cell);
                     if (ptr.applies_to[0] == 'ITEM') {
                         $('<p>').append($(' <button type="submit" name="delete" value="' + ptr.name + '">Remove Rule</button>')).appendTo(rules_cell);
                     }
@@ -63,10 +69,8 @@ function load_storage_rule_info(itemid) {
         },
         error: function (jqXHR, textStatus, errorThrown) {
             $('#mvlibtool_error').html(errorThrown);
-        },
-        always: function (contentOrXhr, textStatus, xhrOrError) {
-            $('#mvlibtool_sr_loading').hide();
         }
+    }).always(function (contentOrXhr, textStatus, xhrOrError) {
+        $('#mvlibtool_sr_loading').hide();
     });
-
 }

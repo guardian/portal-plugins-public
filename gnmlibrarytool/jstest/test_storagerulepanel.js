@@ -62,7 +62,6 @@ describe("storagerulepanel.js", function(){
                         if (options.success) dfd.done([
                                 function () {
                                     options.success(data);
-                                    options.always();
                                 },
                                 function () {
                                     /*now that the success callback has been triggered, test that it had the right effects*/
@@ -139,7 +138,6 @@ describe("storagerulepanel.js", function(){
                         if (options.success) dfd.done([
                                 function () {
                                     options.success(data);
-                                    options.always();
                                 },
                                 function () {
                                     /*now that the success callback has been triggered, test that it had the right effects*/
@@ -209,7 +207,6 @@ describe("storagerulepanel.js", function(){
                         if (options.success) dfd.done([
                                 function () {
                                     options.success(data);
-                                    options.always();
                                 },
                                 function () {
                                     /*now that the success callback has been triggered, test that it had the right effects*/

@@ -10,8 +10,8 @@
            logger = logging.getLogger(__name__)
            logger.info("Starting propagation from {0}".format(collectionId))
 
-           tasks.propagate.delay(collectionId, 'gnm_storage_rule_sensitive', gnm_storage_rule_sensitive)
-           logger.info("Propagation task scheduled")
+           result = tasks.propagate.apply_async((collectionId, 'gnm_storage_rule_sensitive', gnm_storage_rule_sensitive, ), queue='propagator')
+           logger.info("Propagation task {0} scheduled".format(result))
         ]]>
     </rule>
 
@@ -24,8 +24,8 @@
            logger = logging.getLogger(__name__)
            logger.info("Starting propagation from {0}".format(collectionId))
 
-           tasks.propagate.delay(collectionId, 'gnm_storage_rule_deletable', gnm_storage_rule_deletable)
-           logger.info("Propagation task scheduled")
+           result = tasks.propagate.apply_async((collectionId, 'gnm_storage_rule_deletable', gnm_storage_rule_deletable, ), queue='propagator')
+           logger.info("Propagation task {0} scheduled".format(result))
         ]]>
     </rule>
 
@@ -37,8 +37,8 @@
            logger = logging.getLogger(__name__)
            logger.info("Starting propagation from {0}".format(collectionId))
 
-           tasks.propagate.delay(collectionId, 'gnm_storage_rule_deep_archive', gnm_storage_rule_deep_archive)
-           logger.info("Propagation task scheduled")
+           result = tasks.propagate.apply_async(collectionId, 'gnm_storage_rule_deep_archive', gnm_storage_rule_deep_archive, ), queue='propagator')
+           logger.info("Propagation task {0} scheduled".format(result))
         ]]>
     </rule>
 </rules>

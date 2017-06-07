@@ -70,7 +70,7 @@ class TestTasks(unittest.TestCase):
                 from gnmpagerduty.tasks import storage_below_safelevel
                 storage_below_safelevel(mock_key, self.TEST_STORAGE_DATA)
 
-                mocknotify.assert_called_once_with('Storage Kevin lacks sufficient free space. It is 2% full.',
+                mocknotify.assert_called_once_with('Storage Kevin lacks sufficient free space. It is 97% full.',
                                                    'trigger',
                                                    '',
                                                    free_capacity='12.1KiB',
@@ -95,7 +95,7 @@ class TestTasks(unittest.TestCase):
                 mock_key.incident_key = "somethingsomething"
                 storage_above_safelevel(mock_key, self.TEST_STORAGE_DATA)
 
-                mocknotify.assert_called_once_with('Storage Kevin no longer lacks sufficient free space. It is 2% full.',
+                mocknotify.assert_called_once_with('Storage Kevin no longer lacks sufficient free space. It is 97% full.',
                                                    'resolve',
                                                    'somethingsomething',
                                                    free_capacity='12.1KiB',

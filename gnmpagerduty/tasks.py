@@ -83,7 +83,9 @@ def get_system_type():
 
 def return_percentage(integer_capacity, integer_free_capacity):
     percent_free_float = (100.0 / integer_capacity) * integer_free_capacity
-    return int(percent_free_float)
+    percent_used_float = 100.0 - percent_free_float
+
+    return int(percent_used_float)
 
 
 def notify_pagerduty(message, event_type, incident_key, vidis_id=None,storage_name=None,free_capacity=None,system_type=None):

@@ -173,20 +173,6 @@ def check_storage(celery_app=None):
 
     log.info("check_storage run by Celery.")
 
-    if celery_app is None:
-        app = Celery()
-    else:
-        app=celery_app
-
-    i = app.control.inspect()
-
-    running = str(i.active())
-
-    rnumber = running.count("check_storage")
-
-    if rnumber > 1:
-        raise RuntimeError("Task aborted to avoid duplication")
-
     storage_data = VSStoragePathMap(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
                                     user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD,
                                     run_as=settings.VIDISPINE_USERNAME)

@@ -146,19 +146,6 @@ class TestTasks(unittest.TestCase):
         def __dict__(self):
             return self.obj
 
-    def test_check_storages_dedupe(self):
-        """
-        test that check_storages bails out if another running instance is detected
-        :return:
-        """
-        mockceleryapp = self.MockCeleryApp(2)
-
-        with patch('gnmvidispine.vs_storage.VSStoragePathMap', return_value={}) as mock_path_map:
-            from gnmpagerduty.tasks import check_storage
-
-            self.assertRaises(RuntimeError, check_storage, celery_app=mockceleryapp)
-            mock_path_map.assert_not_called()
-
     def test_check_storages_above(self):
         """
         tests the check_storages function when the storage is above the limit, i.e. fine

@@ -1,3 +1,5 @@
 __author__ = 'localhome'
 __version__ = "v0.1 development"
-import plugin
+import os
+if not 'CI' in os.environ:
+    import plugin

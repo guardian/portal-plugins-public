@@ -1,10 +1,11 @@
+{%  load static %}
 <div id="GnmLibraryToolSRPanel" style="display:none;">
     <div class="panel-header"><h2>Storage rule information</h2></div>
-    <p class="mvlibtool_error" id="">
+    <p class="mvlibtool_error" id="mvlibtool_error">
 
     </p>
     <span id="mvlibtool_sr_loading">
-        <img src="/sitemedia/load.gif" height="64"><span>Loading...</span>
+        <img src="{% static "gnmlibrarytool/load.gif" %}" height="64"><span>Loading...</span>
     </span>
     <form action="/gnmlibrarytool/item/delete/" method="post">
         <input type="hidden" name="itemid" value="{{ item_id }}">

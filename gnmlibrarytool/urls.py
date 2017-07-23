@@ -16,7 +16,6 @@ from rest_framework import routers
 # name is shortcut name for the urls.
 
 router = routers.DefaultRouter()
-
 router.register(r'librarynicks',NicknameQueryViewset)
 
 urlpatterns = patterns('portal.plugins.gnmlibrarytool.views',

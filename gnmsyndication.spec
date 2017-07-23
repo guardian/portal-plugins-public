@@ -15,7 +15,7 @@ BuildRoot: %{_tmppath}/gnmsyndication
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: David Allison <david.allison@theguardian.com> and Andy Gallagher <andy.gallagher@theguardian.com>
-Requires: Portal
+Requires: Portal  portal-chartjs >= 1.0 portal-jquery-cookie >= 1.4.0
 
 %description
 Fully featured interface to show what video and audio content is being produced and where it is being sent.

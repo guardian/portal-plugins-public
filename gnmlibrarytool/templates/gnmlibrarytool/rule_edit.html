@@ -4,9 +4,9 @@
 {% block heading %}{% trans 'Edit Storage Rule' %}{% endblock %}
 
 {% block extra_script %}
-<link rel="stylesheet" href="{% static 'gnmlibrarytool/codemirror/lib/codemirror.css' %}"/>
-<script src="{% static 'gnmlibrarytool/codemirror/lib/codemirror.js' %}"></script>
-<script src="{% static 'gnmlibrarytool/codemirror/mode/xml/xml.js' %}"></script>
+<link rel="stylesheet" href="{% static 'js/codemirror/lib/codemirror.css' %}"/>
+<script src="{% static 'js/codemirror/lib/codemirror.js' %}"></script>
+<script src="{% static 'js/codemirror/mode/xml/xml.js' %}"></script>
 <script>
     $(document).ready(function(){
         $('#id_storagerule_xml_source').css({width: '100%'});

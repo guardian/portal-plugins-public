@@ -173,8 +173,12 @@ class MainAppView(TemplateView):
         from .forms import ConfigurationForm
         from django.conf import settings
 
-        mc = memcache.Client([settings.CACHE_LOCATION])
         context = super(MainAppView, self).get_context_data(**kwargs)
+
+        if isinstance(settings.CACHE_LOCATION, basestring):
+            mc = memcache.Client([settings.CACHE_LOCATION])
+        else:
+            mc = memcache.Client(settings.CACHE_LOCATION)
 
         initial_search_form = {}
         if 'only_named' in getargs:

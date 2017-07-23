@@ -111,7 +111,12 @@ class RuleDiagramDataView(VSMixin, APIView):
         from traceback import format_exc
         import memcache
 
-        mc = memcache.Client([settings.CACHE_LOCATION])
+        if isinstance(settings.CACHE_LOCATION, basestring):
+            mc = memcache.Client([settings.CACHE_LOCATION])
+        else:
+            mc = memcache.Client(settings.CACHE_LOCATION)
+
+
 
         l = VSLibrary(url=self.vidispine_url,port=self.vidispine_port,
                       username=settings.VIDISPINE_USERNAME, password=settings.VIDISPINE_PASSWORD,cache=mc)
@@ -217,7 +222,10 @@ class MainAppView(TemplateView):
         import memcache
         from django.shortcuts import render
 
-        mc = memcache.Client([settings.CACHE_LOCATION])
+        if isinstance(settings.CACHE_LOCATION, basestring):
+            mc = memcache.Client([settings.CACHE_LOCATION])
+        else:
+            mc = memcache.Client(settings.CACHE_LOCATION)
 
         f = ConfigurationForm(None, request.POST)
         if f.is_valid():
@@ -259,7 +267,10 @@ class ConfigurationFormProcessorView(View):
         import memcache
         from django.conf import settings
         super(ConfigurationFormProcessorView, self).__init__(*args,**kwargs)
-        self._mc = memcache.Client([settings.CACHE_LOCATION])
+        if isinstance(settings.CACHE_LOCATION, basestring):
+            self._mc = memcache.Client([settings.CACHE_LOCATION])
+        else:
+            self._mc = memcache.Client(settings.CACHE_LOCATION)
 
     def handle_action(self,request,cleaned_data,*args,**kwargs):
         from django.http import HttpResponse
@@ -361,6 +372,7 @@ class DeleteStorageRuleView(ConfigurationFormProcessorView):
         l.populate(cleaned_data['library_id'])
         l.deleteStorageRule()
 
+
 class CreateLibraryView(View):
     def put(self,request):
         from .VSLibrary import VSLibrary,VSLibraryCollection,HttpError
@@ -379,7 +391,11 @@ class CreateLibraryView(View):
             print e.__unicode__()
             return HttpResponse(content='Unable to create library: {0}\n{1}'.format(e.__unicode__(),traceback.format_exc()),content_type='text/plain',status=500)
 
-        mc = memcache.Client([settings.CACHE_LOCATION])
+        if isinstance(settings.CACHE_LOCATION, basestring):
+            mc = memcache.Client([settings.CACHE_LOCATION])
+        else:
+            mc = memcache.Client(settings.CACHE_LOCATION)
+
         libraries = VSLibraryCollection(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
                                         username=settings.VIDISPINE_USERNAME,password=settings.VIDISPINE_PASSWORD,
                                         cache=mc)
@@ -456,7 +472,10 @@ class LibraryListView(View):
             else:
                 onlyNamed = False
 
-        mc = memcache.Client([settings.CACHE_LOCATION])
+        if isinstance(settings.CACHE_LOCATION, basestring):
+            mc = memcache.Client([settings.CACHE_LOCATION])
+        else:
+            mc = memcache.Client(settings.CACHE_LOCATION)
 
         libraries = VSLibraryCollection(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,
                                         username=settings.VIDISPINE_USERNAME,password=settings.VIDISPINE_PASSWORD,

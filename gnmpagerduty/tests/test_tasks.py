@@ -70,7 +70,7 @@ class TestTasks(unittest.TestCase):
                 from gnmpagerduty.tasks import storage_below_safelevel
                 storage_below_safelevel(mock_key, self.TEST_STORAGE_DATA)
 
-                mocknotify.assert_called_once_with('Storage Kevin lacks sufficient free space. It is 2% full.',
+                mocknotify.assert_called_once_with('Storage Kevin lacks sufficient free space. It is 97% full.',
                                                    'trigger',
                                                    '',
                                                    free_capacity='12.1KiB',
@@ -95,7 +95,7 @@ class TestTasks(unittest.TestCase):
                 mock_key.incident_key = "somethingsomething"
                 storage_above_safelevel(mock_key, self.TEST_STORAGE_DATA)
 
-                mocknotify.assert_called_once_with('Storage Kevin no longer lacks sufficient free space. It is 2% full.',
+                mocknotify.assert_called_once_with('Storage Kevin no longer lacks sufficient free space. It is 97% full.',
                                                    'resolve',
                                                    'somethingsomething',
                                                    free_capacity='12.1KiB',
@@ -145,19 +145,6 @@ class TestTasks(unittest.TestCase):
         @property
         def __dict__(self):
             return self.obj
-
-    def test_check_storages_dedupe(self):
-        """
-        test that check_storages bails out if another running instance is detected
-        :return:
-        """
-        mockceleryapp = self.MockCeleryApp(2)
-
-        with patch('gnmvidispine.vs_storage.VSStoragePathMap', return_value={}) as mock_path_map:
-            from gnmpagerduty.tasks import check_storage
-
-            self.assertRaises(RuntimeError, check_storage, celery_app=mockceleryapp)
-            mock_path_map.assert_not_called()
 
     def test_check_storages_above(self):
         """

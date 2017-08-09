@@ -159,6 +159,7 @@ def displayDateInfo(value):
     else:
         return "n/a"
 
+
 def make_vidispine_request(agent,method,urlpath,body,headers,content_type='application/xml'):
     import base64
     from django.conf import settings
@@ -171,11 +172,11 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
     if not re.match(r'^/',urlpath):
         urlpath = '/' + urlpath
 
-    #url = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
-    url = "http://dc1-mmmw-05.dc1.gnm.int:8080{0}".format(urlpath)
+    url = "{0}:{1}{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,urlpath)
     logging.debug("URL is %s" % url)
     (headers,content) = agent.request(url,method=method,body=body,headers=headers)
     return (headers,content)
+
 
 def getFileInfo(fileid,agent=None):
     import json
@@ -193,6 +194,7 @@ def getFileInfo(fileid,agent=None):
 
     return json.loads(content)
 
+
 def getStorageInfo(fileid,agent=None):
     import json
     if agent is None:
@@ -209,11 +211,13 @@ def getStorageInfo(fileid,agent=None):
 
     return json.loads(content)
 
+
 def findDataKey(content,keyname):
     for subkey_dict in content['metadata']['field']:
         if subkey_dict['key']==keyname:
             return subkey_dict['value']
     return ""
+
 
 @register.filter("filepathmap")
 def filePathMap(value):

@@ -1,0 +1,60 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress staticfiles %}
+{% block title %}{% trans 'Grid Integration Enable & Disable' %}{% endblock %}
+{% block heading %}{% trans 'Grid Integration Enable & Disable' %}{% endblock %}
+
+{% block extra_script %}
+<script src="{% static 'portal.plugins.gnmgridintegration/grid_profile_admin.js' %}"></script>
+<script src="{% static 'portal.plugins.gnmgridintegration/grid_meta_admin.js' %}"></script>
+<link rel="stylesheet" href="{% static 'portal.plugins.gnmgridintegration/grid_admin.css' %}">
+<script>
+function test_go_clicked(itemid)
+{
+    console.log("Testing enable/disable for item ID " + itemid);
+
+    $('.result_container').remove();
+    $('#testresult_loading').show();
+    $.getJSON('test/' + itemid, function(data){
+        var containerDiv = $('<div>', {'class': 'result_container'});
+
+        if(data['result']){
+            containerDiv.append($('<p>', {'class': 'text_result_matched'}).text('Upload to Grid would be triggered'));
+            containerDiv.append($('<p>', {'class': 'text_subresult'}).text('Rule "' + data['because']['desc'] + '" matched.'));
+        } else {
+            containerDiv.append($('<p>', {'class': 'text_result_unmatched'}).text('Upload to Grid would NOT be triggered'));
+        }
+        $('#testresults').append(containerDiv);
+    }).fail(function(jqXHR,status,detail){
+        var errorText = $('<p>', {'class': 'error', 'id': 'testitem_error_message'});
+        errorText.html('Unable to load item information: ' + errorDetail);
+        $('#testresult').append(errorText);
+    }).always(function(){
+        $('#testresult_loading').hide();
+    });
+}
+</script>
+{% endblock %}
+{% block content %}
+<span><a href='{% url gnmgridintegration_new_profile %}'>New...</a></span>
+<table>
+    <tr>
+        <td>Vidispine Field Name</td>
+        <td>Matching Pattern</td>
+        <td>Enabled</td>
+    </tr>
+    {% for entry in object_list %}
+    <tr>
+        <td><strong>{{ entry.vs_field }}</strong></td>
+        <td>{{ entry.field_value_regex }}</td>
+        <td>{{ entry.active }}</td>
+        <td><a href='{% url gnmgridintegration_edit_profile pk=entry.pk %}'><img src='{% static "img/icon-metadata-editor.png" %}' style="width: 16px"></a></td>
+        <td><a href='{% url gnmgridintegration_delete_profile pk=entry.pk %}'><img src='{% static "delete.png" %}' style="width: 16px"></a></td>
+    </tr>
+    {% endfor %}
+</table>
+{% if object_list|length == 0 %}
+<p style="text-align: center; font-size: 1.2em"><strong>No profiles currently present</strong></p>
+{% endif %}
+
+{% include 'portal.plugins.gnmgridintegration/itemtest.html' %}
+{% endblock %}

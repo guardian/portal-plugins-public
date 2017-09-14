@@ -1,0 +1,7 @@
+- model: gnmatomresponder.importjob
+  pk: 1
+  fields:
+    job_id: VX-22
+    item_id: VX-1
+    status: STARTED
+    started_at: 2017-09-14T13:21:02Z

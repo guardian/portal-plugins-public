@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash -e
 
 function increment_release {
     FILENAME=$1
@@ -17,7 +17,7 @@ function increment_release {
 
 function build_rpm {
     BASENAME=$1
-    SPECFILE="$1.spec"
+    SPECFILE="../../$1.spec"
     if [ ! -f ${SPECFILE} ]; then
         echo "No spec file for ${BASENAME} so can't build"
         return 0    #don't bork things if it failed
@@ -67,19 +67,12 @@ else
     SHASUM=`which sha256sum`
 fi
 
+cd portal/plugins
+
 if [ "$1" == "" ]; then
-	for dir in `find . -iname gnm\* -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do
+	for dir in `find . -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do
 	    build_rpm $dir
 	done
 else
 	build_rpm $1
 fi
-
-#echo ----------------------------
-#echo Build completed.  Uploading to S3....
-#echo ----------------------------
-#echo
-#
-#for x in `ls *.rpm`; do
-#	aws s3 cp "$x" s3://gnm-multimedia-archivedtech/gnm_portal_plugins/$x --acl public-read
-#done

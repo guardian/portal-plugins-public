@@ -1,0 +1,10 @@
+{% load i18n staticfiles %}
+<li>
+    <!--<span class="iicon" style="background-image: url('{% static 'purgemeister/target_icon.png' %}');"></span>-->
+    <img src="{% static 'portal.plugins.gnmgridintegration/grid_icon.png' %}" class="iicon">
+    <a href="{% url gnmgridintegration:gnmgridintegration_admin_meta %}">GNM Grid</a>
+    <ul>
+        <li style="padding-left:2em;"><img src="{% static 'portal.plugins.gnmgridintegration/grid_icon.png' %}" class="iicon"><a href="{% url gnmgridintegration:gnmgridintegration_admin_meta %}">Metadata Configuration</a></li>
+        <li style="padding-left:2em;"><img src="{% static 'portal.plugins.gnmgridintegration/grid_icon.png' %}" class="iicon"><a href="{% url gnmgridintegration:gnmgridintegration_admin_enable %}">Enable &amp; Disable</a></li>
+    </ul>
+</li>

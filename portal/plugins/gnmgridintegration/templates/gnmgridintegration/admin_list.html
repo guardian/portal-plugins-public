@@ -1,0 +1,74 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress staticfiles %}
+{% block title %}{% trans 'Grid Integration metadata configuration' %}{% endblock %}
+{% block heading %}{% trans 'Grid Integration metadata configuration' %}{% endblock %}
+
+{% block extra_script %}
+<script src="{% static 'portal.plugins.gnmgridintegration/grid_meta_admin.js' %}"></script>
+<link rel="stylesheet" href="{% static 'portal.plugins.gnmgridintegration/grid_admin.css' %}">
+<script>
+function test_go_clicked(itemid)
+{
+    console.log("Testing Grid output for item ID " + itemid);
+
+    $('.result_container').remove();
+    $('#result_error_message').remove();
+    $('#testresult_loading').show();
+
+    $.getJSON('test/' + itemid, function(data){
+        console.log(data);
+        var containerDiv = $('<div>', {'class': 'result_container'});
+
+        $.each(['item_meta','rights_meta'], function(idx,ptr){
+            var container = $('<div>', {'id': ptr + '_container', 'class': 'result_data_panel'});
+            container.append($('<span>', {'class': 'result_subheader'}).html(ptr));
+            var dataTable = $('<table>', {'class': 'result_table'});
+            $.each(data[ptr], function(idx, ent){
+                var row = $('<tr>');
+                row.append($('<td>', {'class': 'data_field_name'}).html(idx));
+                row.append($('<td>', {'class': 'data_field_content'}).html(ent));
+                dataTable.append(row);
+            });
+            container.append(dataTable);
+            containerDiv.append(container);
+        })
+
+        $('#testresult_loading').hide();
+        $('#testresults').append(containerDiv);
+    }).fail(function(jqXHR, textStatus,errorDetail){
+        $('#testresult_loading').hide();
+        var errorText = $('<p>', {'class': 'error', 'id': 'testitem_error_message'});
+        errorText.html('Unable to load item information: ' + errorDetail);
+        $('#testresult').append(errorText);
+    }).always(function(jqXHR){
+        $('#testresult_loading').hide();
+    });
+}
+</script>
+{% endblock %}
+{% block content %}
+<span><a href='{% url gnmgridintegration_new_meta %}'>New...</a></span>
+<table>
+    <tr>
+        <td>Grid field name</td>
+        <td>Format string</td>
+        <td>Vidispine field ID</td>
+        <td>Metadata Type</td>
+    </tr>
+    {% for entry in object_list %}
+    <tr>
+        <td><strong>{{ entry.grid_field_name }}</strong></td>
+        <td>{{ entry.format_string }}</td>
+        <td>{{ entry.vs_field }}</td>
+        <td>{{ entry.type }}</td>
+        <td><a href='{% url gnmgridintegration_edit_meta pk=entry.pk %}'><img src='{% static "img/icon-metadata-editor.png" %}' style="width: 16px"></a></td>
+        <td><a href='{% url gnmgridintegration_delete_meta pk=entry.pk %}'><img src='{% static "delete.png" %}' style="width: 16px"></a></td>
+    </tr>
+    {% endfor %}
+</table>
+{% if object_list|length == 0 %}
+<p style="text-align: center; font-size: 1.2em"><strong>No metadata fields currently present</strong></p>
+{% endif %}
+
+{% include 'portal.plugins.gnmgridintegration/itemtest.html' %}
+{% endblock %}

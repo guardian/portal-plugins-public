@@ -1,0 +1,33 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress static %}
+{% block title %}{% trans 'Multimedia Publication Dashboard Settings' %}{% endblock %}
+{% block heading %}{% trans 'Multimedia Publication Dashboard Settings' %}{% endblock %}
+
+{% block content %}
+<form method="post" action="">
+    {% csrf_token %}
+    <ul>
+    {{ form.as_ul }}
+    </ul>
+    <input type="submit" value="Submit" />
+</form>
+
+<!--
+<div id="field_selector_dialog" title="Select Field">
+    <div style="padding-bottom: 1em;">
+        <select id="field_group_selector" onchange="field_group_selector_changed();"></select>
+        <select id="field_name_selector" onchange="field_name_selector_changed();"></select>
+        <img id="thrb_field_selector" src='{% static "img/icon-ajax-loader.gif" %}'>
+    </div>
+    <div>
+        <span id="field_value_input"></span>
+    </div>
+</div>
+-->
+{% endblock %}
+
+{% block inlinejs %}
+<!--
+<script src="{% static 'portal.plugins.gnmsyndication/field_selector.js' %}"></script>
+-->
+{% endblock %}

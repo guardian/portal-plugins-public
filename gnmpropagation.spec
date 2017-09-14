@@ -1,7 +1,7 @@
 %define name portal-pluto-gnmpropgagation
 %define version 2.1
 %define unmangled_version 2.1
-%define release 5
+%define release 6
 
 Summary: Pluto flag propagator plugin
 Name: %{name}

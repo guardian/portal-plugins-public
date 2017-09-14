@@ -1,0 +1,13 @@
+{% load i18n staticfiles %}
+<script language="JavaScript" src="{% static 'portal.plugins.gnmplutoconverter/portal.plugins.gnmplutoconverter.js' %}"></script>
+
+
+<li>
+    {% if gnm_type != "Master" %}
+        {% if mediaType == 'video' or mediaType == 'audio' %}
+            <a href="#" onclick="gnmplutoconverter_convert_master('{{ itemid }}');">Convert to Pluto master</a>
+        {% else %}
+            <p>{{ mediaType }} can't be a master</p>
+        {% endif %}
+    {% endif %}
+</li>

@@ -1,0 +1,1 @@
+response_data = {"enabled":True,"projectId":"VX-616","s3Key":"uploads/8a0e85a8-cdd1-4b3c-953c-7db6f4e90bbf--c612aecc-8afd-4927-9a16-632f2dfa9fbf/complete","assetVersion":-1,"atomId":"8a0e85a8-cdd1-4b3c-953c-7db6f4e90bbf"}

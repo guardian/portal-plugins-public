@@ -1,4 +1,4 @@
-from kinesis_responder import KinesisResponder
+from portal.plugins.kinesisresponder.kinesis_responder import KinesisResponder
 import json
 from pprint import pprint
 from urlparse import urlparse

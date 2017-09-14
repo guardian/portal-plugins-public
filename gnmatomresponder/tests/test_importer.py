@@ -1,10 +1,11 @@
-import unittest2
-from mock import MagicMock, patch
-import os.path
-from boto import kinesis
 import datetime
 import logging
+import os.path
+
+import unittest2
+from boto import kinesis
 from django.core.management import execute_manager
+from mock import patch
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -20,7 +21,7 @@ execute_manager(django_test_settings,['manage.py','migrate'])
 
 class TestImporter(unittest2.TestCase):
     def test_make_pluto_holding_image(self):
-        from gnmkinesisresponder.master_importer import MasterImportResponder
+        from gnmatomresponder.master_importer import MasterImportResponder
         import json
 
         conn = kinesis.connect_to_region('eu-west-1')
@@ -34,7 +35,7 @@ class TestImporter(unittest2.TestCase):
                                   'filename_16x9': "image.jpg"})
 
     def test_process(self):
-        from gnmkinesisresponder.master_importer import MasterImportResponder
+        from gnmatomresponder.master_importer import MasterImportResponder
 
         testdatapath = os.path.realpath(os.path.dirname(__file__)) + "/data/atom_response.json"
         conn = kinesis.connect_to_region('eu-west-1')

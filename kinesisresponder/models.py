@@ -8,6 +8,7 @@ class KinesisTracker(Model):
     ST_DONE=3
     ST_ERROR=4
 
+    stream_name = CharField(max_length=255,db_index=True)
     shard_id = CharField(max_length=255)
     sequence_number = CharField(max_length=255)
     status = IntegerField(default=ST_NONE)

@@ -1,8 +1,8 @@
 import os
 BASE_DIR = "/tmp"
 SECRET_KEY = 'v7j%&)-4$(p&tn1izbm0&#owgxu@w#%!*xn&f^^)+o98jxprbe'
-INSTALLED_APPS = ['gnmkinesisresponder','south']
-ROOT_URLCONF = 'gnmkinesisresponder.urls'
+INSTALLED_APPS = ['kinesisresponder', 'south']
+ROOT_URLCONF = 'kinesisresponder.urls'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

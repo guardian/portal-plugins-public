@@ -37,7 +37,7 @@ class KinesisResponder(Thread):
         :return: String of the sequence number or None of nothing was found
         """
         try:
-            record = KinesisTracker.objects.filter(shard_id=self.shard_id).order_by('-created')[0]
+            record = KinesisTracker.objects.filter(stream_name=self.stream_name, shard_id=self.shard_id).order_by('-created')[0]
             return record.sequence_number
 
         except IndexError:
@@ -100,6 +100,7 @@ class KinesisResponder(Thread):
             pprint(record)
             for rec in record['Records']:
                 dbrec = KinesisTracker()
+                dbrec.stream_name = self.stream_name
                 dbrec.shard_id = self.shard_id
                 dbrec.created = datetime.now()
                 dbrec.updated = datetime.now()

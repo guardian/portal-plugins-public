@@ -1,14 +1,13 @@
-import unittest2
-from mock import MagicMock, patch
 import os.path
-import logging
+
+import unittest2
 
 
 class TestAtomMessage(unittest2.TestCase):
     TEST_DATA_FILE = os.path.abspath(os.path.join(os.path.dirname(__file__), "data/atom_response.json"))
 
     def test_parse_and_get(self):
-        from gnmkinesisresponder.atom_message import AtomMessage
+        from gnmatomresponder.atom_message import AtomMessage
         with open(self.TEST_DATA_FILE) as f:
             a = AtomMessage(f.read())
 
@@ -19,7 +18,7 @@ class TestAtomMessage(unittest2.TestCase):
             v = a.somethinginvalid
 
     def test_poster_images(self):
-        from gnmkinesisresponder.atom_message import AtomMessage
+        from gnmatomresponder.atom_message import AtomMessage
         with open(self.TEST_DATA_FILE) as f:
             a = AtomMessage(f.read())
 
@@ -31,7 +30,7 @@ class TestAtomMessage(unittest2.TestCase):
         self.assertEqual(image_list[0].size,186874)
 
     def test_biggest_poster_image(self):
-        from gnmkinesisresponder.atom_message import AtomMessage
+        from gnmatomresponder.atom_message import AtomMessage
         with open(self.TEST_DATA_FILE) as f:
             a = AtomMessage(f.read())
 
@@ -40,7 +39,7 @@ class TestAtomMessage(unittest2.TestCase):
         self.assertEqual(imageinfo.size,980993)
 
     def test_assets(self):
-        from gnmkinesisresponder.atom_message import AtomMessage
+        from gnmatomresponder.atom_message import AtomMessage
         with open(self.TEST_DATA_FILE) as f:
             a = AtomMessage(f.read())
 
@@ -53,7 +52,7 @@ class TestAtomMessage(unittest2.TestCase):
         self.assertEqual(assetinfo[0].platform,"Youtube")
 
     def test_latest_asset(self):
-        from gnmkinesisresponder.atom_message import AtomMessage
+        from gnmatomresponder.atom_message import AtomMessage
         with open(self.TEST_DATA_FILE) as f:
             a = AtomMessage(f.read())
 
@@ -65,7 +64,7 @@ class TestAtomMessage(unittest2.TestCase):
         self.assertEqual(assetinfo.platform,"Youtube")
 
     def test_json_error(self):
-        from gnmkinesisresponder.atom_message import AtomMessage
+        from gnmatomresponder.atom_message import AtomMessage
         import re
         with open(self.TEST_DATA_FILE) as f:
             originalcontent = f.read()

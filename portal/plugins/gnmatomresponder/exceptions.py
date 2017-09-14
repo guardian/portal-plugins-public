@@ -1,0 +1,2 @@
+class NotAProjectError(StandardError):
+    pass

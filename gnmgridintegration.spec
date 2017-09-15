@@ -1,7 +1,7 @@
 %define name portal-gnmgridintegration
 %define version 1.0
 %define unmangled_version 1.0
-%define release 11
+%define release 15
 
 Summary: Integration to allow image snapshots to be directly sent to The Grid
 Name: %{name}

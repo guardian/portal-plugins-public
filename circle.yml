@@ -8,6 +8,8 @@ machine:
     - sudo apt-get -y install rpm libsasl2-dev libldap2-dev libssl-dev
     - sudo mkdir -p /opt/cantemo/portal/portal/plugins
     - sudo chown ubuntu /opt/cantemo/portal/portal/plugins
+  environment:
+    PYTHONPATH: ${PYTHONPATH}:deps/gnmvidispine
 
 dependencies:
   override:
@@ -21,13 +23,16 @@ checkout:
   post:
     - git submodule sync
     - git submodule update --init
-    - for dir in `find . -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do echo Symlinking ${dir} to build locations; ln -s ${PWD}/$dir /opt/cantemo/portal/portal/plugins;done
-    - for dir in `find . -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do echo Trying to run "${PWD}/$dir/testsetup.sh"; if [ -x "${PWD}/$dir/testsetup.sh" ]; then ${PWD}/$dir/testsetup.sh; fi; done
+    - for dir in `find portal/plugins  -maxdepth 1 -mindepth 1 -type d | grep -v -E '^\.'`; do echo Symlinking ${dir} to build locations; ln -s ${PWD}/$dir /opt/cantemo/portal/portal/plugins;done
+    - for dir in `find portal/plugins  -maxdepth 1 -mindepth 1 -type d | grep -v -E '^\.'`; do echo Trying to run "${PWD}/$dir/testsetup.sh"; if [ -x "${PWD}/$dir/testsetup.sh" ]; then ${PWD}/$dir/testsetup.sh; fi; done
+    - touch portal/__init__.py
+    - touch portal/plugins/__init__.py
 
 test:
   override:
-    - declare -x PYTHONPATH=$PYTHONPATH:deps/gnmvidispine; nosetests -v gnmpagerduty/tests
+    - nosetests -v gnmpagerduty/tests
     - declare -x DJANGO_SETTINGS_MODULE=gnmlibrarytool.tests.django_test_settings; nosetests -v gnmlibrarytool/tests
+    - DJANGO_SETTINGS_MODULE=portal.plugins.gnmatomresponder.tests.django_test_settings nosetests -v portal/plugins/gnmatomresponder/tests
     - npm run test
     - npm run lint
     - npm run testcss
@@ -50,3 +55,10 @@ deployment:
       - cp -a static/knockout-3.3.0.js ${HOME}/rpmbuild/BUILD/static
       - rpmbuild -bb portal-knockout.spec
       - ./upload_with_hash.sh ${HOME}/rpmbuild/RPMS/noarch/portal-knockout-3.3.0-1.noarch.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins/static/portal-knockout-3.3.0-1.noarch.rpm
+      #these are needed for testing, but supplied by the real system when deployed. if we include them in the build
+      #then it will break portal when installed!
+      - rm -f portal/__init__.py; rm -f portal/plugins/__init__.py
+      - sudo mkdir -p /opt/cantemo/portal/portal/plugins; sudo chown -R ubuntu /opt/cantemo
+      - chmod a+x buildrpms.sh
+      - ./buildrpms.sh
+      - for x in `ls ${HOME}/rpmbuild/RPMS/noarch/*.rpm`; do aws s3 cp "$x" s3://gnm-multimedia-deployables/gnm_portal_plugins/${S3SUBDIR}/`basename $x` --acl public-read; done

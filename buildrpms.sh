@@ -17,7 +17,7 @@ function increment_release {
 
 function build_rpm {
     BASENAME=$1
-    SPECFILE="../../$1.spec"
+    SPECFILE="$1.spec"
     if [ ! -f ${SPECFILE} ]; then
         echo "No spec file for ${BASENAME} so can't build"
         return 0    #don't bork things if it failed
@@ -25,15 +25,16 @@ function build_rpm {
     increment_release ${SPECFILE}
     RPM_BASE=$(grep '%define name' ${SPECFILE} | awk -F ' ' '{print $3}')
 
-	if [ ! -d "${BASENAME}" ]; then
+	if [ ! -d "portal/plugins/${BASENAME}" ]; then
 		echo Plugin source dir ${BASENAME} does not exist, cannot continue
+		return 0 #don't bork things if it failed
 		#exit 2
 	fi
 
 	echo -----------------------------------------
 	echo Compressing ${BASENAME}....
 	echo -----------------------------------------
-    tar cv ${BASENAME} --exclude .idea | gzip > ${HOME}/rpmbuild/${BASENAME}.tar.gz
+    tar cv portal/plugins/${BASENAME} --exclude .idea | gzip > ${HOME}/rpmbuild/${BASENAME}.tar.gz
 
     echo -----------------------------------------
     echo Bundling ${BASENAME}....
@@ -52,6 +53,7 @@ function build_rpm {
         S3SUBDIR=/public_repo
     fi
 
+
     for x in `ls ${HOME}/rpmbuild/RPMS/noarch/${RPM_BASE}*.rpm`; do
         SHA=$(${SHASUM} $x | cut -f 1 -d ' ')
         echo SHA-256 checksum is ${SHA}
@@ -69,8 +71,12 @@ fi
 
 cd portal/plugins
 
+if [ ! -d "${HOME}/rpmbuild" ]; then
+    mkdir ${HOME}/rpmbuild
+fi
+
 if [ "$1" == "" ]; then
-	for dir in `find . -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do
+	for dir in `find portal/plugins -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $3 }' | grep -v -E '^\.'`; do
 	    build_rpm $dir
 	done
 else

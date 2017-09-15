@@ -1,7 +1,7 @@
 %define name portal-gnmlibrarytool
 %define version 2.0
 %define unmangled_version 2.0
-%define release 3
+%define release 5
 
 Summary: Plugin to provide deeper analysis of libraries configured in Vidispine
 Name: %{name}

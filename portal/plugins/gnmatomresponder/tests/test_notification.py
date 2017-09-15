@@ -6,7 +6,7 @@ from django.core.management import execute_from_command_line
 
 execute_from_command_line(['manage.py', 'syncdb', '--noinput'])
 execute_from_command_line(['manage.py', 'migrate', '--noinput'])
-
+execute_from_command_line(['manage.py', 'loaddata', 'fixtures/ImportJobs.yaml'])
 
 class TestNotification(django.test.TestCase):
     fixtures = [

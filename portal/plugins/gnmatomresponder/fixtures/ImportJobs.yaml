@@ -5,3 +5,35 @@
     item_id: VX-1
     status: STARTED
     started_at: 2017-09-14T13:21:02Z
+- model: gnmatomresponder.importjob
+  pk: 2
+  fields:
+    job_id: VX-43
+    item_id: VX-1
+    status: FAILED_TOTAL
+    started_at: 2017-01-14T13:21:02Z
+    completed_at: 2017-01-14T13:48:00Z
+- model: gnmatomresponder.importjob
+  pk: 3
+  fields:
+    job_id: VX-44
+    item_id: VX-1
+    status: FAILED_TOTAL
+    started_at: 2017-09-14T13:21:02Z
+    completed_at: 2017-09-14T13:48:00Z
+- model: gnmatomresponder.importjob
+  pk: 4
+  fields:
+    job_id: VX-45
+    item_id: VX-1
+    status: FINISHED
+    started_at: 2017-09-14T13:21:02Z
+    completed_at: 2017-09-14T13:48:00Z
+- model: gnmatomresponder.importjob
+  pk: 5
+  fields:
+    job_id: VX-46
+    item_id: VX-1
+    status: FINISHED
+    started_at: 2017-01-14T13:21:02Z
+    completed_at: 2017-01-14T13:48:00Z

@@ -25,9 +25,6 @@ class JobNotification(object):
     def __str__(self):
         return "{type} job for {filename} by {user}".format(type=self.type,filename=self.originalFilename,user=self.username)
 
-    def parsed_job_document(self):
-        return JobDocument(unescape(self.jobDocument))
-
     def file_paths(self):
         """
         returns a dictionary of relative file path/file ID pairs, from the filePathMap parameter
@@ -46,16 +43,3 @@ class JobNotification(object):
                 return None
 
         return dict(filter(lambda result: result is not None, map(lambda pair: split_pair(pair),pairs)))
-
-
-class JobDocument(object):
-    """
-    This class abstracts the Vidipsine job document to allow for easier reading
-    """
-    ns = "{http://xml.vidispine.com/schema/vidispine}"
-
-    def __init__(self, xmlstring):
-        self.parsedContent = ET.fromstring(xmlstring)
-
-    def dump(self):
-        print ET.tostring(self.parsedContent)

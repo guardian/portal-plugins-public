@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_EXPIRY_TIME=3600
 
+
 class MasterImportResponder(KinesisResponder):
     def get_s3_connection(self):
         """
@@ -59,7 +60,7 @@ class MasterImportResponder(KinesisResponder):
         item = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
         item.createPlaceholder({const.GNM_TYPE: 'Master',
                                 'title': title,
-                                const.GNM_MASTERS_WEBSITE_HEADLINE: title
+                                const.GNM_MASTERS_WEBSITE_HEADLINE: title,
                                 const.GNM_MASTERS_MEDIAATOM_ATOMID: atomid
                                 }, group='Asset')
         return item

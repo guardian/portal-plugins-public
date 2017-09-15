@@ -119,6 +119,7 @@ def safe_get(uri,retries=10,sleep_delay=10):
             raise RuntimeError("Unable to search vidispine notification ({0}): {1}".format(response.status_code, response.content))
         sleep(sleep_delay)
 
+
 ns = "{http://xml.vidispine.com/schema/vidispine}"
 
 
@@ -134,8 +135,6 @@ def check_notification_at(uri,retries=10,sleep_delay=10):
     encoded_response = response.content.encode('UTF-8')
     parser = lxml.etree.XMLParser(ns_clean=False, recover=True, encoding='UTF-8')
     notification_doc = lxml.etree.fromstring(encoded_response, parser=parser)
-
-    print lxml.etree.tostring(notification_doc)
 
     def find_value_for_key(xmlnode,key):
         n=0

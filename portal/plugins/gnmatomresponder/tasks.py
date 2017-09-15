@@ -4,6 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 @celery.task
 def cleanup_old_importjobs():
     from models import ImportJob

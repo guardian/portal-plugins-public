@@ -1,7 +1,7 @@
 %define name portal-pluto-gnmatomresponder
 %define version 1.0
 %define unmangled_version 1.0
-%define release 15
+%define release 20
 
 Summary: Integration to ingest media that has been sent to the media atom tool
 Name: %{name}
@@ -14,7 +14,7 @@ BuildRoot: %{_tmppath}/gnmatomresponder
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: Andy Gallagher <andy.gallagher@theguardian.com>
-Requires: Portal>=3.0.0 pluto>=3.0.0 portal-kinesisresponder>1.0 portal_gnm_vidispine>=1.0-2
+Requires: Portal >= 3.0.0 pluto >= 3.0 portal-kinesisresponder >= 1.0 gnmvidispine-portal >= 1.9
 
 %description
 Plugin for Pluto that allows creation of masters from media that was sent to the media atom tool
@@ -25,7 +25,8 @@ Plugin for Pluto that allows creation of masters from media that was sent to the
 
 %install
 mkdir -p $RPM_BUILD_ROOT/opt/cantemo/portal/portal/plugins/gnmatomresponder
-cp -a /opt/cantemo/portal/portal/plugins/gnmatomresponder/* $RPM_BUILD_ROOT/opt/cantemo/portal/portal/plugins/gnmatomresponder
+cd $RPM_BUILD_ROOT/opt/cantemo/portal
+tar xvzf %{_sourcedir}/gnmatomresponder.tar.gz
 
 %clean
 rm -rf $RPM_BUILD_ROOT

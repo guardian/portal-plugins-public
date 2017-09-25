@@ -3,7 +3,7 @@ machine:
   python:
     version: 2.7.12
   node:
-    version: 6.4.0
+    version: 6.4.0 
   pre:
     - sudo apt-get -y install rpm libsasl2-dev libldap2-dev libssl-dev
     - sudo mkdir -p /opt/cantemo/portal/portal/plugins
@@ -61,4 +61,4 @@ deployment:
       - sudo mkdir -p /opt/cantemo/portal/portal/plugins; sudo chown -R ubuntu /opt/cantemo
       - chmod a+x buildrpms.sh
       - ./buildrpms.sh
-      - for x in `ls ${HOME}/rpmbuild/RPMS/noarch/*.rpm`; do aws s3 cp "$x" s3://gnm-multimedia-deployables/gnm_portal_plugins/${S3SUBDIR}/`basename $x` --acl public-read; done
+      - for x in `ls ${HOME}/rpmbuild/RPMS/noarch/*.rpm`; do aws s3 cp "$x" s3://gnm-multimedia-deployables/gnm_portal_plugins/public_repo/${CIRCLE_BUILD_NUM}/`basename $x` --acl public-read; done

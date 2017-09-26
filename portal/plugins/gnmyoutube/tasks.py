@@ -5,7 +5,7 @@ from celery.schedules import crontab
 from celery.decorators import periodic_task, task
 from __init__ import RUN_AT_MINS_PAST, RUN_AT_HOUR
 
-logger = logging.getLogger("portal.plugins.portal.plugins.gnmyoutube")
+logger = logging.getLogger("portal.plugins.gnmyoutube")
 
 class VidispineError(StandardError):
     pass

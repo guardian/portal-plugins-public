@@ -28,7 +28,7 @@ class GnmZeitgeistUrl(Plugin):
     implements(IPluginURL)
 
     name = 'GNM tag cloud app URL'
-    urls = 'portal.plugins.portal.plugins.gnmzeitgeist.urls'
+    urls = 'portal.plugins.gnmzeitgeist.urls'
     urlpattern = r'^gnmtagcloud/'
     namespace = 'portal.plugins.gnmzeitgeist'
     plugin_guid = 'b598f7ae-d180-11e4-beea-60030890043a'

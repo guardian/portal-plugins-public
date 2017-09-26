@@ -11,14 +11,14 @@ from rest_framework import routers
 
 
 # This new app handles the request to the URL by responding with the view which is loaded 
-# from portal.plugins.portal.plugins.gnmlibrarytool.views.py. Inside that file is a class which responsedxs to the
+# from portal.plugins.gnmlibrarytool.views.py. Inside that file is a class which responsedxs to the
 # request, and sends in the arguments template - the html file to view.
 # name is shortcut name for the urls.
 
 router = routers.DefaultRouter()
 router.register(r'librarynicks',NicknameQueryViewset)
 
-urlpatterns = patterns('portal.plugins.portal.plugins.gnmlibrarytool.views',
+urlpatterns = patterns('portal.plugins.gnmlibrarytool.views',
     url(r'^$', login_required(MainAppView.as_view()), name='index'),
     url(r'^(?P<lib>\w{2}[\-\*]\d+)$', login_required(MainAppView.as_view()), name='libtool_editor'),
     url(r'^endpoint/new$', login_required(CreateLibraryView.as_view()), name='libtool_new'),

@@ -59,22 +59,8 @@ function load_storage_rule_info(itemid) {
                         $('<p>').append($(' <button type="submit" name="delete" value="' + ptr.name + '">Remove Rule</button>')).appendTo(rules_cell);
                     }
                 });
-=======
-            $.each(ptr['rules'], function(idx,ptr){
-                var rule_container=$('<p>').appendTo(rules_cell);
-                var excludestr = ptr['not_storages'].join() + "," + ptr['not_groups'].join();
-                var includestr = ptr['storages'].join() + "," + ptr['groups'].join();
-
-                if(ptr['not_storages'].length==0 && ptr['not_groups'].length==0) excludestr = "(none)";
-                if(ptr['storages'].length==0 && ptr['groups'].length==0) includestr = "(none)";
-
-                rule_container.html("Minimum copies: " + ptr['storage_count'] +
-                                    ".  Include: " +  includestr +
-                                    "; Exclude: " + excludestr
-                                    )
-                $('<p>').append($('<a>',{'href': '/portal.plugins.gnmlibrarytool/' + ptr['applies_to'][1]}).html('Applied from ' + ptr['applies_to'][0] + ' ' + ptr['applies_to'][1])).appendTo(rules_cell);
->>>>>>> 58a37b5... moving paths to make on-machine development easier, skeleton of import handling, set up async loop with vidispine to get job status:portal/plugins/gnmlibrarytool/static/gnmlibrarytool/js/storagerulepanel.js
             });
+
             if (data.length === 0) {
                 /*if there are no shapes, we can't change 'em!*/
                 $('#rulexml_selector').hide();

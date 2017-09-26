@@ -18,9 +18,9 @@ class GnmyoutubePluginURL(Plugin):
 
     def __init__(self):
         self.name = "Gnmyoutube App"
-        self.urls = 'portal.plugins.portal.plugins.gnmyoutube.urls'
-        self.urlpattern = r'^portal.plugins.gnmyoutube/'
-        self.namespace = r'portal.plugins.gnmyoutube'
+        self.urls = 'portal.plugins.gnmyoutube.urls'
+        self.urlpattern = r'^gnmyoutube/'
+        self.namespace = r'gnmyoutube'
         self.plugin_guid = '5e8deba5-884d-41ea-9e4e-aa4386b3884d'
         log.debug("Initiated Gnmyoutube App")
 
@@ -40,7 +40,7 @@ class GnmyoutubeAdminNavigationPlugin(Plugin):
     # Returns the template file navigation.html
     # Change navigation.html to the string that you want to use
     def return_string(self, tagname, *args):
-        return {'guid': self.plugin_guid, 'template': 'portal.plugins.gnmyoutube/navigation.html'}
+        return {'guid': self.plugin_guid, 'template': 'gnmyoutube/navigation.html'}
 
 navplug = GnmyoutubeAdminNavigationPlugin()
 
@@ -54,7 +54,7 @@ class GnmyoutubeAdminPlugin(Plugin):
 
     def return_string(self,tagname,*args):
         #raise StandardError("testing")
-        return {'guid': self.plugin_guid, 'template': 'portal.plugins.gnmyoutube/navigation.html'}
+        return {'guid': self.plugin_guid, 'template': 'gnmyoutube/navigation.html'}
 
 adminplug = GnmyoutubeAdminPlugin()
 

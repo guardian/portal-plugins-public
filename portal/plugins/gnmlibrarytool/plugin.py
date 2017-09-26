@@ -18,9 +18,9 @@ class GnmlibrarytoolPluginURL(Plugin):
 
     def __init__(self):
         self.name = "Gnmlibrarytool App"
-        self.urls = 'portal.plugins.portal.plugins.gnmlibrarytool.urls'
-        self.urlpattern = r'^portal.plugins.gnmlibrarytool/'
-        self.namespace = r'portal.plugins.gnmlibrarytool'
+        self.urls = 'portal.plugins.gnmlibrarytool.urls'
+        self.urlpattern = r'^gnmlibrarytool/'
+        self.namespace = r'gnmlibrarytool'
         self.plugin_guid = 'b430f578-edc5-4508-bd0d-2bd7493d2994'
         log.debug("Initiated Gnmlibrarytool App")
 
@@ -40,7 +40,7 @@ class GnmlibrarytoolAdminNavigationPlugin(Plugin):
     # Returns the template file navigation.html
     # Change navigation.html to the string that you want to use
     def return_string(self, tagname, *args):
-        return {'guid': self.plugin_guid, 'template': 'portal.plugins.gnmlibrarytool/navigation.html'}
+        return {'guid': self.plugin_guid, 'template': 'gnmlibrarytool/navigation.html'}
 
 navplug = GnmlibrarytoolAdminNavigationPlugin()
 
@@ -79,7 +79,7 @@ class GnmlibrarytoolItemViewPlugin(Plugin):
         context = args[1]
         item = context['item']
         iid = item.getId()
-        return {'guid': self.plugin_guid, 'template': 'portal.plugins.gnmlibrarytool/mediaviewmenuitem.html', 'context': {'item_id': iid}}
+        return {'guid': self.plugin_guid, 'template': 'gnmlibrarytool/mediaviewmenuitem.html', 'context': {'item_id': iid}}
 
 gnmlibrarytoolitemviewplugin = GnmlibrarytoolItemViewPlugin()
 

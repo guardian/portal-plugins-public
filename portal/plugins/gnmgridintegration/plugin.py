@@ -19,9 +19,9 @@ class GnmgridintegrationPluginURL(Plugin):
 
     def __init__(self):
         self.name = "Gnmgridintegration App"
-        self.urls = 'portal.plugins.portal.plugins.gnmgridintegration.urls'
-        self.urlpattern = r'^portal.plugins.gnmgridintegration/'
-        self.namespace = r'portal.plugins.gnmgridintegration'
+        self.urls = 'portal.plugins.gnmgridintegration.urls'
+        self.urlpattern = r'^gnmgridintegration/'
+        self.namespace = r'gnmgridintegration'
         self.plugin_guid = '435bd5e0-17e5-41db-9cd9-8e26917a0dc2'
         log.debug("Initiated Gnmgridintegration App")
 
@@ -41,7 +41,7 @@ class GnmgridintegrationAdminNavigationPlugin(Plugin):
     # Returns the template file navigation.html
     # Change navigation.html to the string that you want to use
     def return_string(self, tagname, *args):
-        return {'guid': self.plugin_guid, 'template': 'portal.plugins.gnmgridintegration/menu_nav.html'}
+        return {'guid': self.plugin_guid, 'template': 'gnmgridintegration/menu_nav.html'}
 
 navplug = GnmgridintegrationAdminNavigationPlugin()
 
@@ -94,6 +94,6 @@ class GnmgridintegrationAdminPlugin(Plugin):
 
     def return_string(self,tagname,*args):
         #raise StandardError("testing")
-        return {'guid': self.plugin_guid, 'template': 'portal.plugins.gnmgridintegration/navigation.html'}
+        return {'guid': self.plugin_guid, 'template': 'gnmgridintegration/navigation.html'}
 
 adminplug = GnmgridintegrationAdminPlugin()

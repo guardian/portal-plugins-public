@@ -8,7 +8,7 @@ from django.conf import settings
 import re
 from models import platform
 
-logger = logging.getLogger("portal.plugins.portal.plugins.gnmsyndication")
+logger = logging.getLogger("portal.plugins.gnmsyndication")
 
 
 def date_fields():

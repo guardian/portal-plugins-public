@@ -3,6 +3,6 @@ import views
 #from django.views.generic.simple import redirect_to
 
 urlpatterns = patterns(
-    'portal.plugins.portal.plugins.gnmpropagation.views',
+    'portal.plugins.gnmpropagation.views',
     url(r'^p/$', views.p, name="request"),
 )

@@ -138,7 +138,7 @@ class AveragesRESTView(DataMixin, APIView):
 
 class BasicDataView(DataMixin, ListView):
     model = OutputTimings
-    template_name = "portal.plugins.gnmuploadprofiler/simple_data.html"
+    template_name = "gnmuploadprofiler/simple_data.html"
 
     def get_queryset(self):
         qs = super(BasicDataView, self).get_queryset()

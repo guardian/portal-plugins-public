@@ -9,12 +9,12 @@ from views import ProfileCreateView, ProfileDeleteView, ProfileEditView, Profile
 from django.views.generic.base import RedirectView
 from django.core.urlresolvers import reverse_lazy
 # This new app handles the request to the URL by responding with the view which is loaded 
-# from portal.plugins.portal.plugins.gnmgridintegration.views.py. Inside that file is a class which responsedxs to the
+# from portal.plugins.gnmgridintegration.views.py. Inside that file is a class which responsedxs to the
 # request, and sends in the arguments template - the html file to view.
 # name is shortcut name for the urls.
 
-urlpatterns = patterns('portal.plugins.portal.plugins.gnmgridintegration.views',
-    url(r'^$', 'GenericAppView', kwargs={'template': 'portal.plugins.gnmgridintegration/index.html'}, name='index'),
+urlpatterns = patterns('portal.plugins.gnmgridintegration.views',
+    url(r'^$', 'GenericAppView', kwargs={'template': 'gnmgridintegration/index.html'}, name='index'),
     url(r'^callback/jobnotification$',VSCallbackView.as_view(), name='gridintegration_callback_url'),
 
     url(r'^admin/metadata/(?P<pk>\d+)/edit$', MDEditView.as_view(), name='gnmgridintegration_edit_meta'),

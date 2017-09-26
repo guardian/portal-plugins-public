@@ -4,7 +4,7 @@ from optparse import make_option
 from portal.plugins.gnmgridintegration.management.management_mixin import ManagementMixin
 import logging
 
-logger = logging.getLogger('portal.plugins.portal.plugins.gnmgridintegration.installer')
+logger = logging.getLogger('portal.plugins.gnmgridintegration.installer')
 
 class Command(ManagementMixin, BaseCommand):
     help = 'Installs the Grid integrator plugin'

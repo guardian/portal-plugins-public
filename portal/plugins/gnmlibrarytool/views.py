@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class DiagramMainView(TemplateView):
-    template_name = 'portal.plugins.gnmlibrarytool/diagram.html'
+    template_name = 'gnmlibrarytool/diagram.html'
 
 
 class RuleDiagramDataView(VSMixin, APIView):
@@ -166,7 +166,7 @@ class NicknameQueryViewset(viewsets.ReadOnlyModelViewSet):
 
 class MainAppView(TemplateView):
     from .forms import ShowSearchForm
-    template_name = "portal.plugins.gnmlibrarytool/index.html"
+    template_name = "gnmlibrarytool/index.html"
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data(request.GET, **kwargs)

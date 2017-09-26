@@ -16,7 +16,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 
 class YoutubeIndexView(View):
     def get(self,request):
-        return render(request,'portal.plugins.gnmyoutube/index.html')
+        return render(request,'gnmyoutube/index.html')
 
 
 #This view displays the main admin configuration form
@@ -38,7 +38,7 @@ class YoutubeAdminView(View):
             pass
 
         f = SettingsForm(initial={'clientID': clientID, 'privateKey': privateKey, 'fieldID': fieldID})
-        return render(request,'portal.plugins.gnmyoutube/admin/adminmain.html',{'settingsform': f})
+        return render(request,'gnmyoutube/admin/adminmain.html',{'settingsform': f})
 
     def post(self,request):
         from pprint import pprint
@@ -69,10 +69,10 @@ class YoutubeAdminView(View):
                 obj.save()
 
 
-            return render(request,'portal.plugins.gnmyoutube/admin/savedsettings.html')
+            return render(request,'gnmyoutube/admin/savedsettings.html')
         else:
             #this automatically includes error information associated with the relevant fields
-            return render(request,'portal.plugins.gnmyoutube/admin/adminmain.html',{'settingsform': f})
+            return render(request,'gnmyoutube/admin/adminmain.html',{'settingsform': f})
 
 #POST to this view to make a test call, to list categories
 class YoutubeTestConnectionView(APIView):

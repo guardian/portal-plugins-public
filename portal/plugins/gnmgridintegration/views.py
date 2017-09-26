@@ -67,7 +67,7 @@ class ConfigListView(ListView):
     def dispatch(self, request, *args, **kwargs):
         return super(ConfigListView,self).dispatch(request,*args,**kwargs)
     model = GridMetadataFields
-    template_name = "portal.plugins.gnmgridintegration/admin_list.html"
+    template_name = "gnmgridintegration/admin_list.html"
 
 
 class MDEditView(UpdateView):
@@ -75,7 +75,7 @@ class MDEditView(UpdateView):
     def dispatch(self, request, *args, **kwargs):
         return super(MDEditView,self).dispatch(request,*args,**kwargs)
     model = GridMetadataFields
-    template_name = "portal.plugins.gnmgridintegration/meta_edit.html"
+    template_name = "gnmgridintegration/meta_edit.html"
     success_url = reverse_lazy('gnmgridintegration_admin_meta')
 
 
@@ -84,7 +84,7 @@ class MDDeleteView(DeleteView):
     def dispatch(self, request, *args, **kwargs):
         return super(MDDeleteView,self).dispatch(request,*args,**kwargs)
     model = GridMetadataFields
-    template_name = "portal.plugins.gnmgridintegration/meta_delete.html"
+    template_name = "gnmgridintegration/meta_delete.html"
     success_url = reverse_lazy('gnmgridintegration_admin_meta')
 
 
@@ -93,7 +93,7 @@ class MDCreateView(CreateView):
     def dispatch(self, request, *args, **kwargs):
         return super(MDCreateView,self).dispatch(request,*args,**kwargs)
     model = GridMetadataFields
-    template_name = "portal.plugins.gnmgridintegration/meta_edit.html"
+    template_name = "gnmgridintegration/meta_edit.html"
     success_url = reverse_lazy('gnmgridintegration_admin_meta')
 
 
@@ -181,7 +181,7 @@ class ProfileListView(ListView):
     def dispatch(self, request, *args, **kwargs):
         return super(ProfileListView,self).dispatch(request,*args,**kwargs)
     model = GridCapturePreset
-    template_name = "portal.plugins.gnmgridintegration/admin_enable_disable.html"
+    template_name = "gnmgridintegration/admin_enable_disable.html"
 
 
 class ProfileEditView(UpdateView):
@@ -190,7 +190,7 @@ class ProfileEditView(UpdateView):
         return super(ProfileEditView,self).dispatch(request,*args,**kwargs)
 
     model = GridCapturePreset
-    template_name = "portal.plugins.gnmgridintegration/profile_edit.html"
+    template_name = "gnmgridintegration/profile_edit.html"
     success_url = reverse_lazy('gnmgridintegration_admin_enable')
 
 
@@ -199,7 +199,7 @@ class ProfileDeleteView(DeleteView):
     def dispatch(self, request, *args, **kwargs):
         return super(ProfileDeleteView,self).dispatch(request,*args,**kwargs)
     model = GridCapturePreset
-    template_name = "portal.plugins.gnmgridintegration/profile_delete.html"
+    template_name = "gnmgridintegration/profile_delete.html"
     success_url = reverse_lazy('gnmgridintegration_admin_enable')
 
 
@@ -209,7 +209,7 @@ class ProfileCreateView(CreateView):
         return super(ProfileCreateView,self).dispatch(request,*args,**kwargs)
 
     model = GridCapturePreset
-    template_name = "portal.plugins.gnmgridintegration/profile_edit.html"
+    template_name = "gnmgridintegration/profile_edit.html"
     success_url = reverse_lazy('gnmgridintegration_admin_enable')
 
 

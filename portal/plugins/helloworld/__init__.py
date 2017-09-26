@@ -28,7 +28,7 @@ class HelloWorldUrl(Plugin):
     implements(IPluginURL)
 
     name = 'Hello World URL'
-    urls = 'portal.plugins.portal.plugins.helloworld.urls'
+    urls = 'portal.plugins.helloworld.urls'
     urlpattern = r'^ag_helloworld/'
     namespace = 'portal.plugins.helloworld'
     plugin_guid = '62cdef18-ce63-11e4-aab1-005056bc73c6'

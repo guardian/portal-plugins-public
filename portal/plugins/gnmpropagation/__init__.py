@@ -28,8 +28,8 @@ class GNMPropagationUrl(Plugin):
     implements(IPluginURL)
 
     name = 'GNM Propagation URL'
-    urls = 'portal.plugins.portal.plugins.gnmpropagation.urls'
-    urlpattern = r'^portal.plugins.gnmpropagation/'
+    urls = 'portal.plugins.gnmpropagation.urls'
+    urlpattern = r'^gnmpropagation/'
     namespace = 'portal.plugins.gnmpropagation'
     plugin_guid = 'AB9F2C5E-B68D-4E17-BCF5-96327B0825A8'
 

@@ -1,0 +1,26 @@
+- fields: {created: !!timestamp '2017-09-14 14:03:55.514860', exception_trace: "Traceback\
+      \ (most recent call last):\n  File \"/opt/cantemo/portal/portal/plugins/kinesisresponder/kinesis_responder.py\"\
+      , line 116, in run\n    self.process(rec['Data'], datetime.fromtimestamp(rec['ApproximateArrivalTimestamp']))\n\
+      \  File \"/opt/cantemo/portal/portal/plugins/gnmatomresponder/master_importer.py\"\
+      , line 38, in process\n    project_collection.populate(self.TEST_PROJECT)\n\
+      \  File \"/opt/cantemo/python/lib/python2.7/site-packages/gnmvidispine/vs_collection.py\"\
+      , line 45, in populate\n    super(VSCollection,self).populate(id,type=\"collection\"\
+      ,specificFields=specificFields)\n  File \"/opt/cantemo/python/lib/python2.7/site-packages/gnmvidispine/vs_item.py\"\
+      , line 184, in populate\n    content = self.request(\"/%s/%s/metadata\" % (type,\
+      \ entity_id), method=\"GET\")\n  File \"/opt/cantemo/python/lib/python2.7/site-packages/gnmvidispine/vidispine_api.py\"\
+      , line 381, in request\n    raw_body=self.raw_request(path.replace(' ', '%20'),method=method,matrix=matrix,query=query,body=body)\n\
+      \  File \"/opt/cantemo/python/lib/python2.7/site-packages/gnmvidispine/vidispine_api.py\"\
+      , line 475, in raw_request\n    raise HTTPError(response.status,method,url,response.status,response.reason,response.read()).to_VSException(method=method,url=url,body=body)\n\
+      VSNotFound: Vidispine exception VSNotFound\n\tType: notFound\n\tContext: no\
+      \ context provided\n\tWhat: no explanation provided\n\tID: VX-22\n\nReturned\
+      \ XML: <?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><ExceptionDocument\
+      \ xmlns=\"http://xml.vidispine.com/schema/vidispine\"><notFound><type>Collection</type><id>VX-22</id></notFound></ExceptionDocument>\n\
+      \n", last_exception: "Vidispine exception VSNotFound\n\tType: notFound\n\tContext:\
+      \ no context provided\n\tWhat: no explanation provided\n\tID: VX-22\n\nReturned\
+      \ XML: <?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><ExceptionDocument\
+      \ xmlns=\"http://xml.vidispine.com/schema/vidispine\"><notFound><type>Collection</type><id>VX-22</id></notFound></ExceptionDocument>\n",
+    millis_behind_latest: 1240000, processing_host: myhost, sequence_number: '49576442048677450992289593710422660253358109728262062082',
+    shard_id: shardId-000000000000, status: 4, stream_name: teststream,
+    updated: !!timestamp '2017-09-14 14:03:55.514864'}
+  model: kinesisresponder.kinesistracker
+  pk: 1

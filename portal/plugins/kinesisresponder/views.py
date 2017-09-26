@@ -7,27 +7,21 @@ framework code refer to the Django developers documentation.
 
 """
 import logging
-
+from rest_framework.generics import ListAPIView
+from rest_framework.renderers import JSONRenderer, XMLRenderer
+from rest_framework.permissions import IsAdminUser
+from serializers import KinesisTrackerSerializer
 from django.contrib.auth.decorators import login_required
-from portal.generic.baseviews import ClassView
-from portal.vidispine.iitem import ItemHelper
-from portal.vidispine.iexception import NotFoundError
 
 log = logging.getLogger(__name__)
 
 
-class GenericAppView(ClassView):
-    """ Show the page. Add your python code here to show dynamic content or feed information in
-        to external apps
-    """
-    def __call__(self):
-        # __call__ responds to the incoming request. It will already have a information associated to it, such as self.template and self.request
+class MessageListView(ListAPIView):
+    serializer_class = KinesisTrackerSerializer
+    permission_classes = (IsAdminUser, )
+    renderer_classes = (JSONRenderer, XMLRenderer)
 
-        log.debug("%s Viewing page" % self.request.user)
-        ctx = {}
-        
-        # return a response to the request
-        return self.main(self.request, self.template, ctx)
-
-# setup the object, and decorate so that only logged in users can see it
-GenericAppView = GenericAppView._decorate(login_required)
+    def get_queryset(self):
+        from models import KinesisTracker
+        stream_name = self.kwargs['stream_name']
+        return KinesisTracker.objects.filter(stream_name=stream_name)

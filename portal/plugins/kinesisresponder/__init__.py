@@ -1,4 +1,4 @@
-__version__ = 'DISPLAY_VERSION'
+__version__ = '1.0'
 __production__ = False
 import os
 if not 'CI' in os.environ:

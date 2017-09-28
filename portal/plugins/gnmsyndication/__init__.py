@@ -33,7 +33,6 @@ class GnmyoutubeAdminPlugin(Plugin):
         log.debug('initiated GNMSyndication admin panel')
 
     def return_string(self,tagname,*args):
-        #raise StandardError("testing")
         return {'guid': self.plugin_guid, 'template': 'gnmsyndication/navigation.html'}
 
 adminplug = GnmyoutubeAdminPlugin()

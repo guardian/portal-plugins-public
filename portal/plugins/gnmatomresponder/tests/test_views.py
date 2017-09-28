@@ -4,13 +4,14 @@ from mock import MagicMock, patch
 from django.core.management import execute_from_command_line
 from django.core.urlresolvers import reverse, reverse_lazy
 import os
+import django.test
 
 execute_from_command_line(['manage.py', 'syncdb', '--noinput'])
 execute_from_command_line(['manage.py', 'migrate', '--noinput'])
 execute_from_command_line(['manage.py', 'loaddata', 'fixtures/ImportJobs.yaml'])
 
 
-class TestViews(APITestCase):
+class TestAPIViews(APITestCase):
     fixtures = [
         'ImportJobs'
     ]
@@ -73,3 +74,8 @@ class TestViews(APITestCase):
                 self.assertEqual(response.status_code, 500)
                 mock_notification_constructor.assert_called_once_with(data)
                 mock_process.assert_not_called()
+
+    #unfortunately can't easily test job_list_view, because it uses the custom django tag templateextends and I can't work
+    #out how to mock it at the moment.
+
+

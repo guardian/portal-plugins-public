@@ -16,3 +16,6 @@ class ImportJob(models.Model):
     ])
     started_at = models.DateTimeField()
     completed_at = models.DateTimeField(null=True)
+
+    class Meta:
+        ordering = ['-started_at']

@@ -1,0 +1,37 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress staticfiles %}
+{% block title %}{% trans 'Media atom import jobs' %}{% endblock %}
+{% block heading %}{% trans 'Media atom import jobs' %}{% endblock %}
+
+{% block extra_script %}
+
+{% endblock %}
+
+{% block content %}
+<table>
+    <thead>
+        <tr>
+            <td>Item ID</td>
+            <td>Job ID</td>
+            <td>Status</td>
+            <td>Started</td>
+            <td>Completed</td>
+        </tr>
+    </thead>
+    <tbody>
+    {% for jobinfo in object_list %}
+        <tr>
+            <td><a href="/vs/item/{{ jobinfo.item_id }}">{{ jobinfo.item_id }}</a></td>
+            <td><a href="/vs/job/{{ jobinfo.job_id }}">{{ jobinfo.job_id }}</a></td>
+            <td>{{ jobinfo.status }}</td>
+            <td>{{ jobinfo.started }}</td>
+            <td>{{ jobinfo.completed }}</td>
+        </tr>
+    {% empty %}
+        <tr>
+        No jobs yet!
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

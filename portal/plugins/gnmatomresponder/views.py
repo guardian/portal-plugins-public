@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from django.views.generic.list import ListView
 import logging
 
 logger = logging.getLogger(__name__)
@@ -36,3 +37,18 @@ class JobNotifyView(APIView):
         process_notification(notification)
 
         return Response({'status': 'ok'})
+
+
+class ImportJobListView(ListView):
+    from models import ImportJob
+    model = ImportJob
+
+    template_name = "gnmatomresponder/import_job_list.html"
+
+    def get_context_data(self, **kwargs):
+        rtn = super(ImportJobListView, self).get_context_data(**kwargs)
+        if 'intest' in self.request.GET:
+            rtn['in_test'] = True
+        else:
+            rtn['in_test'] = False
+        return rtn

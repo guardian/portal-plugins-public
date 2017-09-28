@@ -32,7 +32,7 @@ def _get_callback_url(use_auth=None):
         v = settings.PLUTO_CALLBACK_URL
     else:
         # fallback to vidispine address
-        raise RuntimeError("Unable to determine callback server address")
+        v = settings.VIDISPINE_URL
     v = v.strip()
     logger.warn('Failed to auto-detect IP address. Reverting to %s' % v)
     if not v.endswith('/'):

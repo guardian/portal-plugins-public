@@ -79,13 +79,15 @@ class TestMasterImporter(django.test.TestCase):
             with patch('portal.plugins.gnmatomresponder.master_importer.VSItem', return_value=mock_item):
                 r = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
                 mock_refresh_creds.assert_called_once()
-                r.create_placeholder_for_atomid("f6ba9036-3f53-4850-9c75-fe3bcfbae4b2", title="fake title")
+                r.create_placeholder_for_atomid("f6ba9036-3f53-4850-9c75-fe3bcfbae4b2", title="fake title", user="joe.bloggs@mydomain.com")
                 mock_item.createPlaceholder.assert_called_once_with(
                     {
                         'gnm_type': 'Master',
                         'title': "fake title",
                         'gnm_master_website_headline': "fake title",
                         'gnm_master_mediaatom_atomid': "f6ba9036-3f53-4850-9c75-fe3bcfbae4b2",
+                        'gnm_master_generic_titleid': 'f6ba9036-3f53-4850-9c75-fe3bcfbae4b2',
+                        'gnm_master_generic_owner': 'joe.bloggs@mydomain.com'
                     },
                     group="Asset"
                 )

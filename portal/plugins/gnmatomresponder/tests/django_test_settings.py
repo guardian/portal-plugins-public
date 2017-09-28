@@ -1,7 +1,8 @@
 import os
 BASE_DIR = "/tmp"
 SECRET_KEY = 'v7j%&)-4$(p&tn1izbm0&#owgxu@w#%!*xn&f^^)+o98jxprbe'
-INSTALLED_APPS = ['portal.plugins.gnmatomresponder', 'south']
+INSTALLED_APPS = ['portal.plugins.gnmatomresponder', 'django.contrib.auth', 'django.contrib.contenttypes',
+                  'django.contrib.sessions','south']
 ROOT_URLCONF = 'portal.plugins.gnmatomresponder.urls'
 DATABASES = {
     'default': {

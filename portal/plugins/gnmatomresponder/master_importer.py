@@ -1,8 +1,6 @@
 from portal.plugins.kinesisresponder.kinesis_responder import KinesisResponder
 import json
-from pprint import pprint
-from urlparse import urlparse
-import os.path
+from urllib import unquote
 from django.conf import settings
 from boto import sts, s3
 import logging
@@ -15,7 +13,7 @@ from portal.plugins.gnmatomresponder.exceptions import NotAProjectError
 
 logger = logging.getLogger(__name__)
 
-#Still need: video title, holding image
+#Still need: holding image. this is more likely to come from the launch detection side than the atom side.
 
 DEFAULT_EXPIRY_TIME=3600
 
@@ -53,7 +51,17 @@ class MasterImportResponder(KinesisResponder):
             logger.warning("Multiple masters returned for atom ID {0}: {1}. Using the first.".format(atomid, potential_master_ids))
             return potential_master_ids[0]
 
-    def create_placeholder_for_atomid(self, atomid, title="unknown video"):
+    @staticmethod
+    def get_userid_for_email(email_address):
+        from django.contrib.auth.models import User
+        try:
+            user = User.objects.get(email=email_address)
+            return user.pk
+        except User.DoesNotExist:
+            return None
+
+    @staticmethod
+    def create_placeholder_for_atomid(atomid, title="unknown video", user="unknown_user"):
         """
         Creates a placeholder and returns a VSItem object for it
         :param atomid: atom ID string
@@ -61,11 +69,20 @@ class MasterImportResponder(KinesisResponder):
         :return: VSItem object
         """
         item = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
-        item.createPlaceholder({const.GNM_TYPE: 'Master',
-                                'title': title,
-                                const.GNM_MASTERS_WEBSITE_HEADLINE: title,
-                                const.GNM_MASTERS_MEDIAATOM_ATOMID: atomid
-                                }, group='Asset')
+        metadata = {const.GNM_TYPE: 'Master',
+                    'title': title,
+                    const.GNM_MASTERS_WEBSITE_HEADLINE: title,
+                    const.GNM_MASTERS_MEDIAATOM_ATOMID: atomid,
+                    const.GNM_MASTERS_GENERIC_TITLEID: atomid,
+                    const.GNM_MASTERS_GENERIC_OWNER: user
+                    }
+        userid = MasterImportResponder.get_userid_for_email(user)
+        if userid is not None:
+            metadata.update({
+                'owner': userid
+            })
+
+        item.createPlaceholder(metadata, group='Asset')
         return item
 
     def get_s3_signed_url(self, bucket=None, key=None):
@@ -108,7 +125,10 @@ class MasterImportResponder(KinesisResponder):
 
         master_item = self.get_item_for_atomid(content['atomId'])
         if master_item is None:
-            master_item = self.create_placeholder_for_atomid(content['atomId'], title="unknown video")
+            master_item = self.create_placeholder_for_atomid(content['atomId'],
+                                                             title=content.get('title',None),
+                                                             user=content.get('user', None)
+                                                             )
 
         if not isinstance(master_item, VSItem): raise TypeError #for intellij
 
@@ -119,7 +139,7 @@ class MasterImportResponder(KinesisResponder):
                                                  essence=True,
                                                  shape_tag='original',
                                                  priority=getattr(settings,"ATOM_RESPONDER_IMPORT_PRIORITY","HIGH"),
-                                                 job_metadata={'gnm_source': 'media_atom'})
+                                                 jobMetadata={'gnm_source': 'media_atom'})
 
         #make a note of the record. This is to link it up with Vidispine's response message.
         record = ImportJob(item_id=master_item.name,job_id=job_result.name,status='STARTED',started_at=datetime.now())

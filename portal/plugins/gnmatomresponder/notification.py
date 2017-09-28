@@ -18,6 +18,7 @@ def _get_callback_url(use_auth=None):
 
     try:
         from django.conf import settings
+        #FIXME: this URL always returns a 404. Maybe it is not supported any more? If so we should remove.
         r = get('%s:%s/whatismyipaddress/' % (settings.VIDISPINE_URL, settings.VIDISPINE_PORT), headers={'Accept': 'text/plain'})
         if r.status_code < 300:
             # TODO auto-detect https

@@ -28,7 +28,14 @@ class KinesisResponderBaseCommand(BaseCommand):
         raise RuntimeError("startup_thread must be implemented in your subclass!")
 
     def handle(self, *args, **options):
-        sts_conn = sts.connect_to_region('eu-west-1')
+        pprint(options)
+        if 'aws_access_key_id' in options and 'aws_secret_access_key' in options:
+            sts_conn = sts.connect_to_region('eu-west-1',
+                                             aws_access_key_id=options['aws_access_key_id'],
+                                             aws_secret_access_key=options['aws_secret_access_key'])
+        else:
+            sts_conn = sts.connect_to_region('eu-west-1')
+
         credentials = sts_conn.assume_role(self.role_name, self.session_name)
         pprint(credentials.credentials.__dict__)
 

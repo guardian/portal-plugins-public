@@ -26,7 +26,10 @@ class MasterImportResponder(KinesisResponder):
         Uses temporaray role credentials to connect to S3
         :return:
         """
-        sts_conn = sts.connect_to_region('eu-west-1')
+        sts_conn = sts.connect_to_region('eu-west-1',
+                                         aws_access_key_id=getattr(settings,'ATOM_RESPONDER_AWS_KEY_ID',None),
+                                         aws_secret_access_key=getattr(settings,'ATOM_RESPONDER_SECRET',None)
+                                         )
         credentials = sts_conn.assume_role(self.role_name, self.session_name)
         return s3.connect_to_region('eu-west-1', aws_access_key_id=credentials.credentials.access_key,
                                                aws_secret_access_key=credentials.credentials.secret_key,

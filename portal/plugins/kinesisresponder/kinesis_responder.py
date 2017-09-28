@@ -19,24 +19,33 @@ class KinesisResponder(Thread):
     Kinesis responder class that deals with getting stuff from a stream shard.  You can subclass this to do interesting
     things with the messages - simply over-ride the process() method to get called whenever something comes in from the stream.
     """
-    def __init__(self, role_name, session_name, stream_name, shard_id, *args,**kwargs):
+    def __init__(self, role_name, session_name, stream_name, shard_id, aws_access_key_id=None, aws_secret_access_key=None,**kwargs):
         """
         Initialise
-        :param credentials: AWS connection credentials object from boto
+        :param role_name: ARN of role to assume
+        :param session_name: Descriptive name for the role session
         :param stream_name: The name, not ARN, of the stream
         :param shard_id: Shard to connect to
+        :param aws_access_key_id: access key to use in order to assume the role given by role_name
+        :param aws_secret_access_key: secret key to use in order to assume the role given by role_name
         """
-        super(KinesisResponder, self).__init__(*args,**kwargs)
+        super(KinesisResponder, self).__init__(**kwargs)
         self.role_name = role_name
         self.session_name = session_name
         self._conn = None
         self.stream_name = stream_name
         self.shard_id = shard_id
 
+        self._aws_access_key_id = aws_access_key_id
+        self._aws_secret_access_key = aws_secret_access_key
+
         self.refresh_access_credentials()
 
     def refresh_access_credentials(self):
-        sts_conn = sts.connect_to_region('eu-west-1')
+        sts_conn = sts.connect_to_region('eu-west-1',
+                                         aws_access_key_id=self._aws_access_key_id,
+                                         aws_secret_access_key=self._aws_secret_access_key)
+
         credentials = sts_conn.assume_role(self.role_name, self.session_name)
         self._conn = kinesis.connect_to_region('eu-west-1', aws_access_key_id=credentials.credentials.access_key,
                                                aws_secret_access_key=credentials.credentials.secret_key,

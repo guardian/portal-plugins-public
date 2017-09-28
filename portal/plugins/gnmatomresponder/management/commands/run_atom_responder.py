@@ -21,7 +21,14 @@ class Command(KinesisResponderBaseCommand):
                 raise RuntimeError("Unable to install notification into Vidispine")
         print "Notification URI is at {0}".format(notification_uri)
 
-        super(Command, self).handle(*args,**options)
+        newoptions = options.copy()
+        newoptions.update({
+            'aws_access_key_id': settings.ATOM_RESPONDER_AWS_KEY_ID,
+            'aws_secret_access_key': settings.ATOM_RESPONDER_SECRET
+        })
+
+        super(Command, self).handle(*args,**newoptions)
 
     def startup_thread(self, conn, shardinfo):
-        return MasterImportResponder(self.role_name,self.session_name,self.stream_name,shardinfo['ShardId'])
+        return MasterImportResponder(self.role_name,self.session_name,self.stream_name,shardinfo['ShardId'],
+                                     aws_access_key_id=settings.ATOM_RESPONDER_AWS_KEY_ID, aws_secret_access_key=settings.ATOM_RESPONDER_SECRET)

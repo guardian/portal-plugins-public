@@ -174,7 +174,24 @@ def find_notification(retries=10,sleep_delay=10):
 
 
 def process_notification(notification):
+    """
+    This is called by the jobnotification view to actually process the notification
+    :param notification: JobNotification object
+    :return:
+    """
+    from gnmvidispine.vs_item import VSItem
     from models import ImportJob
+    from datetime import datetime
     importjob = ImportJob.objects.get(job_id=notification.jobId)
     importjob.status = notification.status
     importjob.save()
+
+    if notification.status.startswith("FINISHED"):
+        #if the import job was completed, then kick off a transcode
+        want_shapetag = getattr(settings,"ATOM_RESPONDER_SHAPE_TAG","lowres")
+
+        item = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+        item.name = notification.itemId
+        jobId = item.transcode(want_shapetag, wait=False, allow_object=False)
+        transcodeJobRef = ImportJob(job_id=jobId, status="Transcoding", started_at=datetime.now())
+        transcodeJobRef.save()

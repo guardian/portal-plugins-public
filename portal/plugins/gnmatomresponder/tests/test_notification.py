@@ -28,10 +28,15 @@ class TestNotification(django.test.TestCase):
         from portal.plugins.gnmatomresponder.notification import process_notification
         from portal.plugins.gnmatomresponder.job_notification import JobNotification
         from portal.plugins.gnmatomresponder.models import ImportJob
+        from gnmvidispine.vs_item import VSItem
+        mock_vsitem = MagicMock(target=VSItem)
+        mock_vsitem.transcode = MagicMock(return_value="VX-888")
 
-        data = JobNotification(self._get_test_data("sample_notification.xml"))
-        before_record = ImportJob.objects.get(job_id=data.jobId)
-        self.assertEqual(before_record.status,'STARTED')
-        process_notification(data)
-        after_record = ImportJob.objects.get(job_id=data.jobId)
-        self.assertEqual(after_record.status,'FINISHED_WARNING')
+        with patch("gnmvidispine.vs_item.VSItem", return_value=mock_vsitem) as VSItemFactory:
+            data = JobNotification(self._get_test_data("sample_notification.xml"))
+            before_record = ImportJob.objects.get(job_id=data.jobId)
+            self.assertEqual(before_record.status,'STARTED')
+            process_notification(data)
+            mock_vsitem.transcode.assert_called_once_with("lowres", allow_object=False, wait=False)
+            after_record = ImportJob.objects.get(job_id=data.jobId)
+            self.assertEqual(after_record.status,'FINISHED_WARNING')

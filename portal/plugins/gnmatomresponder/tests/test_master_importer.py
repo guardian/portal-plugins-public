@@ -138,6 +138,12 @@ class TestMasterImporter(django.test.TestCase):
         result_with_spaces = MasterImportResponder.get_download_filename("some/path/to filename   with spaces and #^3!")
         self.assertEqual(result_with_spaces, "/path/to/download/to_filename_with_spaces_and_3_")
 
+    def test_get_download_filename_override(self):
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+
+        result = MasterImportResponder.get_download_filename("some/path/to/filename.xxx", overridden_name="my overriden file.mp4")
+        self.assertEqual(result, "/path/to/download/my_overriden_file.mp4")
+
     def test_get_collection_for_projectid(self):
         from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
 

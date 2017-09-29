@@ -103,20 +103,21 @@ class MasterImportResponder(KinesisResponder):
         return keyref.generate_url(DEFAULT_EXPIRY_TIME, query_auth=True)
 
     @staticmethod
-    def get_download_filename(key=None):
-        safe_basefile = make_filename_re.sub('_', os.path.basename(key))
+    def get_download_filename(key=None, overridden_name=None):
+        safe_basefile = make_filename_re.sub('_', os.path.basename(overridden_name if overridden_name is not None else key))
         deduped_basefile = multiple_underscore_re.sub('_', safe_basefile)
         return os.path.join(settings.ATOM_RESPONDER_DOWNLOAD_PATH, deduped_basefile)
 
-    def download_to_local_location(self, bucket=None, key=None, retries=10, retry_delay=2):
+    def download_to_local_location(self, bucket=None, key=None, filename=None, retries=10, retry_delay=2):
         """
         Downloads the content from the bucket to a location given by the settings
         :param bucket:
         :param key:
+        :param filename: file name to download to. If None, then the basename of key is used
         :return: filepath that has been downloaded
         """
         import traceback
-        dest_path = self.get_download_filename(key)
+        dest_path = self.get_download_filename(key, overridden_name=filename)
         conn = self.get_s3_connection()
         bucketref = conn.get_bucket(bucket)
         keyref = bucketref.get_key(key)
@@ -127,6 +128,7 @@ class MasterImportResponder(KinesisResponder):
             try:
                 with open(dest_path, "w") as f:
                     keyref.get_contents_to_file(f)
+                logger.info("Done")
                 return dest_path
             except Exception as e:
                 #if something goes wrong, log it and retry
@@ -136,7 +138,6 @@ class MasterImportResponder(KinesisResponder):
                 n+=1
                 if n>retries:
                     raise
-        logger.info("Done")
 
     def get_collection_for_id(self, projectid):
         """
@@ -174,7 +175,11 @@ class MasterImportResponder(KinesisResponder):
         if not isinstance(master_item, VSItem): raise TypeError #for intellij
 
         #download_url = self.get_s3_signed_url(bucket=settings.ATOM_RESPONDER_DOWNLOAD_BUCKET, key=content['s3Key'])
-        downloaded_path = self.download_to_local_location(bucket=settings.ATOM_RESPONDER_DOWNLOAD_BUCKET, key=content['s3Key'])
+        downloaded_path = self.download_to_local_location(bucket=settings.ATOM_RESPONDER_DOWNLOAD_BUCKET,
+                                                          key=content['s3Key'],
+                                                          #this is converted to a safe filename within download_to_local_location
+                                                          filename=content.get('title', None)) #filename=None => use s3key instead
+
         download_url = "file://" + urllib.quote(downloaded_path)
 
         logger.info("Download URL for {0} is {1}".format(content['atomId'], download_url))

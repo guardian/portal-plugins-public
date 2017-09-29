@@ -186,12 +186,12 @@ def process_notification(notification):
     importjob.status = notification.status
     importjob.save()
 
-    if notification.status.startswith("FINISHED"):
-        #if the import job was completed, then kick off a transcode
-        want_shapetag = getattr(settings,"ATOM_RESPONDER_SHAPE_TAG","lowres")
-
-        item = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
-        item.name = notification.itemId
-        jobId = item.transcode(want_shapetag, wait=False, allow_object=False)
-        transcodeJobRef = ImportJob(job_id=jobId, status="Transcoding", started_at=datetime.now())
-        transcodeJobRef.save()
+    # if notification.status.startswith("FINISHED"):
+    #     #if the import job was completed, then kick off a transcode
+    #     want_shapetag = getattr(settings,"ATOM_RESPONDER_SHAPE_TAG","lowres")
+    #
+    #     item = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+    #     item.name = notification.itemId
+    #     jobId = item.transcode(want_shapetag, wait=False, allow_object=False)
+    #     transcodeJobRef = ImportJob(job_id=jobId, status="Transcoding", started_at=datetime.now())
+    #     transcodeJobRef.save()

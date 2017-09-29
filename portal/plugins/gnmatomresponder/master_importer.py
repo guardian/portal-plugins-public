@@ -186,9 +186,10 @@ class MasterImportResponder(KinesisResponder):
 
         job_result = master_item.import_to_shape(uri=download_url,
                                                  essence=True,
-                                                 shape_tag='original',
+                                                 shape_tag=getattr(settings,"ATOM_RESPONDER_SHAPE_TAG","lowres"),
                                                  priority=getattr(settings,"ATOM_RESPONDER_IMPORT_PRIORITY","HIGH"),
-                                                 jobMetadata={'gnm_source': 'media_atom'})
+                                                 jobMetadata={'gnm_source': 'media_atom'},
+                                                 )
 
         #make a note of the record. This is to link it up with Vidispine's response message.
         record = ImportJob(item_id=master_item.name,job_id=job_result.name,status='STARTED',started_at=datetime.now())

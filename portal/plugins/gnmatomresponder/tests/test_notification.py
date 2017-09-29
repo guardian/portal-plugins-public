@@ -37,6 +37,6 @@ class TestNotification(django.test.TestCase):
             before_record = ImportJob.objects.get(job_id=data.jobId)
             self.assertEqual(before_record.status,'STARTED')
             process_notification(data)
-            mock_vsitem.transcode.assert_called_once_with("lowres", allow_object=False, wait=False)
+            #mock_vsitem.transcode.assert_called_once_with("lowres", allow_object=False, wait=False)
             after_record = ImportJob.objects.get(job_id=data.jobId)
             self.assertEqual(after_record.status,'FINISHED_WARNING')

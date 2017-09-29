@@ -129,6 +129,15 @@ class TestMasterImporter(django.test.TestCase):
                 fake_key.generate_url.assert_called_once_with(3600,query_auth=True)
                 self.assertEqual(result, "https://some/invalid/url")
 
+    def test_get_download_filename(self):
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+
+        result = MasterImportResponder.get_download_filename("some/path/to/filename.xxx")
+        self.assertEqual(result, "/path/to/download/filename.xxx")
+
+        result_with_spaces = MasterImportResponder.get_download_filename("some/path/to filename   with spaces and #^3!")
+        self.assertEqual(result_with_spaces, "/path/to/download/to_filename_with_spaces_and_3_")
+
     def test_get_collection_for_projectid(self):
         from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
 

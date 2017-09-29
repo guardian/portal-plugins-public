@@ -15,3 +15,5 @@ VIDISPINE_URL="http://localhost"
 VIDISPINE_PORT=8080
 VIDISPINE_USERNAME="fakeuser"
 VIDISPINE_PASSWORD="fakepassword"
+
+ATOM_RESPONDER_DOWNLOAD_PATH="/path/to/download"

@@ -1,6 +1,6 @@
 from portal.plugins.kinesisresponder.kinesis_responder import KinesisResponder
 import json
-from urllib import unquote
+import urllib
 from django.conf import settings
 from boto import sts, s3
 import logging
@@ -10,6 +10,9 @@ from gnmvidispine.vs_search import VSItemSearch
 from datetime import datetime
 import portal.plugins.gnmatomresponder.constants as const
 from portal.plugins.gnmatomresponder.exceptions import NotAProjectError
+import os
+import re
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +20,8 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_EXPIRY_TIME=3600
 
+make_filename_re = re.compile(r'[^\w\d\.]')
+multiple_underscore_re = re.compile(r'_{2,}')
 
 class MasterImportResponder(KinesisResponder):
     def get_s3_connection(self):
@@ -90,12 +95,48 @@ class MasterImportResponder(KinesisResponder):
         Requests a signed URL from S3 to download the given content
         :param bucket:
         :param key:
-        :return:
+        :return: String of a presigned URL
         """
         conn = self.get_s3_connection()
-        bucket = conn.get_bucket(bucket)
-        key = bucket.get_key(key)
-        return key.generate_url(DEFAULT_EXPIRY_TIME, query_auth=True)
+        bucketref = conn.get_bucket(bucket)
+        keyref = bucketref.get_key(key)
+        return keyref.generate_url(DEFAULT_EXPIRY_TIME, query_auth=True)
+
+    @staticmethod
+    def get_download_filename(key=None):
+        safe_basefile = make_filename_re.sub('_', os.path.basename(key))
+        deduped_basefile = multiple_underscore_re.sub('_', safe_basefile)
+        return os.path.join(settings.ATOM_RESPONDER_DOWNLOAD_PATH, deduped_basefile)
+
+    def download_to_local_location(self, bucket=None, key=None, retries=10, retry_delay=2):
+        """
+        Downloads the content from the bucket to a location given by the settings
+        :param bucket:
+        :param key:
+        :return: filepath that has been downloaded
+        """
+        import traceback
+        dest_path = self.get_download_filename(key)
+        conn = self.get_s3_connection()
+        bucketref = conn.get_bucket(bucket)
+        keyref = bucketref.get_key(key)
+
+        n=0
+        while True:
+            logger.info("Downloading {0}/{1} to {2}, attempt {3}...".format(bucket, key, dest_path,n))
+            try:
+                with open(dest_path, "w") as f:
+                    keyref.get_contents_to_file(f)
+                return dest_path
+            except Exception as e:
+                #if something goes wrong, log it and retry
+                logger.error(str(e))
+                logger.error(traceback.format_exc())
+                time.sleep(retry_delay)
+                n+=1
+                if n>retries:
+                    raise
+        logger.info("Done")
 
     def get_collection_for_id(self, projectid):
         """
@@ -132,7 +173,10 @@ class MasterImportResponder(KinesisResponder):
 
         if not isinstance(master_item, VSItem): raise TypeError #for intellij
 
-        download_url = self.get_s3_signed_url(bucket=settings.ATOM_RESPONDER_DOWNLOAD_BUCKET, key=content['s3Key'])
+        #download_url = self.get_s3_signed_url(bucket=settings.ATOM_RESPONDER_DOWNLOAD_BUCKET, key=content['s3Key'])
+        downloaded_path = self.download_to_local_location(bucket=settings.ATOM_RESPONDER_DOWNLOAD_BUCKET, key=content['s3Key'])
+        download_url = "file://" + urllib.quote(downloaded_path)
+
         logger.info("Download URL for {0} is {1}".format(content['atomId'], download_url))
 
         job_result = master_item.import_to_shape(uri=download_url,

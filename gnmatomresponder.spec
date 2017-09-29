@@ -14,7 +14,7 @@ BuildRoot: %{_tmppath}/gnmatomresponder
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: Andy Gallagher <andy.gallagher@theguardian.com>
-Requires: Portal >= 3.0.0 pluto >= 3.0 portal-kinesisresponder >= 1.0 gnmvidispine-portal >= 1.9-80
+Requires: Portal >= 3.0.0 pluto >= 3.0-697 portal-kinesisresponder >= 1.0 gnmvidispine-portal >= 1.9-83
 
 %description
 Plugin for Pluto that allows creation of masters from media that was sent to the media atom tool

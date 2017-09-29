@@ -5,6 +5,10 @@ GNM_MASTERS_MEDIAATOM_UPLOADSTATUS = 'gnm_master_mediaatom_uploadstatus'
 
 GNM_TYPE = 'gnm_type'
 
+GNM_ASSET_CATEGORY = 'gnm_asset_category'
+
+GNM_MASTERS_MEDIAATOM_UPLOADEDBY = 'gnm_master_mediaatom_uploaded_by'
+
 GNM_MASTERS_GENERIC_REMOVE = 'gnm_master_generic_remove'
 GNM_MASTERS_GENERIC_PREVENTMOBILEUPLOAD = 'gnm_master_generic_preventmobileupload'
 GNM_MASTERS_GENERIC_CONTAINSADULTCONTENT = 'gnm_master_generic_containsadultcontent'

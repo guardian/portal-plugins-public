@@ -81,15 +81,14 @@ class TestMasterImporter(django.test.TestCase):
                 mock_refresh_creds.assert_called_once()
                 r.create_placeholder_for_atomid("f6ba9036-3f53-4850-9c75-fe3bcfbae4b2", title="fake title", user="joe.bloggs@mydomain.com")
                 mock_item.createPlaceholder.assert_called_once_with(
-                    {
-                        'gnm_type': 'Master',
-                        'title': "fake title",
-                        'gnm_master_website_headline': "fake title",
-                        'gnm_master_mediaatom_atomid': "f6ba9036-3f53-4850-9c75-fe3bcfbae4b2",
-                        'gnm_master_generic_titleid': 'f6ba9036-3f53-4850-9c75-fe3bcfbae4b2',
-                        'gnm_master_generic_owner': 'joe.bloggs@mydomain.com'
-                    },
-                    group="Asset"
+                    {'title': 'fake title',
+                     'gnm_asset_category': 'Master',
+                     'gnm_type': 'Master',
+                     'gnm_master_website_headline': 'fake title',
+                     'gnm_master_mediaatom_atomid': 'f6ba9036-3f53-4850-9c75-fe3bcfbae4b2',
+                     'gnm_master_generic_titleid': 'f6ba9036-3f53-4850-9c75-fe3bcfbae4b2',
+                     'gnm_master_mediaatom_uploaded_by': 'joe.bloggs@mydomain.com'
+                     }, group='Asset'
                 )
 
     class MockS3Conn(object):

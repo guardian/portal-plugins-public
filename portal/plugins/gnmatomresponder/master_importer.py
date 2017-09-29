@@ -61,8 +61,10 @@ class MasterImportResponder(KinesisResponder):
         from django.contrib.auth.models import User
         try:
             user = User.objects.get(email=email_address)
+            logger.info("Got user {0} with id {1} for email {2}".format(user.username, user.pk, email_address))
             return user.pk
         except User.DoesNotExist:
+            logger.info("Could not find any user for email {0}".format(email_address))
             return None
 
     @staticmethod
@@ -79,7 +81,8 @@ class MasterImportResponder(KinesisResponder):
                     const.GNM_MASTERS_WEBSITE_HEADLINE: title,
                     const.GNM_MASTERS_MEDIAATOM_ATOMID: atomid,
                     const.GNM_MASTERS_GENERIC_TITLEID: atomid,
-                    const.GNM_MASTERS_GENERIC_OWNER: user
+                    const.GNM_ASSET_CATEGORY: "Master",
+                    const.GNM_MASTERS_MEDIAATOM_UPLOADEDBY: user
                     }
         userid = MasterImportResponder.get_userid_for_email(user)
         if userid is not None:

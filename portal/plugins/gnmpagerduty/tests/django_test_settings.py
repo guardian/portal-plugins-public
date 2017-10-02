@@ -1,8 +1,8 @@
 import os
 BASE_DIR = "/tmp"
 SECRET_KEY = 'v7j%&)-4$(p&tn1izbm0&#owgxu@w#%!*xn&f^^)+o98jxprbe'
-INSTALLED_APPS = ['gnmpagerduty','south','django.contrib.auth','django.contrib.contenttypes','django.contrib.sessions']
-ROOT_URLCONF = 'gnmpagerduty.urls'
+INSTALLED_APPS = ['portal.plugins.gnmpagerduty','south','django.contrib.auth','django.contrib.contenttypes','django.contrib.sessions']
+ROOT_URLCONF = 'portal.plugins.gnmpagerduty.urls'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

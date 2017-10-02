@@ -30,7 +30,7 @@ class HelloWorldUrl(Plugin):
     name = 'Hello World URL'
     urls = 'portal.plugins.helloworld.urls'
     urlpattern = r'^ag_helloworld/'
-    namespace = 'portal.plugins.helloworld'
+    namespace = 'helloworld'
     plugin_guid = '62cdef18-ce63-11e4-aab1-005056bc73c6'
 
     def __init__(self):

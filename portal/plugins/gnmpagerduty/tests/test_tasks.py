@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from django.core.management import execute_manager
+from django.core.management import execute_from_command_line
 import unittest
 from mock import patch, MagicMock
 from os import environ, unlink
@@ -7,45 +7,45 @@ import os.path
 
 environ["CI"] = "True"  #simulate a CI environment even if we're not in one, this will stop trying to import portal-specific stuff
 #which breaks the tests
-import gnmpagerduty.tests.django_test_settings as django_test_settings
+import portal.plugins.gnmpagerduty.tests.django_test_settings as django_test_settings
 
-environ["DJANGO_SETTINGS_MODULE"] = "gnmpagerduty.tests.django_test_settings"
+environ["DJANGO_SETTINGS_MODULE"] = "portal.plugins.gnmpagerduty.tests.django_test_settings"
 if os.path.exists(django_test_settings.DATABASES['default']['NAME']):
     unlink(django_test_settings.DATABASES['default']['NAME'])
-execute_manager(django_test_settings,['manage.py','syncdb', "--noinput"])
-execute_manager(django_test_settings,['manage.py','migrate', "--noinput"])
+execute_from_command_line(['manage.py','syncdb', "--noinput"])
+execute_from_command_line(['manage.py','migrate', "--noinput"])
 
 
 
 class TestTasks(unittest.TestCase):
 
     def test_human_friendly(self):
-        from gnmpagerduty.tasks import human_friendly
+        from portal.plugins.gnmpagerduty.tasks import human_friendly
 
         self.assertEqual(human_friendly(8589934592),"8.0GiB")
         self.assertEqual(human_friendly(17592186044416),"16.0TiB")
         self.assertEqual(human_friendly(28037546508288),"25.5TiB")
 
     def test_return_percentage(self):
-        from gnmpagerduty.tasks import return_percentage
+        from portal.plugins.gnmpagerduty.tasks import return_percentage
 
         self.assertEqual(return_percentage(100, 50), 50)
 
     def test_get_system_type_cached(self):
-        from gnmpagerduty.tasks import get_system_type
+        from portal.plugins.gnmpagerduty.tasks import get_system_type
 
         with patch('django.core.cache.cache.get', return_value='Live') as mock_cache:
-            with patch('gnmpagerduty.tasks.make_vidispine_request') as mock_request:
+            with patch('portal.plugins.gnmpagerduty.tasks.make_vidispine_request') as mock_request:
                 result = get_system_type()
                 self.assertEqual(result,'Live')
                 mock_request.assert_not_called()
                 mock_cache.assert_called_once_with('gnmpagerduty_system_type')
 
     def test_get_system_type_not_cached(self):
-        from gnmpagerduty.tasks import get_system_type
+        from portal.plugins.gnmpagerduty.tasks import get_system_type
 
         with patch('django.core.cache.cache.get', return_value=None) as mock_cache:
-            with patch('gnmpagerduty.tasks.make_vidispine_request', return_value=({}, 'site contains KP')) as mock_request:
+            with patch('portal.plugins.gnmpagerduty.tasks.make_vidispine_request', return_value=({}, 'site contains KP')) as mock_request:
                 result = get_system_type()
                 self.assertEqual(result,'Live')
                 mock_request.assert_called_once()
@@ -61,13 +61,13 @@ class TestTasks(unittest.TestCase):
     }
 
     def test_storage_below_safelevel(self):
-        from gnmpagerduty.models import IncidentKeys
+        from portal.plugins.gnmpagerduty.models import IncidentKeys
 
         mock_key = IncidentKeys()
 
-        with patch('gnmpagerduty.tasks.get_system_type', return_value="Live") as mocksystype:
-            with patch('gnmpagerduty.tasks.notify_pagerduty', return_value={'incident_key': 'blahblah'}) as mocknotify:
-                from gnmpagerduty.tasks import storage_below_safelevel
+        with patch('portal.plugins.gnmpagerduty.tasks.get_system_type', return_value="Live") as mocksystype:
+            with patch('portal.plugins.gnmpagerduty.tasks.notify_pagerduty', return_value={'incident_key': 'blahblah'}) as mocknotify:
+                from portal.plugins.gnmpagerduty.tasks import storage_below_safelevel
                 storage_below_safelevel(mock_key, self.TEST_STORAGE_DATA)
 
                 mocknotify.assert_called_once_with('Storage Kevin lacks sufficient free space. It is 97% full.',
@@ -85,13 +85,13 @@ class TestTasks(unittest.TestCase):
         mock_key.delete()
 
     def test_storage_above_safelevel(self):
-        from gnmpagerduty.models import IncidentKeys
+        from portal.plugins.gnmpagerduty.models import IncidentKeys
 
         mock_key = IncidentKeys()
 
-        with patch('gnmpagerduty.tasks.get_system_type', return_value="Live") as mocksystype:
-            with patch('gnmpagerduty.tasks.notify_pagerduty', return_value={'incident_key': 'blahblah'}) as mocknotify:
-                from gnmpagerduty.tasks import storage_above_safelevel
+        with patch('portal.plugins.gnmpagerduty.tasks.get_system_type', return_value="Live") as mocksystype:
+            with patch('portal.plugins.gnmpagerduty.tasks.notify_pagerduty', return_value={'incident_key': 'blahblah'}) as mocknotify:
+                from portal.plugins.gnmpagerduty.tasks import storage_above_safelevel
                 mock_key.incident_key = "somethingsomething"
                 storage_above_safelevel(mock_key, self.TEST_STORAGE_DATA)
 
@@ -152,7 +152,7 @@ class TestTasks(unittest.TestCase):
         :return:
         """
         mockceleryapp = self.MockCeleryApp(1)
-        from gnmpagerduty.models import StorageData
+        from portal.plugins.gnmpagerduty.models import StorageData
 
         test_storagedata = StorageData()
         test_storagedata.storage_id=self.TEST_STORAGE_DATA['name']
@@ -160,8 +160,8 @@ class TestTasks(unittest.TestCase):
         test_storagedata.save()
 
         with patch('gnmvidispine.vs_storage.VSStoragePathMap', return_value={'/some/path/to': self.MockObject(self.TEST_STORAGE_DATA)}) as mock_path_map:
-            with patch('gnmpagerduty.tasks.storage_above_safelevel') as mock_abovesafelevel:
-                from gnmpagerduty.tasks import check_storage
+            with patch('portal.plugins.gnmpagerduty.tasks.storage_above_safelevel') as mock_abovesafelevel:
+                from portal.plugins.gnmpagerduty.tasks import check_storage
 
                 result = check_storage(celery_app=mockceleryapp)
                 self.assertEqual(result, "No storages are under their thresholds.")
@@ -175,7 +175,7 @@ class TestTasks(unittest.TestCase):
         :return:
         """
         mockceleryapp = self.MockCeleryApp(1)
-        from gnmpagerduty.models import StorageData
+        from portal.plugins.gnmpagerduty.models import StorageData
 
         test_storagedata = StorageData()
         test_storagedata.storage_id=self.TEST_STORAGE_DATA['name']
@@ -183,8 +183,8 @@ class TestTasks(unittest.TestCase):
         test_storagedata.save()
 
         with patch('gnmvidispine.vs_storage.VSStoragePathMap', return_value={'/some/path/to': self.MockObject(self.TEST_STORAGE_DATA)}) as mock_path_map:
-            with patch('gnmpagerduty.tasks.storage_below_safelevel') as mock_belowsafelevel:
-                from gnmpagerduty.tasks import check_storage
+            with patch('portal.plugins.gnmpagerduty.tasks.storage_below_safelevel') as mock_belowsafelevel:
+                from portal.plugins.gnmpagerduty.tasks import check_storage
 
                 result = check_storage(celery_app=mockceleryapp)
                 self.assertEqual(result, "Storages below threshold: Kevin")
@@ -207,7 +207,7 @@ class TestNotifyPagerduty(unittest.TestCase):
     def test_notify_pagerduty(self):
         import json
         with patch('requests.post',return_value=self.FakeResponse(200,json.dumps({'incident_key': 'blahblah'}))) as mockpost:
-            from gnmpagerduty.tasks import notify_pagerduty
+            from portal.plugins.gnmpagerduty.tasks import notify_pagerduty
 
             result = notify_pagerduty("this is a test message",
                              "trigger",
@@ -224,7 +224,7 @@ class TestNotifyPagerduty(unittest.TestCase):
     def test_pagerduty_exception(self):
         import json
         with patch('requests.post',return_value=self.FakeResponse(503,json.dumps({'incident_key': 'blahblah'}))) as mockpost:
-            from gnmpagerduty.tasks import notify_pagerduty,HttpError
+            from portal.plugins.gnmpagerduty.tasks import notify_pagerduty,HttpError
 
             def testfunc():
                 notify_pagerduty("this is a test message",

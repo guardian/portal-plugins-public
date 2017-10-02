@@ -12,6 +12,7 @@ from portal.generic.plugin_interfaces import (IPluginURL, IPluginBlock, IAppRegi
 
 log = logging.getLogger(__name__)
 
+
 class GnmlibrarytoolPluginURL(Plugin):
     """ Adds a plugin handler which creates url handler for the index page """
     implements(IPluginURL)
@@ -88,7 +89,7 @@ class GnmlibrarytoolSRViewJS(Plugin):
     implements(IPluginBlock)
 
     jsstring = """
-        <script src="/sitemedia/portal.plugins.gnmlibrarytool/js/storagerulepanel.js"></script>
+        <script src="/sitemedia/gnmlibrarytool/js/storagerulepanel.js"></script>
         <script type="text/javascript" charset="utf-8">
         $(document).ready(function() {
             // Extend the namespace with a new viewclass.

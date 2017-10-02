@@ -15,13 +15,13 @@ return String(string).replace(/[&<>"'\/]/g, function (s) {
 
 function expanderMouseOver(exp)
 {
-exp.setAttribute('src','/sitemedia/portal.plugins.gnmgridintegration/arrow_sel.svg');
+exp.setAttribute('src','/sitemedia/gnmgridintegration/arrow_sel.svg');
 
 }
 
 function expanderMouseOut(exp)
 {
-exp.setAttribute('src','/sitemedia/portal.plugins.gnmgridintegration/arrow_unsel.svg');
+exp.setAttribute('src','/sitemedia/gnmgridintegration/arrow_unsel.svg');
 }
 
 var expanded = false;
@@ -83,7 +83,7 @@ function test_itemid_changed(){
         textDiv.html(htmlstring);
         textDiv.append($('<img>', {'class': 'simple_expander', 'onMouseOver': 'expanderMouseOver(this);',
                                    'onMouseOut': 'expanderMouseOut(this);', 'onClick': 'expanderClicked(this);',
-                                   'src': '/sitemedia/portal.plugins.gnmgridintegration/arrow_unsel.svg'}));
+                                   'src': '/sitemedia/gnmgridintegration/arrow_unsel.svg'}));
 
         var gridInfo = $('<div>', {'id': 'grid_info_area', 'style': 'display: none;'});
         //var gridInfo = $('#grid_info_area');

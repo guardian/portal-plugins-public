@@ -165,3 +165,5 @@ venv.bak/
 [Ss]cripts
 pyvenv.cfg
 pip-selfcheck.json
+!/portal/plugins/gnmlibrarytool/jstest/lib/jquery.js
+!/portal/plugins/gnmlibrarytool/jstest/lib/

@@ -1,13 +1,13 @@
 import os
 BASE_DIR = "/tmp"
 SECRET_KEY = 'v=YkST56UIq05jJ5Gn40UstWYd0+8G/Lu03EjOnSYds1/bafiSYUhiWwzaRjjtQ'
-INSTALLED_APPS = ['gnmlibrarytool',
+INSTALLED_APPS = ['portal.plugins.gnmlibrarytool',
                   'django.contrib.auth',
                   'django.contrib.contenttypes',
                   'django.contrib.sessions',
                   'south']
 
-ROOT_URLCONF = 'gnmlibrarytool.tests.django_test_rooturls'
+ROOT_URLCONF = 'portal.plugins.gnmlibrarytool.tests.django_test_rooturls'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

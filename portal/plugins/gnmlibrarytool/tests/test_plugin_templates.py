@@ -1,12 +1,13 @@
 from __future__ import absolute_import
-from os import environ
-import unittest2
 import os.path
-environ["DJANGO_SETTINGS_MODULE"] = "gnmlibrarytool.tests.django_test_settings"
-environ["CI"] = "True"  #simulate a CI environment even if we're not in one, this will stop trying to import portal-specific stuff
+#environ["DJANGO_SETTINGS_MODULE"] = "portal.plugins.gnmlibrarytool.tests.django_test_settings"
+#environ["CI"] = "True"  #simulate a CI environment even if we're not in one, this will stop trying to import portal-specific stuff
 #which breaks the tests
 import django.test
+from django.core.management import execute_from_command_line
 
+execute_from_command_line(['manage.py', 'syncdb', '--noinput'])
+execute_from_command_line(['manage.py', 'migrate', '--noinput'])
 
 class TestPluginTemplates(django.test.TestCase):
     def _dorender(self, templatename, context):

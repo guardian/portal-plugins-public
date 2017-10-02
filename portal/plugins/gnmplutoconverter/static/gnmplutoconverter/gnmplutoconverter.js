@@ -26,7 +26,7 @@ function populate_project_dropdown()
     $('#plutoconverter_picker_throbber').fadeIn();
     $('#plutoconverter_picker_save_button').hide();
 
-    $.getJSON('/portal.plugins.gnmplutoconverter/projects?comm=' + comm + '&mine=' + mine).success(function(data, jqXHR){
+    $.getJSON('/gnmplutoconverter/projects?comm=' + comm + '&mine=' + mine).success(function(data, jqXHR){
         $.each(data, function(idx,ptr){
             $('#id_picker_project_dropdown').append(
                 $('<option>', {'value': ptr['vsid']}).html(ptr['title'])
@@ -51,7 +51,7 @@ function populate_commission_dropdown()
     $('#plutoconverter_picker_throbber').fadeIn();
     $('#plutoconverter_picker_save_button').hide();
 
-    $.getJSON('/portal.plugins.gnmplutoconverter/commissions?wg=' + wg + '&mine=' + mine).success(function(data, jqXHR){
+    $.getJSON('/gnmplutoconverter/commissions?wg=' + wg + '&mine=' + mine).success(function(data, jqXHR){
         $.each(data, function(idx,ptr){
             $('#id_picker_commission_dropdown').append(
                 $('<option>', {'value': ptr['vsid']}).html(ptr['title'])
@@ -106,7 +106,7 @@ function open_picker()
     $('<label>', {'for': 'id_picker_workinggroup_dropdown'}).html('Working group').appendTo(i);
     wd_drop.change(populate_commission_dropdown);
 
-    $.getJSON('/portal.plugins.gnmplutoconverter/workinggroups?mine=' + $('#id_picker_mine_only').val()).success(function(data, jqXHR){
+    $.getJSON('/gnmplutoconverter/workinggroups?mine=' + $('#id_picker_mine_only').val()).success(function(data, jqXHR){
         console.log(data);
         $.each(data,function(idx,ptr){
             var attrs = {'value': ptr['uuid']};
@@ -239,7 +239,7 @@ function build_dialog()
         console.log($('#plutoconverter_mainform').serialize());
         $.ajax({
             type: "POST",
-            url: "/portal.plugins.gnmplutoconverter/do_conversion",
+            url: "/gnmplutoconverter/do_conversion",
             data: $('#plutoconverter_mainform').serialize()
         }).success(function(data){
             throbber.fadeOut();

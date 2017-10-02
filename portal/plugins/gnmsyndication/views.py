@@ -699,7 +699,7 @@ class AdminPlatformCreate(CreateView):
     template_name = "gnmsyndication/admin_edit.html"
     model = platform
     form_class = forms.PlatformEditForm
-    success_url = reverse_lazy('portal.plugins.gnmsyndication:admin')
+    success_url = reverse_lazy('gnmsyndication:admin')
 
 class AdminPlatformUpdate(UpdateView):
     #from forms import PlatformEditForm
@@ -708,9 +708,9 @@ class AdminPlatformUpdate(UpdateView):
     model = platform
     form_class = forms.PlatformEditForm
     fields = '__all__'
-    success_url = reverse_lazy('portal.plugins.gnmsyndication:admin')
+    success_url = reverse_lazy('gnmsyndication:admin')
 
 class AdminPlatformDelete(DeleteView):
     template_name = "gnmsyndication/admin_delete.html"
     model = platform
-    success_url = reverse_lazy('portal.plugins.gnmsyndication:admin')
+    success_url = reverse_lazy('gnmsyndication:admin')

@@ -30,7 +30,7 @@ class LogSearchUrl(Plugin):
     name = 'GNM Advanced Log Search URL'
     urls = 'portal.plugins.gnmlogsearch.urls'
     urlpattern = r'^gnmlogsearch/'
-    namespace = 'portal.plugins.gnmlogsearch'
+    namespace = 'gnmlogsearch'
     plugin_guid = 'ad0f0f88-de96-11e4-9329-60030890043a'
 
     def __init__(self):

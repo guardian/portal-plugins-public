@@ -15,7 +15,7 @@
   },
   "scripts": {
     "lint": "bash -c \"./node_modules/.bin/jshint gnmgridintegration/static/gnmgridintegration/grid_{meta,profile}_admin.js gnmlibrarytool/static/gnmlibrarytool/js/{diagramming,storagerulepanel}.js\"",
-    "test": "mocha gnmlibrarytool/jstest/*.js",
-    "testcss": "bash -c \"find gnm{librarytool,gridintegration} -iname '*.css' | grep -v '^./static' | grep -v node_modules | xargs ./node_modules/.bin/sass-lint\""
+    "test": "mocha portal/plugins/gnmlibrarytool/jstest/*.js",
+    "testcss": "bash -c \"find portal/plugins/gnm{librarytool,gridintegration} -iname '*.css' | grep -v '^./static' | grep -v node_modules | xargs ./node_modules/.bin/sass-lint\""
   }
 }

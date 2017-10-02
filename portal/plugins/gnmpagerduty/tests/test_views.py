@@ -1,15 +1,16 @@
 from __future__ import absolute_import
 from os import environ, unlink
-environ["DJANGO_SETTINGS_MODULE"] = "gnmpagerduty.tests.django_test_settings"
+environ["DJANGO_SETTINGS_MODULE"] = "portal.plugins.gnmpagerduty.tests.django_test_settings"
+environ["CI"] = "True"  #simulate a CI environment even if we're not in one, this will stop trying to import portal-specific stuff
+#which breaks the tests
 from django.core.management import execute_manager
 import django.test
 import unittest
 from mock import patch, MagicMock
 import os.path
 
-environ["CI"] = "True"  #simulate a CI environment even if we're not in one, this will stop trying to import portal-specific stuff
-#which breaks the tests
-import gnmpagerduty.tests.django_test_settings as django_test_settings
+
+import portal.plugins.gnmpagerduty.tests.django_test_settings as django_test_settings
 
 if os.path.exists(django_test_settings.DATABASES['default']['NAME']):
     unlink(django_test_settings.DATABASES['default']['NAME'])
@@ -53,8 +54,8 @@ class TestViews(django.test.TestCase):
 
         self.client.login(username="test", passwd="nothing")
 
-        with patch('gnmpagerduty.views.VSStoragePathMap', return_value={'/some/path/to': self.MockObject(self.TEST_STORAGE_DATA)}) as mock_path_map:
-            with patch('gnmpagerduty.views.ConfigAlertsView.render_to_response', return_value=HttpResponse()) as mock_render:
+        with patch('portal.plugins.gnmpagerduty.views.VSStoragePathMap', return_value={'/some/path/to': self.MockObject(self.TEST_STORAGE_DATA)}) as mock_path_map:
+            with patch('portal.plugins.gnmpagerduty.views.ConfigAlertsView.render_to_response', return_value=HttpResponse()) as mock_render:
                 result = self.client.get('/alerts/')
                 self.assertEqual(result.status_code,200)
 

@@ -30,7 +30,7 @@ class GNMPropagationUrl(Plugin):
     name = 'GNM Propagation URL'
     urls = 'portal.plugins.gnmpropagation.urls'
     urlpattern = r'^gnmpropagation/'
-    namespace = 'portal.plugins.gnmpropagation'
+    namespace = 'gnmpropagation'
     plugin_guid = 'AB9F2C5E-B68D-4E17-BCF5-96327B0825A8'
 
     def __init__(self):

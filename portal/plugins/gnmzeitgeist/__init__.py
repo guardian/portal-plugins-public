@@ -30,7 +30,7 @@ class GnmZeitgeistUrl(Plugin):
     name = 'GNM tag cloud app URL'
     urls = 'portal.plugins.gnmzeitgeist.urls'
     urlpattern = r'^gnmtagcloud/'
-    namespace = 'portal.plugins.gnmzeitgeist'
+    namespace = 'gnmzeitgeist'
     plugin_guid = 'b598f7ae-d180-11e4-beea-60030890043a'
 
     def __init__(self):

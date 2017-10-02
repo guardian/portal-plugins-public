@@ -14,7 +14,7 @@ class Migration(SchemaMigration):
             ('library_id', self.gf('django.db.models.fields.CharField')(max_length=32)),
             ('nickname', self.gf('django.db.models.fields.CharField')(max_length=254)),
         ))
-        db.send_create_signal('portal.plugins.gnmlibrarytool', ['LibraryNickname'])
+        db.send_create_signal('gnmlibrarytool', ['LibraryNickname'])
 
 
     def backwards(self, orm):

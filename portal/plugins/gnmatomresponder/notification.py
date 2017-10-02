@@ -165,7 +165,6 @@ def find_notification(retries=10,sleep_delay=10):
 
     response = safe_get(output_url, retries=retries,sleep_delay=sleep_delay)
 
-    print response.content
     notification_list = fromstring(response.content)
     for urinode in notification_list.findall('{0}uri'.format(ns)):
         if check_notification_at(urinode.text):
@@ -179,19 +178,7 @@ def process_notification(notification):
     :param notification: JobNotification object
     :return:
     """
-    from gnmvidispine.vs_item import VSItem
     from models import ImportJob
-    from datetime import datetime
     importjob = ImportJob.objects.get(job_id=notification.jobId)
     importjob.status = notification.status
     importjob.save()
-
-    # if notification.status.startswith("FINISHED"):
-    #     #if the import job was completed, then kick off a transcode
-    #     want_shapetag = getattr(settings,"ATOM_RESPONDER_SHAPE_TAG","lowres")
-    #
-    #     item = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
-    #     item.name = notification.itemId
-    #     jobId = item.transcode(want_shapetag, wait=False, allow_object=False)
-    #     transcodeJobRef = ImportJob(job_id=jobId, status="Transcoding", started_at=datetime.now())
-    #     transcodeJobRef.save()

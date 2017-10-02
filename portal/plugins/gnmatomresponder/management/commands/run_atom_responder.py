@@ -2,7 +2,9 @@
 from django.conf import settings
 from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
 from portal.plugins.kinesisresponder.management.kinesis_responder_basecommand import KinesisResponderBaseCommand
+import logging
 
+logger = logging.getLogger(__name__)
 
 class Command(KinesisResponderBaseCommand):
     stream_name = settings.ATOM_RESPONDER_STREAM_NAME
@@ -14,12 +16,12 @@ class Command(KinesisResponderBaseCommand):
         from portal.plugins.gnmatomresponder.notification import find_notification, create_notification
         notification_uri = find_notification()
         if notification_uri is None:
-            print "Callback notification not present in Vidispine. Installing..."
+            logger.info("Callback notification not present in Vidispine. Installing...")
             create_notification()
             notification_uri = find_notification()
             if notification_uri is None:
                 raise RuntimeError("Unable to install notification into Vidispine")
-        print "Notification URI is at {0}".format(notification_uri)
+        logger.info("Notification URI is at {0}".format(notification_uri))
 
         newoptions = options.copy()
         newoptions.update({

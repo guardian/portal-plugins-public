@@ -23,7 +23,13 @@ DEFAULT_EXPIRY_TIME=3600
 make_filename_re = re.compile(r'[^\w\d\.]')
 multiple_underscore_re = re.compile(r'_{2,}')
 
-class MasterImportResponder(KinesisResponder):
+
+class S3Mixin(object):
+    def __init__(self, role_name, session_name):
+        super(S3Mixin, self).__init__()
+        self.role_name = role_name
+        self.session_name = session_name
+
     def get_s3_connection(self):
         """
         Uses temporaray role credentials to connect to S3
@@ -35,9 +41,11 @@ class MasterImportResponder(KinesisResponder):
                                          )
         credentials = sts_conn.assume_role(self.role_name, self.session_name)
         return s3.connect_to_region('eu-west-1', aws_access_key_id=credentials.credentials.access_key,
-                                               aws_secret_access_key=credentials.credentials.secret_key,
-                                               security_token=credentials.credentials.session_token)
+                                    aws_secret_access_key=credentials.credentials.secret_key,
+                                    security_token=credentials.credentials.session_token)
 
+
+class MasterImportResponder(KinesisResponder, S3Mixin):
     def get_item_for_atomid(self, atomid):
         """
         Returns a populated VSItem object for the master, or None if no such item exists
@@ -177,6 +185,8 @@ class MasterImportResponder(KinesisResponder):
 
         if not isinstance(master_item, VSItem): raise TypeError #for intellij
 
+        #using a signed URL is preferred, but right now VS seems to have trouble ingesting it.
+        #so, we download instead and ingest that. get_s3_signed_url is left in to make it simple to switch back
         #download_url = self.get_s3_signed_url(bucket=settings.ATOM_RESPONDER_DOWNLOAD_BUCKET, key=content['s3Key'])
         downloaded_path = self.download_to_local_location(bucket=settings.ATOM_RESPONDER_DOWNLOAD_BUCKET,
                                                           key=content['s3Key'],
@@ -195,7 +205,9 @@ class MasterImportResponder(KinesisResponder):
                                                  )
 
         #make a note of the record. This is to link it up with Vidispine's response message.
-        record = ImportJob(item_id=master_item.name,job_id=job_result.name,status='STARTED',started_at=datetime.now())
+        record = ImportJob(item_id=master_item.name,job_id=job_result.name,status='STARTED',started_at=datetime.now(),
+                           user_email=content.get('user',"Unknown user"), atom_title=content.get('title', "Unknown title"),
+                           s3_path=content['s3Key'])
         record.save()
 
         project_collection = self.get_collection_for_id(content['projectId'])

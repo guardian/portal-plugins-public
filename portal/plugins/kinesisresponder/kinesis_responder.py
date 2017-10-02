@@ -97,12 +97,13 @@ class KinesisResponder(Thread):
         Main loop for processing the stream
         :return:
         """
-        from pprint import pprint
+        from pprint import pformat
+        from sentry import inform_sentry_exception
         sleep_delay = 1
 
-        print "Starting up responder thread for shard {0}".format(self.shard_id)
+        logger.info("Starting up responder thread for shard {0}".format(self.shard_id))
         iterator = self.new_shard_iterator()
-        print "shard iterator is {0}".format(iterator)
+        logger.debug("shard iterator is {0}".format(iterator))
         while iterator is not None:
             try:
                 record = self._conn.get_records(iterator,limit=10)
@@ -119,10 +120,11 @@ class KinesisResponder(Thread):
                 continue
 
             time_lag = timedelta(seconds=record['MillisBehindLatest']/1000)
-            print "Time lag to this record set is {0}".format(time_lag)
-            print "Record set is dated {0}".format(datetime.now() - time_lag)
+            logger.debug("Time lag to this record set is {0}".format(time_lag))
+            logger.debug("Record set is dated {0}".format(datetime.now() - time_lag))
 
-            pprint(record)
+            logger.debug(pformat(record))
+
             for rec in record['Records']:
                 dbrec = KinesisTracker()
                 dbrec.stream_name = self.stream_name
@@ -142,9 +144,11 @@ class KinesisResponder(Thread):
                     dbrec.status = KinesisTracker.ST_DONE
                     dbrec.save()
                 except Exception as e:
-                    #FIXME: put a call to Raven here too
-                    traceback.print_exc()
-                    print str(e)
+                    logger.error(traceback.format_exc())
+                    inform_sentry_exception(extra_ctx={
+                        "record": dbrec.__dict__
+                    })
+
                     dbrec.status = KinesisTracker.ST_ERROR
                     dbrec.last_exception = str(e)
                     dbrec.exception_trace = traceback.format_exc()

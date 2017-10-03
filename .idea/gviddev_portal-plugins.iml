@@ -4,10 +4,9 @@
     <facet type="django" name="Django">
       <configuration>
         <option name="rootFolder" value="$MODULE_DIR$/gnmlibrarytool" />
-        <option name="settingsModule" value="settings.py" />
-        <option name="manageScript" value="manage.py" />
+        <option name="settingsModule" value="" />
+        <option name="manageScript" value="" />
         <option name="environment" value="&lt;map/&gt;" />
-        <option name="commandsToSkip" value="" />
       </configuration>
     </facet>
   </component>
@@ -23,135 +22,11 @@
     <option name="TEMPLATE_CONFIGURATION" value="Django" />
     <option name="TEMPLATE_FOLDERS">
       <list>
-        <option value="$MODULE_DIR$/static/codemirror" />
-        <option value="$MODULE_DIR$/static/codemirror/doc" />
-        <option value="$MODULE_DIR$/static/codemirror/demo" />
-        <option value="$MODULE_DIR$/static/codemirror/mode" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/d" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/q" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/r" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/go" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/vb" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/apl" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/css" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/dtd" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/ecl" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/elm" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/gas" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/gfm" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/idl" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/lua" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/php" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/pig" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/rpm" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/rpm/changes" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/rst" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/soy" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/sql" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/tcl" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/xml" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/z80" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/dart" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/diff" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/ebnf" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/haml" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/haxe" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/http" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/jade" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/mirc" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/perl" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/ruby" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/rust" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/sass" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/slim" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/solr" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/stex" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/tiki" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/toml" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/ttcn" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/twig" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/vhdl" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/yaml" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/asn.1" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/clike" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/cmake" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/cobol" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/dylan" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/forth" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/julia" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/mumps" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/nginx" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/pegjs" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/shell" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/sieve" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/swift" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/troff" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/cypher" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/django" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/eiffel" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/erlang" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/factor" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/groovy" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/jinja2" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/kotlin" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/mllike" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/octave" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/pascal" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/puppet" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/python" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/scheme" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/smarty" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/sparql" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/stylus" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/turtle" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/xquery" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/clojure" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/fortran" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/gherkin" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/haskell" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/textile" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/tornado" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/verilog" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/asterisk" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/markdown" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/modelica" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/ntriples" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/ttcn-cfg" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/vbscript" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/velocity" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/brainfuck" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/htmlmixed" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/smalltalk" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/asciiarmor" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/commonlisp" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/dockerfile" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/handlebars" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/javascript" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/livescript" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/properties" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/tiddlywiki" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/mathematica" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/spreadsheet" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/coffeescript" />
-        <option value="$MODULE_DIR$/static/codemirror/mode/htmlembedded" />
-        <option value="$MODULE_DIR$/static/codemirror/test" />
-        <option value="$MODULE_DIR$/gnmawsgr/templates" />
-        <option value="$MODULE_DIR$/gnmawsgr/templates/gnmawsgr" />
-        <option value="$MODULE_DIR$/gnmawsgr/portal_theme_files" />
         <option value="$MODULE_DIR$/gnmyoutube/templates/gnmyoutube" />
         <option value="$MODULE_DIR$/gnmyoutube/templates/gnmyoutube/admin" />
         <option value="$MODULE_DIR$/helloworld/templates" />
         <option value="$MODULE_DIR$/gnmlogsearch/templates" />
         <option value="$MODULE_DIR$/gnmzeitgeist/templates" />
-        <option value="$MODULE_DIR$/node_modules/css-lint/node_modules/eslint/lib/formatters" />
-        <option value="$MODULE_DIR$/node_modules/css-lint/node_modules/eslint/node_modules/js-yaml/node_modules/argparse/node_modules/sprintf-js/demo" />
-        <option value="$MODULE_DIR$/node_modules/css-lint/node_modules/eslint/node_modules/inquirer/node_modules/cli-width/coverage/lcov-report" />
-        <option value="$MODULE_DIR$/node_modules/css-lint/node_modules/eslint/node_modules/inquirer/node_modules/cli-width/coverage/lcov-report/cli-width" />
-        <option value="$MODULE_DIR$/node_modules/css-lint/node_modules/eslint/node_modules/handlebars/node_modules/uglify-js/tools" />
-        <option value="$MODULE_DIR$/node_modules/css-lint/node_modules/js-yaml/node_modules/argparse/node_modules/sprintf-js/demo" />
-        <option value="$MODULE_DIR$/node_modules/date-now/test/static" />
-        <option value="$MODULE_DIR$/node_modules/htmlparser2/test/Documents" />
-        <option value="$MODULE_DIR$/node_modules/console-browserify/test/static" />
         <option value="$MODULE_DIR$/gnmplutostats/templates/gnmplutostats" />
         <option value="$MODULE_DIR$/gnmlibrarytool/templates/gnmlibrarytool" />
         <option value="$MODULE_DIR$/gnmpropagation/templates" />
@@ -159,7 +34,6 @@
         <option value="$MODULE_DIR$/gnmsyndication/templates/gnmsyndication" />
         <option value="$MODULE_DIR$/gnmplutoconverter/templates/gnmplutoconverter" />
         <option value="$MODULE_DIR$/gnmuploadprofiler/templates/gnmuploadprofiler" />
-        <option value="$MODULE_DIR$/gnmgridintegration/templates/gnmgridintegration" />
       </list>
     </option>
   </component>

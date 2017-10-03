@@ -1,0 +1,20 @@
+{% load i18n datetimeformatting compress staticfiles %}
+<hr>
+<div id="testarea">
+    <h2>Test</h2>
+    <label for="id_test_itemid">Item ID to test with: </label>
+    <input type="text" id="id_test_itemid" name="test_itemid" onchange="test_itemid_changed();">
+    <!--<button type="button" onclick="test_go">Go!</button>-->
+    <div id="testitem">
+        <div style="display: none;" id="testitem_loading">
+            <img src="{% static 'portal.plugins.gnmgridintegration/load.gif' %}" alt="loading"><br>
+            <span class="loading_text">Loading item information...</span>
+        </div>
+    </div>
+    <div id="testresults">
+        <div style="display: none;" id="testresult_loading">
+            <img src="{% static 'portal.plugins.gnmgridintegration/load.gif' %}" alt="loading"><br>
+            <span class="loading_text">Loading test result...</span>
+        </div>
+    </div>
+</div>

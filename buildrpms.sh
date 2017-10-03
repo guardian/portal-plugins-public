@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash -e
 
 function increment_release {
     FILENAME=$1
@@ -25,15 +25,16 @@ function build_rpm {
     increment_release ${SPECFILE}
     RPM_BASE=$(grep '%define name' ${SPECFILE} | awk -F ' ' '{print $3}')
 
-	if [ ! -d "${BASENAME}" ]; then
+	if [ ! -d "portal/plugins/${BASENAME}" ]; then
 		echo Plugin source dir ${BASENAME} does not exist, cannot continue
+		return 0 #don't bork things if it failed
 		#exit 2
 	fi
 
 	echo -----------------------------------------
 	echo Compressing ${BASENAME}....
 	echo -----------------------------------------
-    tar cv ${BASENAME} --exclude .idea | gzip > ${HOME}/rpmbuild/${BASENAME}.tar.gz
+    tar cv portal/plugins/${BASENAME} --exclude .idea | gzip > ${HOME}/rpmbuild/SOURCES/${BASENAME}.tar.gz
 
     echo -----------------------------------------
     echo Bundling ${BASENAME}....
@@ -52,12 +53,13 @@ function build_rpm {
         S3SUBDIR=/public_repo
     fi
 
+
     for x in `ls ${HOME}/rpmbuild/RPMS/noarch/${RPM_BASE}*.rpm`; do
         SHA=$(${SHASUM} $x | cut -f 1 -d ' ')
         echo SHA-256 checksum is ${SHA}
         echo sha256=${SHA} > $x.sha
         aws s3 cp $x s3://gnm-multimedia-deployables/gnm_portal_plugins${S3SUBDIR}/ --acl public-read
-        aws s3 cp $x.sha1 s3://gnm-multimedia-deployables/gnm_portal_plugins${S3SUBDIR}/ --acl public-read
+        aws s3 cp $x.sha s3://gnm-multimedia-deployables/gnm_portal_plugins${S3SUBDIR}/ --acl public-read
     done
 }
 
@@ -67,19 +69,14 @@ else
     SHASUM=`which sha256sum`
 fi
 
+if [ ! -d "${HOME}/rpmbuild" ]; then
+    mkdir -p ${HOME}/rpmbuild/SOURCES
+fi
+
 if [ "$1" == "" ]; then
-	for dir in `find . -iname gnm\* -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do
+	for dir in `find portal/plugins -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $3 }' | grep -v -E '^\.'`; do
 	    build_rpm $dir
 	done
 else
 	build_rpm $1
 fi
-
-#echo ----------------------------
-#echo Build completed.  Uploading to S3....
-#echo ----------------------------
-#echo
-#
-#for x in `ls *.rpm`; do
-#	aws s3 cp "$x" s3://gnm-multimedia-archivedtech/gnm_portal_plugins/$x --acl public-read
-#done

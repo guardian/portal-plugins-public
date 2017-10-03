@@ -1,0 +1,60 @@
+-   fields:
+        date_joined: 2017-04-24 19:25:36.896397
+        email: ''
+        first_name: ''
+        groups: []
+        is_active: true
+        is_staff: true
+        is_superuser: true
+        last_login: 2017-05-05 13:13:57.543150
+        last_name: ''
+        password: ckjncdjkncd`cdbcms`cs`mnbdnbmcs`
+        user_permissions: []
+        username: peter
+    model: auth.user
+    pk: 2
+-   fields:
+        date_joined: 2017-04-24 19:25:36.896397
+        email: ''
+        first_name: ''
+        groups: []
+        is_active: true
+        is_staff: true
+        is_superuser: true
+        last_login: 2017-05-05 13:13:57.543150
+        last_name: ''
+        password: ckjncdjkncd`cdbcms`cs`mnbdnbmcs`
+        user_permissions: []
+        username: admin
+    model: auth.user
+    pk: 4
+-   fields:
+        date_joined: 2017-04-24 19:25:36.896397
+        email: 'ken@clean-air.system'
+        first_name: 'Ken'
+        groups: []
+        is_active: true
+        is_staff: true
+        is_superuser: false
+        last_login: 2017-05-05 13:13:57.543150
+        last_name: 'Clean-Air System'
+        password: ckjncdjkncd`cdbcms`cs`mnbdnbmcs`
+        user_permissions: []
+        username: kencs
+    model: auth.user
+    pk: 3
+-   fields:
+        date_joined: 2017-04-24 19:25:36.896397
+        email: 'creosote@restaraunts.com'
+        first_name: 'Mr'
+        groups: []
+        is_active: false
+        is_staff: false
+        is_superuser: false
+        last_login: 2017-05-05 13:13:57.543150
+        last_name: 'Creosote'
+        password: ckjncdjkncd`cdbcms`cs`mnbdnbmcs`
+        user_permissions: []
+        username: creosote
+    model: auth.user
+    pk: 1

@@ -19,7 +19,7 @@ class KinesisResponder(Thread):
     Kinesis responder class that deals with getting stuff from a stream shard.  You can subclass this to do interesting
     things with the messages - simply over-ride the process() method to get called whenever something comes in from the stream.
     """
-    def __init__(self, role_name, session_name, stream_name, shard_id, aws_access_key_id=None, aws_secret_access_key=None,**kwargs):
+    def __init__(self, role_name, session_name, stream_name, shard_id, aws_access_key_id=None, aws_secret_access_key=None, should_save=True, **kwargs):
         """
         Initialise
         :param role_name: ARN of role to assume
@@ -35,6 +35,7 @@ class KinesisResponder(Thread):
         self._conn = None
         self.stream_name = stream_name
         self.shard_id = shard_id
+        self.should_save = should_save
 
         self._aws_access_key_id = aws_access_key_id
         self._aws_secret_access_key = aws_secret_access_key
@@ -97,7 +98,7 @@ class KinesisResponder(Thread):
         Main loop for processing the stream
         :return:
         """
-        from pprint import pformat
+        from pprint import pformat,pprint
         from sentry import inform_sentry_exception
         sleep_delay = 1
 
@@ -124,7 +125,6 @@ class KinesisResponder(Thread):
             logger.debug("Record set is dated {0}".format(datetime.now() - time_lag))
 
             logger.debug(pformat(record))
-
             for rec in record['Records']:
                 dbrec = KinesisTracker()
                 dbrec.stream_name = self.stream_name
@@ -135,14 +135,17 @@ class KinesisResponder(Thread):
                 dbrec.status = KinesisTracker.ST_SEEN
                 dbrec.processing_host = "myhost"
                 dbrec.millis_behind_latest = record['MillisBehindLatest']
-                dbrec.save()
+                if self.should_save:
+                    dbrec.save()
 
                 dbrec.status = KinesisTracker.ST_PROCESSING
-                dbrec.save()
+                if self.should_save:
+                    dbrec.save()
                 try:
                     self.process(rec['Data'], datetime.fromtimestamp(rec['ApproximateArrivalTimestamp']))
                     dbrec.status = KinesisTracker.ST_DONE
-                    dbrec.save()
+                    if self.should_save:
+                        dbrec.save()
                 except Exception as e:
                     logger.error(traceback.format_exc())
                     inform_sentry_exception(extra_ctx={
@@ -152,7 +155,8 @@ class KinesisResponder(Thread):
                     dbrec.status = KinesisTracker.ST_ERROR
                     dbrec.last_exception = str(e)
                     dbrec.exception_trace = traceback.format_exc()
-                    dbrec.save()
+                    if self.should_save:
+                        dbrec.save()
 
             iterator = record['NextShardIterator']
             if len(record['Records'])==0 and record['MillisBehindLatest']==0:

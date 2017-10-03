@@ -176,6 +176,8 @@ class MasterImportResponder(KinesisResponder, S3Mixin):
         from models import ImportJob
         content = json.loads(record)
 
+        logger.info(content)
+
         master_item = self.get_item_for_atomid(content['atomId'])
         if master_item is None:
             master_item = self.create_placeholder_for_atomid(content['atomId'],
@@ -195,7 +197,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin):
 
         download_url = "file://" + urllib.quote(downloaded_path)
 
-        logger.info("Download URL for {0} is {1}".format(content['atomId'], download_url))
+        logger.info("{2}: Download URL for {0} is {1}".format(content['atomId'], download_url, content.get('title','(unknown title)')))
 
         job_result = master_item.import_to_shape(uri=download_url,
                                                  essence=True,

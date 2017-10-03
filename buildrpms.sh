@@ -59,7 +59,7 @@ function build_rpm {
         echo SHA-256 checksum is ${SHA}
         echo sha256=${SHA} > $x.sha
         aws s3 cp $x s3://gnm-multimedia-deployables/gnm_portal_plugins${S3SUBDIR}/ --acl public-read
-        aws s3 cp $x.sha1 s3://gnm-multimedia-deployables/gnm_portal_plugins${S3SUBDIR}/ --acl public-read
+        aws s3 cp $x.sha s3://gnm-multimedia-deployables/gnm_portal_plugins${S3SUBDIR}/ --acl public-read
     done
 }
 
@@ -68,8 +68,6 @@ if [ -x `which shasum` ]; then
 else
     SHASUM=`which sha256sum`
 fi
-
-cd portal/plugins
 
 if [ ! -d "${HOME}/rpmbuild" ]; then
     mkdir -p ${HOME}/rpmbuild/SOURCES

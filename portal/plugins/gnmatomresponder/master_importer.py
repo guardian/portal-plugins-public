@@ -197,7 +197,10 @@ class MasterImportResponder(KinesisResponder, S3Mixin):
 
         download_url = "file://" + urllib.quote(downloaded_path)
 
-        logger.info("{2}: Download URL for {0} is {1}".format(content['atomId'], download_url, content.get('title','(unknown title)')))
+        try:
+            logger.info(u"{2}: Download URL for {0} is {1}".format(content['atomId'], download_url, content.get('title','(unknown title)').decode("UTF-8","backslashescape")))
+        except UnicodeEncodeError:
+            pass
 
         job_result = master_item.import_to_shape(uri=download_url,
                                                  essence=True,

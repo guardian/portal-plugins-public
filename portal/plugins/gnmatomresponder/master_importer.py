@@ -22,6 +22,7 @@ DEFAULT_EXPIRY_TIME=3600
 
 make_filename_re = re.compile(r'[^\w\d\.]')
 multiple_underscore_re = re.compile(r'_{2,}')
+extract_extension = re.compile(r'^(?P<basename>.*)\.(?P<extension>[^\.]+)$')
 
 
 class S3Mixin(object):
@@ -117,7 +118,23 @@ class MasterImportResponder(KinesisResponder, S3Mixin):
     def get_download_filename(key=None, overridden_name=None):
         safe_basefile = make_filename_re.sub('_', os.path.basename(overridden_name if overridden_name is not None else key))
         deduped_basefile = multiple_underscore_re.sub('_', safe_basefile)
-        return os.path.join(settings.ATOM_RESPONDER_DOWNLOAD_PATH, deduped_basefile)
+
+        parts = extract_extension.match(deduped_basefile)
+        if parts:
+            nameonly = parts.group("basename")
+            extension = "." + parts.group("extension")
+        else:
+            nameonly = deduped_basefile
+            extension = ""
+
+        number_part = ""
+        n=0
+        while True:
+            path = os.path.join(settings.ATOM_RESPONDER_DOWNLOAD_PATH, nameonly + number_part + extension)
+            if not os.path.exists(path):
+                return path
+            n+=1
+            number_part = "-{0}".format(n)
 
     def download_to_local_location(self, bucket=None, key=None, filename=None, retries=10, retry_delay=2):
         """

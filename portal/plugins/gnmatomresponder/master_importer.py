@@ -96,7 +96,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin):
         userid = MasterImportResponder.get_userid_for_email(user)
         if userid is not None:
             metadata.update({
-                'owner': userid
+                const.GNM_MASTERS_GENERIC_OWNER: userid
             })
 
         item.createPlaceholder(metadata, group='Asset')

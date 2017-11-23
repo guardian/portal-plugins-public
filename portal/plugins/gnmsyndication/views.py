@@ -1,14 +1,14 @@
 from django.http import HttpResponse
 from django.shortcuts import render
-import xml.etree.ElementTree as ET
 import datetime
 import dateutil
 import logging
 from django.conf import settings
 import re
 from models import platform
+import traceback
 
-logger = logging.getLogger("portal.plugins.gnmsyndication")
+logger = logging.getLogger(__name__)
 
 
 def date_fields():
@@ -595,10 +595,14 @@ def assets_by_day(request,date):
 
 
 def seconds_to_duration(nsec):
-    m, s = divmod(float(nsec), 60)
-    h, m = divmod(m, 60)
-    #print "%d:%02d:%02d" % (h, m, s)
-    return u"%02d:%02d:%02d" % (h,m,s)
+    try:
+        m, s = divmod(float(nsec), 60)
+        h, m = divmod(m, 60)
+        #print "%d:%02d:%02d" % (h, m, s)
+        return u"%02d:%02d:%02d" % (h,m,s)
+    except Exception as e:
+        logger.warning(traceback.format_exc())
+        return u"Unable to convert from '{0}'".format(nsec)
 
 
 def csv_report(request):

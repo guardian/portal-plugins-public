@@ -1,5 +1,9 @@
 from django.db import models
 
+#technically this does not belong here but it needs to be called late in every init, in order to register signals but import
+#from other modules' .tasks
+from .signals import *
+
 
 class ImportJob(models.Model):
     item_id = models.CharField(max_length=64, db_index=True)
@@ -28,3 +32,19 @@ class ImportJob(models.Model):
 
     def __str__(self):
         return self.__unicode__().encode("ASCII","backslashreplace")
+
+
+class PacFormXml(models.Model):
+    atom_id = models.CharField(max_length=64, db_index=True, unique=True)
+    received = models.DateTimeField()
+    completed = models.DateTimeField(blank=True, null=True)
+    pacdata_url = models.CharField(max_length=4096)
+    status = models.CharField(max_length=32, choices=[
+        ("UNPROCESSED", "Unprocessed"),
+        ("DOWNLOADING", "Downloading"),
+        ("INPROGRESS", "In progress"),
+        ("PROCESSED", "Processed"),
+        ("ERROR", "Error")
+    ], default="UNPROCESSED",db_index=True)
+    celery_task_id = models.CharField(max_length=64, db_index=True, null=True)
+    last_error = models.TextField(blank=True)

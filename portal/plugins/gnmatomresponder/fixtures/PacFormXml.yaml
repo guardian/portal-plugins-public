@@ -1,0 +1,8 @@
+- model: gnmatomresponder.pacformxml
+  pk: 1
+  fields:
+    atom_id: 57AF5F3B-A556-448B-98E1-0628FDE9A5AC
+    celery_task_id: bbba3673-1f46-4a7f-a549-81bac11955e7
+    received: 2017-12-08T00:01:02Z
+    pacdata_url: s3://bucketname/path/to/content.xml
+    status: UNPROCESSED

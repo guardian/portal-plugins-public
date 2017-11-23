@@ -33,4 +33,5 @@ class Command(KinesisResponderBaseCommand):
 
     def startup_thread(self, conn, shardinfo):
         return MasterImportResponder(self.role_name,self.session_name,self.stream_name,shardinfo['ShardId'],
-                                     aws_access_key_id=settings.ATOM_RESPONDER_AWS_KEY_ID, aws_secret_access_key=settings.ATOM_RESPONDER_SECRET)
+                                     aws_access_key_id=settings.ATOM_RESPONDER_AWS_KEY_ID,
+                                     aws_secret_access_key=settings.ATOM_RESPONDER_SECRET)

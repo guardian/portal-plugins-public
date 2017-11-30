@@ -24,7 +24,6 @@ make_filename_re = re.compile(r'[^\w\d\.]')
 
 
 class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
-
     def process(self,record, approx_arrival):
         """
         Process a message from the kinesis stream.  Each record is a JSON document which contains keys for atomId, s3Key,
@@ -46,7 +45,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
             if project_collection is None:
                 raise RuntimeError("Unable to get a project ID for atom {0}, and no default is set".format(content['atomId']))
 
-        #TODO: we're going to get two types of message on the stream, one for incoming xml the other for incoming media.
+        #We get two types of message on the stream, one for incoming xml the other for incoming media.
         if content['type'] == const.MESSAGE_TYPE_MEDIA:
             master_item = self.get_item_for_atomid(content['atomId'])
             if master_item is None:
@@ -55,6 +54,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                                                                  user=content.get('user', None),
                                                                  parent=project_collection
                                                                  )
+                logger.info("Created item {0} for atom {1}".format(master_item.name, content['atomId']))
             return self.import_new_item(master_item, content)
         elif content['type'] == const.MESSAGE_TYPE_PAC:
             record = self.register_pac_xml(content)
@@ -109,6 +109,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                                                  priority=getattr(settings,"ATOM_RESPONDER_IMPORT_PRIORITY","HIGH"),
                                                  jobMetadata={'gnm_source': 'media_atom'},
                                                  )
+        logger.info(u"{0} Import job is at ID {1}".format(content['atomId'], job_result.name))
 
         try:
             logger.info(u"{n}: Looking for PAC info that has been already registered".format(n=content.get('title','(unknown title)').encode("UTF-8","backslashescape")))
@@ -125,8 +126,10 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                            s3_path=content['s3Key'])
         record.save()
 
+        logger.info(u"{0}: Adding item {1} to collection {2}".format(content['atomId'], master_item.name, parent.name))
         parent.addToCollection(master_item)
-
+        logger.info(u"{0}: Done".format(content['atomId']))
+        
     def ingest_pac_xml(self, pac_xml_record):
         """
         Master process to perform import of pac data

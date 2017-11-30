@@ -21,7 +21,7 @@ def cleanup_old_importjobs():
     try:
         qs = ImportJob.objects\
             .filter(Q(status='FINISHED') | Q(status='FINISHED_WARNING'))\
-            .filter(completed_at__gte=datetime.now()-timedelta(days=30))
+            .filter(completed_at__lte=datetime.now()-timedelta(days=30))
 
         logger.info("Cleaning out {0} import jobs".format(qs.count()))
         qs.delete()

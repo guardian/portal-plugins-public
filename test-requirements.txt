@@ -22,7 +22,7 @@ python-dateutil==2.1
 python-digest==1.7
 python-ldap==2.4.10
 python-memcached==1.48
-psycopg2==2.5.1
+psycopg2==2.7.3.2
 oauth2client==1.2
 ordereddict==1.1
 orderedset==1.1.2

@@ -3,6 +3,7 @@ from mock import MagicMock, patch
 from gnmvidispine.vs_item import VSItem
 from gnmvidispine.vs_search import VSItemSearch
 from gnmvidispine.vs_collection import VSCollection
+import re
 
 class TestMasterImporter(django.test.TestCase):
     class MockSearchResult(object):
@@ -142,6 +143,27 @@ class TestMasterImporter(django.test.TestCase):
 
         result = MasterImportResponder.get_download_filename("some/path/to/filename.xxx", overridden_name="my overriden file.mp4")
         self.assertEqual(result, "/path/to/download/my_overriden_file.mp4")
+
+    def test_get_download_filename_dedupe(self):
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+
+        def mock_exists(path):
+            """
+            fake the os.path.exists to pretend files do exist, up to a given number
+            :param path:
+            :return:
+            """
+            number_part = re.search(r'-(\d+).[^\.]+$', path)
+            if number_part:
+                number = int(number_part.group(1))
+                if number<3: return True
+                return False
+            else:
+                return True
+
+        with patch("os.path.exists", mock_exists):
+            result = MasterImportResponder.get_download_filename("unrelated/path/for/a/filename.xxx")
+            self.assertEqual("/path/to/download/filename-3.xxx", result)
 
     def test_get_collection_for_projectid(self):
         from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder

@@ -33,7 +33,6 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         :param approx_arrival:
         :return:
         """
-        from tasks import ingest_pac_xml
         content = json.loads(record)
 
         logger.info(content)

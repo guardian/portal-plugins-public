@@ -6,6 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class Command(KinesisResponderBaseCommand):
     stream_name = settings.ATOM_RESPONDER_STREAM_NAME
     role_name = settings.ATOM_RESPONDER_ROLE_NAME

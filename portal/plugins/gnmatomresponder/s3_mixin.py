@@ -69,7 +69,7 @@ class S3Mixin(object):
             try:
                 with open(dest_path, "w") as f:
                     keyref.get_contents_to_file(f)
-                logger.info("Done")
+                logger.info("Completed downloading {0}/{1}".format(bucket,key))
                 return dest_path
             except Exception as e:
                 #if something goes wrong, log it and retry

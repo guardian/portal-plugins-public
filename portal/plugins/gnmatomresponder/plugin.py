@@ -2,6 +2,7 @@ import logging
 
 from portal.pluginbase.core import Plugin, implements
 from portal.generic.plugin_interfaces import (IPluginURL, IPluginBlock, IAppRegister)
+from version import build_number
 
 log = logging.getLogger(__name__)
 
@@ -29,12 +30,11 @@ class AtomResponderRegister(Plugin):
     def __init__(self):
         self.name = "Atom message Registration App"
         self.plugin_guid = 'd52de962-4009-429c-b126-dc3a957199b1'
-        log.debug('Register the App')
 
     def __call__(self):
         _app_dict = {
-            'name': 'GnmAtomResponder',
-            'version': '1.0.0',
+            'name': 'Atom Responder plugin',
+            'version': build_number,
             'author': 'Andy Gallagher <andy.gallagher@theguardian.com>',
             'author_url': '',
             'notes': 'Guardian news & media'}

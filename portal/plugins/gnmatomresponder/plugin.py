@@ -34,7 +34,7 @@ class AtomResponderRegister(Plugin):
     def __call__(self):
         _app_dict = {
             'name': 'Atom Responder plugin',
-            'version': build_number,
+            'version': "Build " + str(build_number),
             'author': 'Andy Gallagher <andy.gallagher@theguardian.com>',
             'author_url': '',
             'notes': 'Guardian news & media'}

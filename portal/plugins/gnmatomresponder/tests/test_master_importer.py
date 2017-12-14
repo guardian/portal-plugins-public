@@ -118,9 +118,11 @@ class TestMasterImporter(django.test.TestCase):
         mock_item.createPlaceholder = MagicMock()
         mock_project = MagicMock(target=VSCollection)
         mock_project_name_attrib = MagicMock(target=VSMetadataAttribute)
+        mock_project_name_attrib.uuid = "c4a7cd79-7652-47ba-bd3b-37492cdb91aa"
         mock_project_name_attrib.values = [VSMetadataValue(uuid="B9A8D873-F704-4BA0-A339-17BF456FEA7C")]
         mock_commission_name_attrib = MagicMock(target=VSMetadataAttribute)
         mock_commission_name_attrib.references = [VSMetadataReference(uuid="8CDFBE79-7F08-4D66-9048-0CC33F664937")]
+        mock_commission_name_attrib.uuid = "41cce471-2b30-48fa-8af2-b0d42aff6c7f"
 
         mock_project.get_metadata_attributes = MagicMock(side_effect=[
             [mock_project_name_attrib],
@@ -138,8 +140,8 @@ class TestMasterImporter(django.test.TestCase):
                                                 parent=mock_project)
                 mock_item.createPlaceholder.assert_called_once_with(
                     {'title': 'fake title',
-                     'gnm_commission_title': [VSMetadataReference(uuid="8CDFBE79-7F08-4D66-9048-0CC33F664937")],
-                     'gnm_project_headline': [VSMetadataReference(uuid="B9A8D873-F704-4BA0-A339-17BF456FEA7C")],
+                     'gnm_commission_title': VSMetadataReference(uuid="41cce471-2b30-48fa-8af2-b0d42aff6c7f"),
+                     'gnm_project_headline': VSMetadataReference(uuid="c4a7cd79-7652-47ba-bd3b-37492cdb91aa"),
                      'gnm_asset_category': 'Master',
                      'gnm_type': 'Master',
                      'gnm_master_website_headline': 'fake title',

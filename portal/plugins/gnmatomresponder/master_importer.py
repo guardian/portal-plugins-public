@@ -62,10 +62,11 @@ class MasterImportResponder(KinesisResponder, S3Mixin):
         item = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
         project_name_attribs = parent.get_metadata_attributes(const.GNM_PROJECT_HEADLINE)
 
-        reference_list = map(lambda mdref: VSMetadataReference(uuid=mdref.uuid), project_name_attribs[0].values)
+        #reference_list = map(lambda mdref: VSMetadataReference(uuid=mdref.uuid), project_name_attribs[0].values)
+        project_name_reference = VSMetadataReference(uuid=project_name_attribs[0].uuid)
 
         commission_name_attribs = parent.get_metadata_attributes(const.GNM_COMMISSION_TITLE)
-        commission_name_ref = commission_name_attribs[0].references
+        commission_name_ref = VSMetadataReference(uuid=commission_name_attribs[0].uuid)
 
         metadata = {const.GNM_TYPE: 'Master',
                     'title': title,
@@ -74,7 +75,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin):
                     const.GNM_MASTERS_GENERIC_TITLEID: atomid,
                     const.GNM_ASSET_CATEGORY: "Master",
                     const.GNM_MASTERS_MEDIAATOM_UPLOADEDBY: user,
-                    const.GNM_PROJECT_HEADLINE: reference_list,
+                    const.GNM_PROJECT_HEADLINE: project_name_reference,
                     const.GNM_COMMISSION_TITLE: commission_name_ref
                     }
         userid = MasterImportResponder.get_userid_for_email(user)

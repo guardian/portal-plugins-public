@@ -73,7 +73,7 @@ def cleanup_s3_files():
 
     qs = ImportJob.objects\
         .filter(Q(status='FINISHED') | Q(status='FINISHED_WARNING'))\
-        .filter(completed_at__gte=datetime.now()-timedelta(days=1))
+        .filter(completed_at__lte=datetime.now()-timedelta(days=1))
 
     conn = s3_connector.get_s3_connection()
     logger.info("Removing {0} job files from s3 bucket".format(qs.count()))
@@ -82,3 +82,78 @@ def cleanup_s3_files():
     succeeded = len(filter(lambda result: result, results))
     failed = len(filter(lambda result: not result, results))
     logger.info("Cleanup completed, removed {0} files, {1} failed".format(succeeded, failed))
+
+
+@periodic_task(run_every=crontab(minute=45))
+def check_unprocessed_pacxml():
+    """
+    Scheduled task to check if any unprocessed pac forms have "fallen through the cracks"
+    :return:
+    """
+    from models import PacFormXml
+    from pac_xml import PacXmlProcessor
+    from django.conf import settings
+    from vs_mixin import VSMixin
+
+    role_name = settings.ATOM_RESPONDER_ROLE_NAME
+    session_name = "GNMAtomResponderTimed"
+
+    vs = VSMixin()
+    proc = PacXmlProcessor(role_name,session_name)
+
+    queryset = PacFormXml.objects.filter(status="UNPROCESSED")
+
+    logger.info("check_unprocessed_pacxml: Found {0} unprocessed records".format(queryset.count()))
+
+    for pac_xml_record in queryset:
+        vsitem = vs.get_item_for_atomid(pac_xml_record.atom_id)
+        #this process will call out to Pluto to do the linkup once the data has been received
+        if vsitem is not None:
+            logger.info("check_unprocessed_pacxml: Found item {0} for atom {1}".format(vsitem.name, pac_xml_record.atom_id))
+            proc.link_to_item(pac_xml_record, vsitem)
+            logger.info("check_unprocessed_pacxml: linkup initiated for {0} from {1}".format(vsitem.name, pac_xml_record.atom_id))
+        else:
+            logger.info("check_unprocessed_pacxml: No items found for atom {0}".format(pac_xml_record.atom_id))
+
+    logger.info("check_unprocessed_pacxml: run completed")
+
+
+def delete_s3_url(conn, s3_url):
+    from urlparse import urlparse
+
+    parsed = urlparse(s3_url)
+    if parsed.scheme != "s3":
+        raise ValueError("delete_s3_url called on something not an s3 url (was {0})".format(parsed.scheme))
+
+    bucket = conn.get_bucket(parsed.hostname)
+    if parsed.path.startswith('/'):
+        path = parsed.path[1:]
+    else:
+        path = parsed.path
+
+    bucket.delete_key(path)
+
+
+@periodic_task(run_every=crontab(minute=55))
+def expire_processed_pacrecords():
+    """
+    Scheduled task to remove pac xml records for items that have been processed
+    :return:
+    """
+
+    from models import PacFormXml
+    from django.conf import settings
+    from master_importer import S3Mixin
+
+    queryset = PacFormXml.objects.filter(status="PROCESSED",completed__lte=datetime.now()-timedelta(days=1))
+
+    logger.info("expire_processed_pacrecords: found {0} records processed and older than 1 day to purge".format(queryset.count()))
+    s3_connector = S3Mixin(settings.ATOM_RESPONDER_ROLE_NAME, "AutoDeletePacSession")
+
+    conn = s3_connector.get_s3_connection()
+
+    for pac_record in queryset:
+        logger.info("expire_processed_pacrecords: purging record for atom {0}".format(pac_record.atom_id))
+        delete_s3_url(conn, pac_record.pacdata_url)
+        pac_record.delete()
+    logger.info("expire_processed_pacrecords completed")

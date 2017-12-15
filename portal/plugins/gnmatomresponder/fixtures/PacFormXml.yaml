@@ -1,0 +1,41 @@
+- model: gnmatomresponder.pacformxml
+  pk: 1
+  fields:
+    atom_id: 57AF5F3B-A556-448B-98E1-0628FDE9A5AC
+    celery_task_id: bbba3673-1f46-4a7f-a549-81bac11955e7
+    received: 2017-12-08T00:01:02Z
+    pacdata_url: s3://bucketname/path/to/content.xml
+    status: UNPROCESSED
+- model: gnmatomresponder.pacformxml
+  pk: 2
+  fields:
+    atom_id: 765EE342-0368-4A49-AB73-D1C887BD8D28
+    celery_task_id: 9EEED455-4CF3-47A9-8EBE-6E18480B01BD
+    received: 2017-12-08T00:01:02Z
+    pacdata_url: s3://bucketname/path/to/content.xml
+    status: UNPROCESSED
+- model: gnmatomresponder.pacformxml
+  pk: 3
+  fields:
+    atom_id: F32D58D9-E813-4AC0-96A2-313A91BE3EBD
+    celery_task_id: 9A028A7B-9F62-4133-BDE3-9F9869A50E0E
+    received: 2017-12-08T00:01:02Z
+    completed: 2017-12-08T00:01:15Z
+    pacdata_url: s3://bucketname/path/to/donecontent.xml
+    status: PROCESSED
+- model: gnmatomresponder.pacformxml
+  pk: 4
+  fields:
+    atom_id: 96311D23-C9EE-477F-B38A-A8B5E6C1250D
+    celery_task_id: 50F98ADA-BD15-4A4C-862F-A35F45110B44
+    received: 2017-12-08T00:01:02Z
+    pacdata_url: s3://bucketname/path/to/content.xml
+    status: INPROGRESS
+- model: gnmatomresponder.pacformxml
+  pk: 4
+  fields:
+    atom_id: DABCF6BE-E3E0-46C8-B7F6-1444D8F78A6F
+    celery_task_id: 94A6DAAC-D639-480F-B7D6-E843B8E4228B
+    received: 2017-12-08T00:01:02Z
+    pacdata_url: s3://bucketname/path/to/content.xml
+    status: DOWNLOADING

@@ -3,201 +3,207 @@ from mock import MagicMock, patch
 from gnmvidispine.vs_item import VSItem
 from gnmvidispine.vs_search import VSItemSearch
 from gnmvidispine.vs_collection import VSCollection
+from django.core.management import execute_from_command_line
 import re
 
+execute_from_command_line(['manage.py', 'syncdb', '--noinput'])
+execute_from_command_line(['manage.py', 'migrate', '--noinput'])
+execute_from_command_line(['manage.py', 'loaddata', 'fixtures/PacFormXml.yaml'])
+
+
 class TestMasterImporter(django.test.TestCase):
-    class MockSearchResult(object):
-        def __init__(self, results):
-            self._results = results
-            self.totalItems = len(results)
+    fixtures = [
+        "PacFormXml"
+    ]
 
-        def results(self,shouldPopulate=False):
-            for item in self._results:
-                yield item
-
-    class MockSearchClass(object):
-        def execute(self):
-            pass
-
-    def test_get_item_for_atomid(self):
+    def test_register_pac_xml(self):
         """
-        get_item_for_atomid should make a search for the provided atom id
+        register_pac_xml should create a new data model entry
+        :return:
+        """
+        from portal.plugins.gnmatomresponder.models import PacFormXml
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
+            m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+
+            fake_data = {
+                'atomId': "5C6F1DC4-54E4-47DC-A582-C2470FEF88C2",
+                's3Bucket': "bucketname",
+                's3Path': "more/fun/data.xml"
+            }
+
+            #this record should not exist when we start
+            with self.assertRaises(PacFormXml.DoesNotExist):
+                PacFormXml.objects.get(atom_id=fake_data['atomId'])
+
+            m.register_pac_xml(fake_data)
+
+            result = PacFormXml.objects.get(atom_id=fake_data['atomId'])
+            self.assertEqual(result.pacdata_url,"s3://bucketname/more/fun/data.xml")
+
+    def test_register_pac_xml_existing(self):
+        """
+        register_pac_xml should return the id for an already existing id
+        :return:
+        """
+        from portal.plugins.gnmatomresponder.models import PacFormXml
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
+            with patch('portal.plugins.gnmatomresponder.master_importer.logger.info') as mock_logger_info:
+                m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+
+                fake_data = {
+                    'atomId': "57AF5F3B-A556-448B-98E1-0628FDE9A5AC",
+                    's3Bucket': "bucketname",
+                    's3Path': "more/fun/data.xml"
+                }
+
+                m.register_pac_xml(fake_data)
+
+                result = PacFormXml.objects.get(atom_id=fake_data['atomId'])
+                self.assertEqual(result.pacdata_url,"s3://bucketname/more/fun/data.xml")
+                #info message should be output
+                mock_logger_info.assert_called_once()
+
+    def test_import_new_item(self):
+        """
+        import_new_item should start ingest of an item and pick up the associated PAC form data
         :return:
         """
         from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+        from portal.plugins.gnmatomresponder.pac_xml import PacXmlProcessor
+        from portal.plugins.gnmatomresponder.models import PacFormXml
 
-        mock_item = MagicMock(target=VSItem)
-        mock_search = MagicMock(target=VSItemSearch)
-        mock_search.addCriterion = MagicMock()
-        mock_search.execute = MagicMock(return_value=self.MockSearchResult([mock_item]))
-        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
-            with patch('portal.plugins.gnmatomresponder.master_importer.VSItemSearch', return_value = mock_search):
+        from gnmvidispine.vs_item import VSItem
+        fake_data = {
+            'atomId': "57AF5F3B-A556-448B-98E1-0628FDE9A5AC",
+            's3Key': "path/to/s3data",
+            's3Bucket': "sandcastles",
+            'projectId': "VX-567"
+        }
 
-                r = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
-                mock_refresh_creds.assert_called_once()
+        master_item = MagicMock(target=VSItem)
+        master_item.import_to_shape=MagicMock()
 
-                result = r.get_item_for_atomid("f6ba9036-3f53-4850-9c75-fe3bcfbae4b2")
-                mock_search.addCriterion.assert_called_once_with(
-                    {'gnm_master_mediaatom_atomid': "f6ba9036-3f53-4850-9c75-fe3bcfbae4b2",
-                    'gnm_type': 'Master'}
-                )
+        pac_processor = MagicMock(target=PacXmlProcessor)
+        pac_processor.link_to_item = MagicMock()
 
-                self.assertEqual(result, mock_item)
+        pacxml = PacFormXml.objects.get(atom_id=fake_data['atomId'])
 
-    def test_get_item_for_atomid_notfound(self):
+        project_collection = MagicMock(target=VSCollection)
+        project_collection.addToCollection = MagicMock()
+
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials'):
+            with patch('portal.plugins.gnmatomresponder.pac_xml.PacXmlProcessor', return_value=pac_processor):
+                m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+                m.download_to_local_location = MagicMock(return_value="/path/to/local/file")
+                m.get_collection_for_id = MagicMock(return_value=project_collection)
+
+                m.import_new_item(master_item, fake_data)
+                pac_processor.link_to_item.assert_called_once_with(pacxml, master_item)
+                m.get_collection_for_id.assert_called_once_with(fake_data['projectId'])
+                project_collection.addToCollection.assert_called_once_with(master_item)
+                master_item.import_to_shape.assert_called_once_with(essence=True, jobMetadata={'gnm_source': 'media_atom'}, priority='HIGH', shape_tag='lowres', uri='file:///path/to/local/file')
+
+    def test_import_new_item_nopac(self):
         """
-        get_item_for_atomid should return None if no item exists
+        import_new_item should start ingest of an item even when there is no pac data
         :return:
         """
         from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+        from portal.plugins.gnmatomresponder.pac_xml import PacXmlProcessor
+        from portal.plugins.gnmatomresponder.models import PacFormXml
 
-        mock_search = MagicMock(target=VSItemSearch)
-        mock_search.addCriterion = MagicMock()
-        mock_search.execute = MagicMock(return_value=self.MockSearchResult([]))
-        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
-            with patch('portal.plugins.gnmatomresponder.master_importer.VSItemSearch', return_value = mock_search):
-                r = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
-                mock_refresh_creds.assert_called_once()
+        from gnmvidispine.vs_item import VSItem
+        fake_data = {
+            'atomId': "F6ED398D-9C71-4DBE-A519-C90F901CEB2A",
+            's3Key': "path/to/s3data",
+            's3Bucket': "sandcastles",
+            'projectId': "VX-567"
+        }
 
-                result = r.get_item_for_atomid("f6ba9036-3f53-4850-9c75-fe3bcfbae4b2")
-                mock_search.addCriterion.assert_called_once_with(
-                    {'gnm_master_mediaatom_atomid': "f6ba9036-3f53-4850-9c75-fe3bcfbae4b2",
-                     'gnm_type': 'Master'}
-                )
+        master_item = MagicMock(target=VSItem)
+        master_item.import_to_shape=MagicMock()
 
-                self.assertEqual(result, None)
+        pac_processor = MagicMock(target=PacXmlProcessor)
+        pac_processor.link_to_item = MagicMock()
 
-    def test_create_placeholder_for_atomid(self):
-        """
-        create_placeholder_for_atomid should create a placeholder with relevant metadata
-        :return:
-        """
+        #ensure that the atom id does not exist in our fixtures
+        with self.assertRaises(PacFormXml.DoesNotExist):
+            PacFormXml.objects.get(atom_id=fake_data['atomId'])
+
+        project_collection = MagicMock(target=VSCollection)
+        project_collection.addToCollection = MagicMock()
+
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials'):
+            with patch('portal.plugins.gnmatomresponder.pac_xml.PacXmlProcessor', return_value=pac_processor):
+                m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+                m.download_to_local_location = MagicMock(return_value="/path/to/local/file")
+                m.get_collection_for_id = MagicMock(return_value=project_collection)
+
+                m.import_new_item(master_item, fake_data)
+                pac_processor.link_to_item.assert_not_called()
+                m.get_collection_for_id.assert_called_once_with(fake_data['projectId'])
+                project_collection.addToCollection.assert_called_once_with(master_item)
+                master_item.import_to_shape.assert_called_once_with(essence=True, jobMetadata={'gnm_source': 'media_atom'}, priority='HIGH', shape_tag='lowres', uri='file:///path/to/local/file')
+
+    def test_ingest_pac_xml(self):
         from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
-        mock_item = MagicMock(target=VSItem)
-        mock_item.createPlaceholder = MagicMock()
+        from portal.plugins.gnmatomresponder.pac_xml import PacXmlProcessor
+        from portal.plugins.gnmatomresponder.models import PacFormXml
 
-        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
-            with patch('portal.plugins.gnmatomresponder.master_importer.VSItem', return_value=mock_item):
-                r = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
-                mock_refresh_creds.assert_called_once()
-                r.create_placeholder_for_atomid("f6ba9036-3f53-4850-9c75-fe3bcfbae4b2", title="fake title", user="joe.bloggs@mydomain.com")
-                mock_item.createPlaceholder.assert_called_once_with(
-                    {'title': 'fake title',
-                     'gnm_asset_category': 'Master',
-                     'gnm_type': 'Master',
-                     'gnm_master_website_headline': 'fake title',
-                     'gnm_master_mediaatom_atomid': 'f6ba9036-3f53-4850-9c75-fe3bcfbae4b2',
-                     'gnm_master_generic_titleid': 'f6ba9036-3f53-4850-9c75-fe3bcfbae4b2',
-                     'gnm_master_mediaatom_uploaded_by': 'joe.bloggs@mydomain.com'
-                     }, group='Asset'
-                )
+        from gnmvidispine.vs_item import VSItem
+        fake_data = {
+            'atomId': "57AF5F3B-A556-448B-98E1-0628FDE9A5AC",
+            's3Key': "path/to/s3data",
+            's3Bucket': "sandcastles",
+            'projectId': "VX-567"
+        }
 
-    class MockS3Conn(object):
-        def __init__(self, fake_key, expected_keyname=None,expected_bucketname=None):
-            self.fake_key = fake_key
-            self.expected_bucketname = expected_bucketname
-            self.expected_keyname = expected_keyname
+        master_item = MagicMock(target=VSItem)
+        master_item.import_to_shape=MagicMock()
 
-        class MockBucket(object):
-            def __init__(self, parent, name, expected_keyname=None):
-                self.bucketname = name
-                self.parent = parent
-                self.expected_keyname = expected_keyname
+        pac_processor = MagicMock(target=PacXmlProcessor)
+        pac_processor.link_to_item = MagicMock()
 
-            def get_key(self, keyname):
-                if self.expected_keyname is not None and self.expected_keyname!=keyname:
-                    raise AssertionError("Expected key name '{0}', got '{1}'".format(self.expected_keyname, keyname))
-                return self.parent.fake_key
+        pacxml = PacFormXml.objects.get(atom_id=fake_data['atomId'])
 
-        def get_bucket(self, bucketname):
-            if self.expected_bucketname is not None and self.expected_bucketname!=bucketname:
-                raise AssertionError("Expected bucket name '{0}', got '{1}'".format(self.expected_bucketname, bucketname))
-            return self.MockBucket(self,bucketname, expected_keyname=self.expected_keyname)
+        project_collection = MagicMock(target=VSCollection)
+        project_collection.addToCollection = MagicMock()
 
-    def test_get_s3_signed_url(self):
-        import boto.s3.key
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials'):
+            with patch('portal.plugins.gnmatomresponder.pac_xml.PacXmlProcessor', return_value=pac_processor):
+                m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+                m.download_to_local_location = MagicMock(return_value="/path/to/local/file")
+                m.get_collection_for_id = MagicMock(return_value=project_collection)
+                m.get_item_for_atomid = MagicMock(return_value=master_item)
+
+                m.ingest_pac_xml(pacxml)
+                pac_processor.link_to_item.assert_called_once_with(pacxml, master_item)
+
+    def test_ingest_pac_xml_notfound(self):
         from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
-        fake_key = MagicMock(target=boto.s3.key.Key)
-        fake_key.generate_url = MagicMock(return_value="https://some/invalid/url")
-        mock_conn = self.MockS3Conn(fake_key,expected_bucketname="bucketname", expected_keyname="keyname")
+        from portal.plugins.gnmatomresponder.pac_xml import PacXmlProcessor
+        from portal.plugins.gnmatomresponder.models import PacFormXml
 
-        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
-            with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.get_s3_connection', return_value = mock_conn):
-                r = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
-                mock_refresh_creds.assert_called_once()
-                result = r.get_s3_signed_url("bucketname","keyname")
-                fake_key.generate_url.assert_called_once_with(3600,query_auth=True)
-                self.assertEqual(result, "https://some/invalid/url")
+        fake_data = {
+            'atomId': "57AF5F3B-A556-448B-98E1-0628FDE9A5AC",
+            's3Key': "path/to/s3data",
+            's3Bucket': "sandcastles",
+            'projectId': "VX-567"
+        }
 
-    def test_get_download_filename(self):
-        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+        pac_processor = MagicMock(target=PacXmlProcessor)
+        pac_processor.link_to_item = MagicMock()
 
-        result = MasterImportResponder.get_download_filename("some/path/to/filename.xxx")
-        self.assertEqual(result, "/path/to/download/filename.xxx")
+        pacxml = PacFormXml.objects.get(atom_id=fake_data['atomId'])
 
-        result_with_spaces = MasterImportResponder.get_download_filename("some/path/to filename   with spaces and #^3!")
-        self.assertEqual(result_with_spaces, "/path/to/download/to_filename_with_spaces_and_3_")
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials'):
+            with patch('portal.plugins.gnmatomresponder.pac_xml.PacXmlProcessor', return_value=pac_processor):
+                m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+                m.get_item_for_atomid = MagicMock(return_value=None)
 
-    def test_get_download_filename_override(self):
-        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
-
-        result = MasterImportResponder.get_download_filename("some/path/to/filename.xxx", overridden_name="my overriden file.mp4")
-        self.assertEqual(result, "/path/to/download/my_overriden_file.mp4")
-
-    def test_get_download_filename_dedupe(self):
-        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
-
-        def mock_exists(path):
-            """
-            fake the os.path.exists to pretend files do exist, up to a given number
-            :param path:
-            :return:
-            """
-            number_part = re.search(r'-(\d+).[^\.]+$', path)
-            if number_part:
-                number = int(number_part.group(1))
-                if number<3: return True
-                return False
-            else:
-                return True
-
-        with patch("os.path.exists", mock_exists):
-            result = MasterImportResponder.get_download_filename("unrelated/path/for/a/filename.xxx")
-            self.assertEqual("/path/to/download/filename-3.xxx", result)
-
-    def test_get_collection_for_projectid(self):
-        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
-
-        mock_collection = MagicMock(target=VSCollection)
-        mock_collection.populate = MagicMock()
-        mock_collection.get = MagicMock(return_value='Project')
-
-        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
-            with patch('portal.plugins.gnmatomresponder.master_importer.VSCollection', return_value=mock_collection):
-                r = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
-
-                result = r.get_collection_for_id("VX-234")
-                mock_collection.populate.assert_called_once_with("VX-234")
-                self.assertEqual(result, mock_collection)
-
-    def test_get_collection_for_projectid_invalid(self):
-        """
-        get_collection_for_projectid should raise an exception if the returned collection is not a project
-        :return:
-        """
-        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
-        from portal.plugins.gnmatomresponder.exceptions import NotAProjectError
-
-        mock_collection = MagicMock(target=VSCollection)
-        mock_collection.populate = MagicMock()
-        mock_collection.get = MagicMock(return_value='Gumby')
-
-        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
-            with patch('portal.plugins.gnmatomresponder.master_importer.VSCollection', return_value=mock_collection):
-                r = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
-
-                with self.assertRaises(NotAProjectError) as excep:
-                    result = r.get_collection_for_id("VX-234")
-                mock_collection.populate.assert_called_once_with("VX-234")
-                self.assertEqual(excep.exception.message,"VX-234 is a Gumby")
-
+                m.ingest_pac_xml(pacxml)
+                pac_processor.link_to_item.assert_not_called()

@@ -43,21 +43,33 @@ class VSMixin(object):
             return None
 
     @staticmethod
-    def create_placeholder_for_atomid(atomid, title="unknown video", user="unknown_user"):
+    def create_placeholder_for_atomid(atomid, title="unknown video", user="unknown_user", parent=None):
         """
         Creates a placeholder and returns a VSItem object for it
         :param atomid: atom ID string
         :param title: title of the new video
         :return: VSItem object
         """
+        from gnmvidispine.vs_metadata import VSMetadataReference
         item = VSItem(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+
+        project_name_attribs = parent.get_metadata_attributes(const.GNM_PROJECT_HEADLINE)
+
+        #reference_list = map(lambda mdref: VSMetadataReference(uuid=mdref.uuid), project_name_attribs[0].values)
+        project_name_reference = VSMetadataReference(uuid=project_name_attribs[0].uuid)
+
+        commission_name_attribs = parent.get_metadata_attributes(const.GNM_COMMISSION_TITLE)
+        commission_name_ref = VSMetadataReference(uuid=commission_name_attribs[0].uuid)
+
         metadata = {const.GNM_TYPE: 'Master',
                     'title': title,
                     const.GNM_MASTERS_WEBSITE_HEADLINE: title,
                     const.GNM_MASTERS_MEDIAATOM_ATOMID: atomid,
                     const.GNM_MASTERS_GENERIC_TITLEID: atomid,
                     const.GNM_ASSET_CATEGORY: "Master",
-                    const.GNM_MASTERS_MEDIAATOM_UPLOADEDBY: user
+                    const.GNM_MASTERS_MEDIAATOM_UPLOADEDBY: user,
+                    const.GNM_PROJECT_HEADLINE: project_name_reference,
+                    const.GNM_COMMISSION_TITLE: commission_name_ref
                     }
         userid = VSMixin.get_userid_for_email(user)
         if userid is not None:
@@ -67,6 +79,7 @@ class VSMixin(object):
 
         item.createPlaceholder(metadata, group='Asset')
         return item
+
 
     def get_collection_for_id(self, projectid):
         """

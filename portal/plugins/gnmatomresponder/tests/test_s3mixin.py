@@ -38,7 +38,7 @@ class TestS3Mixin(django.test.TestCase):
                 r = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
                 mock_refresh_creds.assert_called_once()
                 result = r.get_s3_signed_url("bucketname","keyname")
-                fake_key.generate_url.assert_called_once_with(3600,query_auth=True)
+                fake_key.generate_url.assert_called_once_with(60,query_auth=True)
                 self.assertEqual(result, "https://some/invalid/url")
 
     def test_get_download_filename(self):

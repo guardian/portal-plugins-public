@@ -36,3 +36,7 @@ GNM_MASTERS_WEBSITE_HEADLINE = 'gnm_master_website_headline'
 #these need to be kept in sync with the corresponding values at https://github.com/guardian/media-atom-maker/blob/master/common/src/main/scala/com/gu/media/model/PlutoIntegrationData.scala
 MESSAGE_TYPE_MEDIA = "video-upload"
 MESSAGE_TYPE_PAC = "pac-file-upload"
+
+GNM_PROJECT_HEADLINE = 'gnm_project_headline'
+GNM_COMMISSION_TITLE = 'gnm_commission_title'
+

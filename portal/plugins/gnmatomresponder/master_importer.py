@@ -6,7 +6,7 @@ from s3_mixin import S3Mixin
 from vs_mixin import VSMixin
 import logging
 from gnmvidispine.vs_item import VSItem
-
+from gnmvidispine.vs_search import VSItemSearch
 from datetime import datetime
 import portal.plugins.gnmatomresponder.constants as const
 
@@ -18,9 +18,12 @@ logger = logging.getLogger(__name__)
 
 #Still need: holding image. this is more likely to come from the launch detection side than the atom side.
 
+extract_extension = re.compile(r'^(?P<basename>.*)\.(?P<extension>[^\.]+)$')
+multiple_underscore_re = re.compile(r'_{2,}')
+make_filename_re = re.compile(r'[^\w\d\.]')
+
 
 class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
-    default_expiry_time = 3600
 
     def process(self,record, approx_arrival):
         """
@@ -37,13 +40,20 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         logger.info(content)
 
+        project_collection = self.get_collection_for_id(content['projectId'])
+        if project_collection is None:
+            project_collection = getattr(settings,'ATOM_RESPONDER_DEFAULT_PROJECTID',None)
+            if project_collection is None:
+                raise RuntimeError("Unable to get a project ID for atom {0}, and no default is set".format(content['atomId']))
+
         #TODO: we're going to get two types of message on the stream, one for incoming xml the other for incoming media.
         if content['type'] == const.MESSAGE_TYPE_MEDIA:
             master_item = self.get_item_for_atomid(content['atomId'])
             if master_item is None:
                 master_item = self.create_placeholder_for_atomid(content['atomId'],
                                                                  title=content.get('title',None),
-                                                                 user=content.get('user', None)
+                                                                 user=content.get('user', None),
+                                                                 parent=project_collection
                                                                  )
             return self.import_new_item(master_item, content)
         elif content['type'] == const.MESSAGE_TYPE_PAC:
@@ -71,7 +81,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         record.save()
         return record
 
-    def import_new_item(self, master_item, content):
+    def import_new_item(self, master_item, content, parent=None):
         from models import ImportJob, PacFormXml
         from pac_xml import PacXmlProcessor
         from mock import MagicMock
@@ -87,8 +97,10 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         download_url = "file://" + urllib.quote(downloaded_path)
 
         try:
-            logger.info(u"{2}: Download URL for {0} is {1}".format(content['atomId'], download_url, content.get('title','(unknown title)').decode("UTF-8","backslashescape")))
+            logger.info(u"{2}: Download URL for {0} is {1}".format(content['atomId'], download_url, content.get('title','(unknown title)').encode("UTF-8","backslashescape")))
         except UnicodeEncodeError:
+            pass
+        except UnicodeDecodeError:
             pass
 
         job_result = master_item.import_to_shape(uri=download_url,
@@ -99,13 +111,13 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                                                  )
 
         try:
-            logger.info(u"{n}: Looking for PAC info that has been already registered".format(n=content.get('title','(unknown title)').decode("UTF-8","backslashescape")))
+            logger.info(u"{n}: Looking for PAC info that has been already registered".format(n=content.get('title','(unknown title)').encode("UTF-8","backslashescape")))
             pac_entry = PacFormXml.objects.get(atom_id=content['atomId'])
-            logger.info(u"{n}: Found PAC form information at {0}".format(pac_entry.pacdata_url,n=content.get('title','(unknown title)').decode("UTF-8","backslashescape")))
+            logger.info(u"{n}: Found PAC form information at {0}".format(pac_entry.pacdata_url,n=content.get('title','(unknown title)').encode("UTF-8","backslashescape")))
             proc = PacXmlProcessor(self.role_name, self.session_name)
             proc.link_to_item(pac_entry, master_item)
         except PacFormXml.DoesNotExist:
-            logger.info(u"{n}: No PAC form information has yet arrived".format(n=content.get('title','(unknown title)').decode("UTF-8","backslashescape")))
+            logger.info(u"{n}: No PAC form information has yet arrived".format(n=content.get('title','(unknown title)').encode("UTF-8","backslashescape")))
 
         #make a note of the record. This is to link it up with Vidispine's response message.
         record = ImportJob(item_id=master_item.name,job_id=job_result.name,status='STARTED',started_at=datetime.now(),
@@ -113,12 +125,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                            s3_path=content['s3Key'])
         record.save()
 
-        project_collection = self.get_collection_for_id(content['projectId'])
-        if project_collection is None:
-            project_collection = getattr(settings,'ATOM_RESPONDER_DEFAULT_PROJECTID',None)
-            if project_collection is None:
-                raise RuntimeError("Unable to get a project ID for master {0}, and no default is set".format(master_item.name))
-        project_collection.addToCollection(master_item)
+        parent.addToCollection(master_item)
 
     def ingest_pac_xml(self, pac_xml_record):
         """

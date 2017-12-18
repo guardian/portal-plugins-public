@@ -99,11 +99,9 @@ class TestMasterImporter(django.test.TestCase):
             with patch('portal.plugins.gnmatomresponder.pac_xml.PacXmlProcessor', return_value=pac_processor):
                 m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
                 m.download_to_local_location = MagicMock(return_value="/path/to/local/file")
-                m.get_collection_for_id = MagicMock(return_value=project_collection)
 
-                m.import_new_item(master_item, fake_data)
+                m.import_new_item(master_item, fake_data, parent=project_collection)
                 pac_processor.link_to_item.assert_called_once_with(pacxml, master_item)
-                m.get_collection_for_id.assert_called_once_with(fake_data['projectId'])
                 project_collection.addToCollection.assert_called_once_with(master_item)
                 master_item.import_to_shape.assert_called_once_with(essence=True, jobMetadata={'gnm_source': 'media_atom'}, priority='HIGH', shape_tag='lowres', uri='file:///path/to/local/file')
 
@@ -141,11 +139,9 @@ class TestMasterImporter(django.test.TestCase):
             with patch('portal.plugins.gnmatomresponder.pac_xml.PacXmlProcessor', return_value=pac_processor):
                 m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
                 m.download_to_local_location = MagicMock(return_value="/path/to/local/file")
-                m.get_collection_for_id = MagicMock(return_value=project_collection)
 
-                m.import_new_item(master_item, fake_data)
+                m.import_new_item(master_item, fake_data, parent=project_collection)
                 pac_processor.link_to_item.assert_not_called()
-                m.get_collection_for_id.assert_called_once_with(fake_data['projectId'])
                 project_collection.addToCollection.assert_called_once_with(master_item)
                 master_item.import_to_shape.assert_called_once_with(essence=True, jobMetadata={'gnm_source': 'media_atom'}, priority='HIGH', shape_tag='lowres', uri='file:///path/to/local/file')
 

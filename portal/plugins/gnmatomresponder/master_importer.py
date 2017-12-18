@@ -5,14 +5,10 @@ from django.conf import settings
 from s3_mixin import S3Mixin
 from vs_mixin import VSMixin
 import logging
-from gnmvidispine.vs_item import VSItem
-from gnmvidispine.vs_search import VSItemSearch
+from gnmvidispine.vs_item import VSItem, VSNotFound
 from datetime import datetime
 import portal.plugins.gnmatomresponder.constants as const
-
-import os
 import re
-import time
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +35,20 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         logger.info(content)
 
-        project_collection = self.get_collection_for_id(content['projectId'])
+        try:
+            project_collection = self.get_collection_for_id(content['projectId'])
+        except VSNotFound:
+            try:
+                logger.warning(u"Invalid parent collection {0} specified for atom {1} ({2}). Falling back to default.".format(
+                    content['projectId'], content['atomId'],
+                    content.get('title','(unknown title)').encode("UTF-8","backslashescape")
+                ))
+            except UnicodeDecodeError:
+                pass
+            except UnicodeEncodeError:
+                pass
+            project_collection = None
+
         if project_collection is None:
             project_collection = getattr(settings,'ATOM_RESPONDER_DEFAULT_PROJECTID',None)
             if project_collection is None:

@@ -97,8 +97,10 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         download_url = "file://" + urllib.quote(downloaded_path)
 
         try:
-            logger.info(u"{2}: Download URL for {0} is {1}".format(content['atomId'], download_url, content.get('title','(unknown title)').decode("UTF-8","backslashescape")))
+            logger.info(u"{2}: Download URL for {0} is {1}".format(content['atomId'], download_url, content.get('title','(unknown title)').encode("UTF-8","backslashescape")))
         except UnicodeEncodeError:
+            pass
+        except UnicodeDecodeError:
             pass
 
         job_result = master_item.import_to_shape(uri=download_url,
@@ -109,13 +111,13 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                                                  )
 
         try:
-            logger.info(u"{n}: Looking for PAC info that has been already registered".format(n=content.get('title','(unknown title)').decode("UTF-8","backslashescape")))
+            logger.info(u"{n}: Looking for PAC info that has been already registered".format(n=content.get('title','(unknown title)').encode("UTF-8","backslashescape")))
             pac_entry = PacFormXml.objects.get(atom_id=content['atomId'])
-            logger.info(u"{n}: Found PAC form information at {0}".format(pac_entry.pacdata_url,n=content.get('title','(unknown title)').decode("UTF-8","backslashescape")))
+            logger.info(u"{n}: Found PAC form information at {0}".format(pac_entry.pacdata_url,n=content.get('title','(unknown title)').encode("UTF-8","backslashescape")))
             proc = PacXmlProcessor(self.role_name, self.session_name)
             proc.link_to_item(pac_entry, master_item)
         except PacFormXml.DoesNotExist:
-            logger.info(u"{n}: No PAC form information has yet arrived".format(n=content.get('title','(unknown title)').decode("UTF-8","backslashescape")))
+            logger.info(u"{n}: No PAC form information has yet arrived".format(n=content.get('title','(unknown title)').encode("UTF-8","backslashescape")))
 
         #make a note of the record. This is to link it up with Vidispine's response message.
         record = ImportJob(item_id=master_item.name,job_id=job_result.name,status='STARTED',started_at=datetime.now(),

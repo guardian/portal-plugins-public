@@ -42,10 +42,10 @@ class GnmpagerdutyRegister(Plugin):
         log.debug('Register the App')
 
     def __call__(self):
-        from __init__ import __version__ as versionnumber
+        from version import build_number
         _app_dict = {
                 'name': 'GNM PagerDuty',
-                'version': '1.0.0',
+                'version': "Build " + str(build_number),
                 'author': 'Dave Allison and Andy Gallagher',
                 'author_url': 'www.theguardian.com/',
                 'notes': 'Allows alerts to be sent to PagerDuty when storages get too full'}

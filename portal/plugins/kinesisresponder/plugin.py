@@ -55,10 +55,10 @@ class GnmkinesisresponderRegister(Plugin):
         self.plugin_guid = 'd52de962-4009-429c-b126-dc3a957199b1'
 
     def __call__(self):
-        from __init__ import __version__ as versionnumber
+        from version import build_number
         _app_dict = {
                 'name': 'Kinesis Responder base plugin',
-                'version': versionnumber,
+                'version': "Build " + str(build_number),
                 'author': 'Andy Gallagher',
                 'author_url': '',
                 'notes': '(C) Guardian News & Media'}

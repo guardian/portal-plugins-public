@@ -56,10 +56,10 @@ class GnmlibrarytoolRegister(Plugin):
         self.plugin_guid = 'a2b756a9-1562-4775-94c7-b1309e00ccbc'
 
     def __call__(self):
-        from __init__ import __version__ as versionnumber
+        from version import build_number
         _app_dict = {
-                'name': 'Gnmlibrarytool',
-                'version': '1.0.0',
+                'name': 'GNM Library Tool',
+                'version': "Build " + str(build_number),
                 'author': '',
                 'author_url': '',
                 'notes': '(c) by and for Guardian News and Media'}

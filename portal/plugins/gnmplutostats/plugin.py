@@ -70,10 +70,10 @@ class GnmplutostatsRegister(Plugin):
         log.debug('Register the App')
 
     def __call__(self):
-        from __init__ import __version__ as versionnumber
+        from version import build_number
         _app_dict = {
                 'name': 'Gnmplutostats',
-                'version': '0.0.1',
+                'version': "Build " + str(build_number),
                 'author': '',
                 'author_url': '',
                 'notes': 'Add your Copyright notice here.'}

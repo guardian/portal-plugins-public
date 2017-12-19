@@ -13,14 +13,15 @@ class GNMPropagationRegister(Plugin):
     log.debug("Registered GNM Propagation app")
 
   def __call__(self):
-    _app_dict = {
+      from version import build_number
+      _app_dict = {
       'name': self.name,
-      'version': "1.0",
+      'version': "Build " + str(build_number),
       'author': 'Dave Allison and Andy Gallagher',
       'author_url': 'www.theguardian.com/',
       'notes': 'Propagates meta data fields.'
-    }
-    return _app_dict
+      }
+      return _app_dict
 
 GNMPropagationplugin = GNMPropagationRegister()
 

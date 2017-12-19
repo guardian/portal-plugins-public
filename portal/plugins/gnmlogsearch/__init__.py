@@ -10,17 +10,17 @@ class LogSearchRegister(Plugin):
   def __init__(self):
     self.name = "GNM Advanced Log Search App"
     self.plugin_guid = "93060d6c-de96-11e4-8b5e-60030890043a"
-    log.debug("Registered GNM Advanced Log Search app")
 
   def __call__(self):
-    _app_dict = {
-      'name': self.name,
-      'version': '1.0.0',
-      'author': 'Andy Gallagher',
-      'author_url': 'http://www.theguardian.com/profile/andy-gallagher',
-      'notes': 'Detailed log search and review'
-    }
-    return _app_dict
+      from version import build_number
+      _app_dict = {
+        'name': self.name,
+        'version': "Build " + str(build_number),
+        'author': 'Andy Gallagher',
+        'author_url': 'http://www.theguardian.com/profile/andy-gallagher',
+        'notes': 'Detailed log search and review'
+      }
+      return _app_dict
 
 logsearchplugin = LogSearchRegister()
 

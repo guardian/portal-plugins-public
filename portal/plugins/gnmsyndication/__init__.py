@@ -13,9 +13,10 @@ class GNMSyndicationRegister(Plugin):
     log.debug("Registered GNM Syndication Dashboard app")
 
   def __call__(self):
+    from version import build_number
     _app_dict = {
       'name': self.name,
-      'version': "1.0.0",
+      'version': "Build " + str(build_number),
       'author': 'Andy Gallagher',
       'author_url': 'http://www.theguardian.com/profile/andy-gallagher',
       'notes': 'Statistics and functions for dealing with syndication partners'

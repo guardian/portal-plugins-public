@@ -75,7 +75,9 @@ fi
 
 if [ "$1" == "" ]; then
 	for dir in `find portal/plugins -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $3 }' | grep -v -E '^\.'`; do
-	    echo "build_number=${CIRCLE_BUILD_NUM}" > portal/plugins/$dir/version.py
+	    if [ "${CIRCLE_BUILD_NUM}" != "" ]; then
+	        echo "build_number=${CIRCLE_BUILD_NUM}" > portal/plugins/$dir/version.py
+	    fi
 	    build_rpm $dir
 	done
 else

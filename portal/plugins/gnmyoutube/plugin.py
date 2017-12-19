@@ -69,11 +69,11 @@ class GnmyoutubeRegister(Plugin):
         log.debug('Register the App')
 
     def __call__(self):
-        from __init__ import __version__ as versionnumber
+        from version import build_number
         from __init__ import __author__
         _app_dict = {
                 'name': 'Gnmyoutube',
-                'version': versionnumber,
+                'version': "Build " + str(build_number),
                 'author': __author__,
                 'author_url': '',
                 'notes': 'By and For GNM Multimedia'}

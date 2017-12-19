@@ -13,9 +13,10 @@ class GnmZeitgeistRegister(Plugin):
     log.debug("Registered GnmZeitgeist app")
 
   def __call__(self):
+    from version import build_number
     _app_dict = {
       'name': self.name,
-      'version': "1.0.0",
+      'version': "Build " + str(build_number),
       'author': 'Andy Gallagher',
       'author_url': 'http://www.theguardian.com/profile/andy-gallagher',
       'notes': 'Shows tag clouds of what is being uploaded at the moment'

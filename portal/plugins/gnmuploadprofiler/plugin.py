@@ -56,10 +56,10 @@ class GnmuploadprofilerRegister(Plugin):
         log.debug('Register the App')
 
     def __call__(self):
-        from __init__ import __version__ as versionnumber
+        from version import build_number
         _app_dict = {
                 'name': 'Upload Speed Profiler',
-                'version': versionnumber,
+                'version': "Build " + str(build_number),
                 'author': 'Andy Gallagher <andy.gallagher@theguardian.com>',
                 'author_url': '',
                 'notes': 'GNM internal software'}

@@ -55,7 +55,6 @@ class VSMixin(object):
 
         project_name_attribs = parent.get_metadata_attributes(const.GNM_PROJECT_HEADLINE)
 
-        #reference_list = map(lambda mdref: VSMetadataReference(uuid=mdref.uuid), project_name_attribs[0].values)
         project_name_reference = VSMetadataReference(uuid=project_name_attribs[0].uuid)
 
         commission_name_attribs = parent.get_metadata_attributes(const.GNM_COMMISSION_TITLE)

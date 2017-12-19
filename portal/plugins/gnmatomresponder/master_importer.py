@@ -5,14 +5,10 @@ from django.conf import settings
 from s3_mixin import S3Mixin
 from vs_mixin import VSMixin
 import logging
-from gnmvidispine.vs_item import VSItem
-from gnmvidispine.vs_search import VSItemSearch
+from gnmvidispine.vs_item import VSItem, VSNotFound
 from datetime import datetime
 import portal.plugins.gnmatomresponder.constants as const
-
-import os
 import re
-import time
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +20,6 @@ make_filename_re = re.compile(r'[^\w\d\.]')
 
 
 class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
-
     def process(self,record, approx_arrival):
         """
         Process a message from the kinesis stream.  Each record is a JSON document which contains keys for atomId, s3Key,
@@ -36,17 +31,45 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         :param approx_arrival:
         :return:
         """
+        from .exceptions import NotAProjectError
+
         content = json.loads(record)
 
         logger.info(content)
 
-        project_collection = self.get_collection_for_id(content['projectId'])
-        if project_collection is None:
-            project_collection = getattr(settings,'ATOM_RESPONDER_DEFAULT_PROJECTID',None)
-            if project_collection is None:
-                raise RuntimeError("Unable to get a project ID for atom {0}, and no default is set".format(content['atomId']))
+        try:
+            project_collection = self.get_collection_for_id(content['projectId'])
+        except VSNotFound:
+            try:
+                logger.warning(u"Invalid parent collection {0} specified for atom {1} ({2}). Falling back to default.".format(
+                    content['projectId'], content['atomId'],
+                    content.get('title','(unknown title)').encode("UTF-8","backslashescape")
+                ))
+            except UnicodeDecodeError:
+                pass
+            except UnicodeEncodeError:
+                pass
+            project_collection = None
+        except NotAProjectError:
+            try:
+                logger.warning(u"Collection {0} specified for atom {1} ({2}) is not a Project. Falling back to default.".format(
+                    content['projectId'], content['atomId'],
+                    content.get('title','(unknown title)').encode("UTF-8","backslashescape")
+                ))
+            except UnicodeDecodeError:
+                pass
+            except UnicodeEncodeError:
+                pass
+            project_collection = None
 
-        #TODO: we're going to get two types of message on the stream, one for incoming xml the other for incoming media.
+        if project_collection is None:
+            collection_id = getattr(settings,'ATOM_RESPONDER_DEFAULT_PROJECTID',None)
+            if collection_id is None:
+                raise RuntimeError("Unable to get a project ID for atom {0}, and no default is set".format(content['atomId']))
+            else:
+                project_collection = self.get_collection_for_id(collection_id)
+
+        #We get two types of message on the stream, one for incoming xml the other for incoming media.
         if content['type'] == const.MESSAGE_TYPE_MEDIA:
             master_item = self.get_item_for_atomid(content['atomId'])
             if master_item is None:
@@ -55,7 +78,8 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                                                                  user=content.get('user', None),
                                                                  parent=project_collection
                                                                  )
-            return self.import_new_item(master_item, content)
+                logger.info("Created item {0} for atom {1}".format(master_item.name, content['atomId']))
+            return self.import_new_item(master_item, content, parent=project_collection)
         elif content['type'] == const.MESSAGE_TYPE_PAC:
             record = self.register_pac_xml(content)
             self.ingest_pac_xml(record)
@@ -109,6 +133,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                                                  priority=getattr(settings,"ATOM_RESPONDER_IMPORT_PRIORITY","HIGH"),
                                                  jobMetadata={'gnm_source': 'media_atom'},
                                                  )
+        logger.info(u"{0} Import job is at ID {1}".format(content['atomId'], job_result.name))
 
         try:
             logger.info(u"{n}: Looking for PAC info that has been already registered".format(n=content.get('title','(unknown title)').encode("UTF-8","backslashescape")))
@@ -125,8 +150,13 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                            s3_path=content['s3Key'])
         record.save()
 
-        parent.addToCollection(master_item)
-
+        if parent is not None:
+            logger.info(u"{0}: Adding item {1} to collection {2}".format(content['atomId'], master_item.name, parent.name))
+            parent.addToCollection(master_item)
+            logger.info(u"{0}: Done".format(content['atomId']))
+        else:
+            logger.error(u"{0}: No parent collection specified for item {1}!".format(content['atomId'], master_item.name))
+        
     def ingest_pac_xml(self, pac_xml_record):
         """
         Master process to perform import of pac data

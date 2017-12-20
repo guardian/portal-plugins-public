@@ -37,7 +37,7 @@
            logger = logging.getLogger(__name__)
            logger.info("Starting propagation from {0}".format(collectionId))
 
-           result = tasks.propagate.apply_async(collectionId, 'gnm_storage_rule_deep_archive', gnm_storage_rule_deep_archive, ), queue='propagator')
+           result = tasks.propagate.apply_async((collectionId, 'gnm_storage_rule_deep_archive', gnm_storage_rule_deep_archive, ), queue='propagator')
            logger.info("Propagation task {0} scheduled".format(result))
         ]]>
     </rule>

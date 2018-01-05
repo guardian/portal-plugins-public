@@ -1,0 +1,15 @@
+{% load static %}
+<script src="{% static 'gnmdownloadablelink/downloadable_link.js' %}"></script>
+<ul>
+    {% for entry in existing_shares %}
+    <li>{{ entry.shapetag }}: {{ entry.status }}
+        {% if entry.status == "Available" %}
+    <a href="{{ entry.public_url }}">Download</a>
+    {% endif %}
+    </li>
+    {% endfor %}
+    <li>
+        <img src="{% static 'gnmdownloadablelink/share.png' %}" style="height: 20px;">
+        <a href="#" onclick="downloadablelink_create();">Make downloadable link....</a>
+    </li>
+</ul>

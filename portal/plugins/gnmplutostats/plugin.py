@@ -72,11 +72,11 @@ class GnmplutostatsRegister(Plugin):
     def __call__(self):
         from version import build_number
         _app_dict = {
-                'name': 'Gnmplutostats',
+                'name': 'PLUTO stats plugin',
                 'version': "Build " + str(build_number),
                 'author': '',
                 'author_url': '',
-                'notes': 'Add your Copyright notice here.'}
+                'notes': ''}
         return _app_dict
 
 gnmplutostatsplugin = GnmplutostatsRegister()

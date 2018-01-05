@@ -203,3 +203,27 @@ class TestMasterImporter(django.test.TestCase):
 
                 m.ingest_pac_xml(pacxml)
                 pac_processor.link_to_item.assert_not_called()
+
+    def test_pac_message(self):
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+        from portal.plugins.gnmatomresponder.pac_xml import PacXmlProcessor
+        from portal.plugins.gnmatomresponder.models import PacFormXml
+        import json
+
+        message = {u's3Bucket': u'media-atom-maker-upload-prod', u's3Path': u'uploads/0428f4ce-9f1f-4ad6-84d7-e4118936cae1-1/pac.xml', u'atomId': u'57AF5F3B-A556-448B-98E1-0628FDE9A5AC', u'type': u'pac-file-upload'}
+        json_msg = json.dumps(message)
+
+        pac_processor = MagicMock(target=PacXmlProcessor)
+        pac_processor.link_to_item = MagicMock()
+
+        pacxml = PacFormXml.objects.get(atom_id=message['atomId'])
+
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials'):
+            with patch('portal.plugins.gnmatomresponder.pac_xml.PacXmlProcessor', return_value=pac_processor):
+                m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+                m.ingest_pac_xml = MagicMock()
+                m.import_new_item = MagicMock()
+
+                m.process(json_msg,None)
+                m.import_new_item.assert_not_called()
+                m.ingest_pac_xml.assert_called_once_with(pacxml)

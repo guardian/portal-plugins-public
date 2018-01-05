@@ -20,22 +20,13 @@ make_filename_re = re.compile(r'[^\w\d\.]')
 
 
 class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
-    def process(self,record, approx_arrival):
+    def get_project_collection(self, content):
         """
-        Process a message from the kinesis stream.  Each record is a JSON document which contains keys for atomId, s3Key,
-        projectId.  This will find an item with the given atom ID or create a new one, get a signed download URL from
-        S3 for the media and then instruct Vidsipine to import it.
-        Rather than wait for the job to complete here, we return immediately and rely on receiving a message from VS
-        when the job terminates.
-        :param record: JSON document in the form of a string
-        :param approx_arrival:
+        Gets a populated VSCollection reference to the project collection mentioned in content
+        :param content: parsed json message including the 'projectId' key
         :return:
         """
         from .exceptions import NotAProjectError
-
-        content = json.loads(record)
-
-        logger.info(content)
 
         try:
             project_collection = self.get_collection_for_id(content['projectId'])
@@ -69,9 +60,28 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
             else:
                 project_collection = self.get_collection_for_id(collection_id)
 
+        return project_collection
+
+    def process(self,record, approx_arrival):
+        """
+        Process a message from the kinesis stream.  Each record is a JSON document which contains keys for atomId, s3Key,
+        projectId.  This will find an item with the given atom ID or create a new one, get a signed download URL from
+        S3 for the media and then instruct Vidsipine to import it.
+        Rather than wait for the job to complete here, we return immediately and rely on receiving a message from VS
+        when the job terminates.
+        :param record: JSON document in the form of a string
+        :param approx_arrival:
+        :return:
+        """
+        content = json.loads(record)
+
+        logger.info(content)
+
         #We get two types of message on the stream, one for incoming xml the other for incoming media.
         if content['type'] == const.MESSAGE_TYPE_MEDIA:
             master_item = self.get_item_for_atomid(content['atomId'])
+            project_collection = self.get_project_collection(content)
+
             if master_item is None:
                 master_item = self.create_placeholder_for_atomid(content['atomId'],
                                                                  title=content.get('title',None),

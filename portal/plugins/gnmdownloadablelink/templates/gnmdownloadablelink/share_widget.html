@@ -2,10 +2,14 @@
 <script src="{% static 'gnmdownloadablelink/downloadable_link.js' %}"></script>
 <ul>
     {% for entry in existing_shares %}
-    <li>{{ entry.shapetag }}: {{ entry.status }}
+    <li class="sharable-link-entry"
+        data-entrystatus="{{ entry.status }}"
+        data-entryid="{{ entry.pk }}">
+        {{ entry.shapetag }}: {{ entry.status }}
+
         {% if entry.status == "Available" %}
-    <a href="{{ entry.public_url }}">Download</a>
-    {% endif %}
+            <a href="{{ entry.public_url }}">Download</a>
+        {% endif %}
     </li>
     {% endfor %}
     <li>

@@ -1,0 +1,72 @@
+- fields:
+    created: !!timestamp '2018-01-05 17:23:54.141470'
+    created_by: 1
+    expiry: !!timestamp '2018-01-05 17:23:54.143562'
+    item_id: VX-11
+    public_url: ''
+    s3_url: ''
+    shapetag: original
+    status: Requested
+    transcode_job: ''
+  model: gnmdownloadablelink.downloadablelink
+  pk: 1
+- fields:
+    created: !!timestamp '2018-01-05 17:23:54.141470'
+    created_by: 1
+    expiry: !!timestamp '2018-01-05 17:23:54.143562'
+    item_id: VX-11
+    public_url: ''
+    s3_url: ''
+    shapetag: mezzanine
+    status: Requested
+    transcode_job: ''
+  model: gnmdownloadablelink.downloadablelink
+  pk: 2
+- fields:
+    created: !!timestamp '2018-01-05 17:23:54.141470'
+    created_by: 1
+    expiry: !!timestamp '2018-01-05 17:23:54.143562'
+    item_id: VX-11
+    public_url: ''
+    s3_url: ''
+    shapetag: lowres
+    status: Requested
+    transcode_job: ''
+  model: gnmdownloadablelink.downloadablelink
+  pk: 3
+- fields:
+    created: !!timestamp '2018-01-05 17:23:54.141470'
+    created_by: 1
+    expiry: !!timestamp '2018-01-05 17:23:54.143562'
+    item_id: VX-11
+    public_url: ''
+    s3_url: ''
+    shapetag: webm
+    status: Requested
+    transcode_job: ''
+  model: gnmdownloadablelink.downloadablelink
+  pk: 4
+- fields:
+    created: !!timestamp '2018-01-05 17:23:54.141470'
+    created_by: 1
+    expiry: !!timestamp '2018-01-05 17:23:54.143562'
+    item_id: VX-12
+    public_url: ''
+    s3_url: ''
+    shapetag: mezzanine
+    status: Requested
+    transcode_job: ''
+  model: gnmdownloadablelink.downloadablelink
+  pk: 5
+- fields:
+    created: !!timestamp '2018-01-05 17:23:54.141470'
+    created_by: 1
+    expiry: !!timestamp '2018-01-05 17:23:54.143562'
+    item_id: VX-13
+    public_url: ''
+    s3_url: ''
+    shapetag: mezzanine
+    status: Requested
+    transcode_job: ''
+  model: gnmdownloadablelink.downloadablelink
+  pk: 6

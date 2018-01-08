@@ -17,7 +17,10 @@ from rest_framework.renderers import JSONRenderer, XMLRenderer
 from rest_framework.parsers import JSONParser, XMLParser
 from serializers import DownloadableLinkSerializer
 from models import DownloadableLink
+from django.views.generic import View
+from django.http import HttpResponse
 from django.core.urlresolvers import reverse_lazy, reverse
+import requests
 import django.db
 from datetime import datetime, timedelta
 from django.contrib.auth.models import User
@@ -91,3 +94,13 @@ class CreateLinkRequest(CreateAPIView):
         response = create_link_for.delay(kwargs['item_id'],kwargs['shape_tag'])
         logger.info("Returning")
         return Response({'status': 'ok', 'link': reverse("downloadable_link_item", kwargs={'pk': self.object.id}), 'task': response.id})
+
+
+class ShapeTagList(View):
+    def get(self, request):
+        from django.conf import settings
+        url = "{0}:{1}/API/shape-tag?run-as={2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT, request.user.username)
+        auth = (settings.VIDISPINE_USERNAME,settings.VIDISPINE_PASSWORD,)
+
+        response = requests.get(url, auth=auth, headers={'Accept': 'application/json'})
+        return HttpResponse(response.content,content_type='application/json',status=response.status_code)

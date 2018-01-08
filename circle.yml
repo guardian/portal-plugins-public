@@ -33,6 +33,7 @@ test:
     - nosetests -v portal/plugins/gnmpagerduty/tests
     - DJANGO_SETTINGS_MODULE=portal.plugins.gnmlibrarytool.tests.django_test_settings nosetests -v portal/plugins/gnmlibrarytool/tests
     - DJANGO_SETTINGS_MODULE=portal.plugins.gnmatomresponder.tests.django_test_settings nosetests -v portal/plugins/gnmatomresponder/tests
+    - DJANGO_SETTINGS_MODULE=portal.plugins.gnmdownloadablelink.tests.django_test_settings nosetests -v portal/plugins/gnmdownloadablelink/tests
     - npm run test
     - npm run lint
     - npm run testcss

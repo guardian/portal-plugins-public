@@ -85,8 +85,6 @@ class TestViews(APITestCase):
     def test_create_link_for(self):
         from django.contrib.auth.models import User
         from celery.result import AsyncResult
-        import datetime
-        import json
 
         client = APIClient()
         client.force_authenticate(user=User.objects.get(pk=1))
@@ -95,8 +93,6 @@ class TestViews(APITestCase):
             'status': 'Requested',
             'created': '2017-01-01T14:32:02',
             'expiry': '2017-01-03T00:00:00',
-            'item_id': 'VX-31',
-            'shapetag': 'mezzanine'
         }
 
         mock_celery_result = MagicMock(target=AsyncResult)
@@ -104,7 +100,27 @@ class TestViews(APITestCase):
         with patch("portal.plugins.gnmdownloadablelink.tasks.create_link_for") as mock_create_link_task:
             mock_create_link_task.delay = MagicMock(return_value=mock_celery_result)
             result = client.post(reverse_lazy("downloadable_link_create", kwargs={'item_id': "VX-31", 'shape_tag': "mezzanine"}), newdata, format="json")
-            print result.data
             self.assertEqual(result.status_code, 200)
 
             mock_create_link_task.delay.assert_called_once_with("VX-31","mezzanine")
+
+    def test_create_link_for_invalid(self):
+        from django.contrib.auth.models import User
+        from celery.result import AsyncResult
+
+        client = APIClient()
+        client.force_authenticate(user=User.objects.get(pk=1))
+
+        newdata = {
+            'status': 'Requested',
+            'created': '2017-01-01T14:32:02',
+        }
+
+        mock_celery_result = MagicMock(target=AsyncResult)
+        mock_celery_result.id = "B833C61E-A6D6-45B4-A8D1-94927C0898BF"
+        with patch("portal.plugins.gnmdownloadablelink.tasks.create_link_for") as mock_create_link_task:
+            mock_create_link_task.delay = MagicMock(return_value=mock_celery_result)
+            result = client.post(reverse_lazy("downloadable_link_create", kwargs={'item_id': "VX-31", 'shape_tag': "mezzanine"}), newdata, format="json")
+            self.assertEqual(result.status_code, 400)
+
+            mock_create_link_task.delay.assert_not_called()

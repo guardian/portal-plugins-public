@@ -166,15 +166,15 @@ def check_transcode_jobs():
             logger.info("Transcode job {0} for {1} of {2} is {3}".format(
                 entry.transcode_job, entry.shapetag, entry.item_id, status
             ))
-            if status=="FINISHED":
+            if j.didFail():
+                #if it's failed, then log that fact
+                entry.status = "Failed"
+                entry.save()
+            elif j.finished(noraise=True):
                 #if the transcode job is finished, then queue the upload
                 entry.status = "Upload Queued"
                 entry.save()
                 create_link_for.delay(entry.item_id, entry.shapetag)
-            elif status=="FAILED":
-                #if it's failed, then log that fact
-                entry.status = "Failed"
-                entry.save()
             else:
                 #or just continue to check it
                 pass
@@ -183,6 +183,17 @@ def check_transcode_jobs():
 
     return "Checked {0} outstanding transcode jobs".format(n)
 
+
+def check_transcode_status(job_id):
+    """
+    Check what the current status of the transcode job is
+    :param job_id: job id
+    :return: VSJob object
+    """
+    from gnmvidispine.vs_job import VSJob
+    j=VSJob(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+    j.populate(job_id)
+    return j
 
 @shared_task
 def create_link_for(item_id, shape_tag, obfuscate=True):
@@ -202,6 +213,12 @@ def create_link_for(item_id, shape_tag, obfuscate=True):
     else:
         allow_transcode = True
 
+    # if link_model.transcode_job!="":
+    #     transcode_job = check_transcode_status(link_model.transcode_job)
+    #     if transcode_job.didFail(): #also true if it was aborted
+    #         link_model.status = "Failed"
+    #         return "Transcode job failed"
+    #     elif transcode_job.
     item_ref=VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
     item_ref.populate(item_id, specificFields=['title']) #this will raise VSNotFound if the item_id is invalid
 

@@ -48,12 +48,12 @@ function downloadablelink_create(){
         .done(function(data, jqXHR){
             console.log(data);
             $('#downloadable-link-errormsg').html("Successfully requested new link");
+            add_new_link(data.link);
             window.setTimeout(function(){ $('#downloadable-link-create-dlg').dialog("close");}, 1000);
         })
         .fail(function(jqXHR, desc, errorThrown){
             $('#downloadable-link-errormsg').html("Could not request new link: "+ errorThrown);
         });
-    eventPreventDefault();
 }
 
 function downloadablelink_close() {
@@ -63,27 +63,47 @@ function downloadablelink_close() {
 function check_link_status(initial){
     /*called regularly to update link status entries*/
     $(".sharable-link-entry").each(function(idx,ptr){
-        if(!initial &&
-            ptr.attr("data-entrystatus")!=="Available" &&
-            ptr.attr("data-entrystatus")!=="Failed"){
+        var elem = $(ptr);
 
-            $.ajax("/gnmdownloadablelink/api/link/" + ptr.attr("data-entryid"))
+        var entrystatus = elem.attr("data-entrystatus");
+        var entryid = elem.attr("data-entryid");
+
+        if(!initial &&
+            entrystatus!=="Available" && entrystatus!=="Failed"){
+
+            $.ajax("/gnmdownloadablelink/api/link/" + entryid)
                 .done(function(data, jqXHR){
                     var htmlstring = data.shapetag + " " + data.status;
                     if(data.public_url){
-                        htmlstring = htmlstring + '<a href="' + data.public_url + '">Download</a>';
+                        htmlstring = htmlstring + ' <a href="' + data.public_url + '">Download</a>';
                     }
-                    ptr.html(htmlstring);
+                    elem.html(htmlstring);
+                    elem.attr("data-entrystatus",data.status);
                 })
                 .fail(function(jqXHR, errorThrown){
-                    ptr.html("<p class=\"error\">Could not update: " + errorThrown + "</p>");
+                    elem.html("<p class=\"error\">Could not update: " + errorThrown + "</p>");
                 });
         }
     });
 }
 
+function add_new_link(link_url){
+    $.ajax(link_url)
+        .done(function(data, jqXHR){
+            console.log(link_url);
+            var entry_id = link_url.split('/').slice(-1).pop();
+            console.log(entry_id);
+            var item=$("<li>", {class: "sharable-link-entry", "data-entrystatus": data.status, "data-entryid": entry_id});
+            item.text(data.shapetag + ": " + data.status);
+            $('#downloadable-link-sharelist').append(item);
+        })
+        .fail(function(jqXHR, status, errorThrown){
+            console.error(errorThrown);
+        })
+}
+
 $(document).ready(function(){
-    window.setTimeout(function(){ check_link_status(false)}, 3000);
+    window.setInterval(function(){ check_link_status(false)}, 3000);
     for(var c=0;c<24;c++){
         var params={name: c, value: c};
         if(c===20) params['selected'] = true;

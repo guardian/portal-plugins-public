@@ -1,20 +1,24 @@
 {% load static %}
 <script src="{% static 'gnmdownloadablelink/downloadable_link.js' %}"></script>
 <ul>
-    {% for entry in existing_shares %}
-    <li class="sharable-link-entry"
-        data-entrystatus="{{ entry.status }}"
-        data-entryid="{{ entry.pk }}">
-        {{ entry.shapetag }}: {{ entry.status }}
-
-        {% if entry.status == "Available" %}
-            <a href="{{ entry.public_url }}">Download</a>
-        {% endif %}
-    </li>
-    {% endfor %}
     <li>
         <img src="{% static 'gnmdownloadablelink/share.png' %}" style="height: 20px;">
         <a href="#" onclick="downloadablelink_show();">Make downloadable link....</a>
+    </li>
+    <li>
+        <ul id="downloadable-link-sharelist" style="margin-left: 2em;margin-top: -0.5em;">
+            {% for entry in existing_shares %}
+            <li class="sharable-link-entry"
+                data-entrystatus="{{ entry.status }}"
+                data-entryid="{{ entry.pk }}">
+                {{ entry.shapetag }}: {{ entry.status }}
+
+                {% if entry.status == "Available" %}
+                    <a href="{{ entry.public_url }}">Download</a>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
     </li>
 
     <div id="downloadable-link-create-dlg" style="display: none" title="Downloadable Link">

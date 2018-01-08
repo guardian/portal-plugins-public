@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Asset Management Downloadable Link Deployment
+Parameters:
+  App:
+    Type: String
+    Description: App tag
+  Stack:
+    Type: String
+    Description: Stack tag
+    Default: Multimedia
+  Stage:
+    Type: String
+    Description: Deployment stage
+    AllowedValues:
+     - PROD
+     - CODE
+     - DEV
+  AccessKeySerial:
+    Type: Number
+    Description: Increment this value to rotate the access key
+    Default: 1
+Resources:
+  DownloadableLinkBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: PublicRead
+      Tags:
+        - Key: App
+          Value: !Ref App
+        - Key: Stack
+          Value: !Ref Stack
+        - Key: Stage
+          Value: !Ref Stage
+  UploadUser:
+    Type: AWS::IAM::User
+    Properties:
+      Path: /
+      Policies:
+      - PolicyName: DownloadableLinkBucketUpload
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action:
+            - s3:PutObject
+            - s3:GetObject
+            - s3:ListBucket
+            - s3:ListObjects
+            - s3:HeadBucket
+            - s3:DeleteObject
+            - s3:PutObjectACL
+            - s3:GetObjectVersion
+            Resource:
+            - !GetAtt DownloadableLinkBucket.Arn
+            - !Sub ${DownloadableLinkBucket.Arn}/*
+  UploadUserAccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      Serial: 1
+      Status: Active
+      UserName: !Ref UploadUser
+Outputs:
+  UploadAwsKey:
+    Description: Access key to upload to bucket
+    Value: !Ref UploadUserAccessKey
+  UploadAwsSecret:
+    Description: Secret key to upload to bucket
+    Value: !GetAtt UploadUserAccessKey.SecretAccessKey
+  SharingBucket:
+    Description: Bucket for sharing links
+    Value: !Ref DownloadableLinkBucket

@@ -74,7 +74,6 @@ class TestViews(APITestCase):
 
     def test_get_links_for_item_invalid(self):
         from django.contrib.auth.models import User
-        import datetime
 
         client = APIClient()
         client.force_authenticate(user=User.objects.get(pk=1))

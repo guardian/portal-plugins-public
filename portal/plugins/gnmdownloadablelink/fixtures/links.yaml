@@ -70,3 +70,15 @@
     transcode_job: ''
   model: gnmdownloadablelink.downloadablelink
   pk: 6
+- fields:
+    created: !!timestamp '2018-01-05 17:23:54.141470'
+    created_by: 1
+    expiry: !!timestamp '2018-01-05 17:23:54.143562'
+    item_id: VX-16
+    public_url: ''
+    s3_url: ''
+    shapetag: mezzanine
+    status: Transcoding
+    transcode_job: ''
+  model: gnmdownloadablelink.downloadablelink
+  pk: 6

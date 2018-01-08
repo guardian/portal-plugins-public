@@ -18,7 +18,7 @@ class NeedsRetry(StandardError):
     pass
 
 
-def get_shape_for(itemref,shape_tag, allow_transcode=True):
+def get_shape_for(itemref, shape_tag, allow_transcode=True):
     """
     Returns a shape reference for the requested shape on the requested item, or
     raises TranscodeRequested if a transcode has been started or raises RuntimeError otherwise
@@ -31,17 +31,26 @@ def get_shape_for(itemref,shape_tag, allow_transcode=True):
     try:
         return itemref.get_shape(shape_tag)
     except VSNotFound:  #shape does not exist on the item
-        jobid = itemref.transcode(shape_tag, priority='MEDIUM', wait=False, allow_object=False)
-        raise TranscodeRequested(jobid)
+        if allow_transcode:
+            jobid = itemref.transcode(shape_tag, priority='MEDIUM', wait=False, allow_object=False)
+            raise TranscodeRequested(jobid)
+        else:
+            raise NeedsRetry()
 
 
 def s3_connect():
     from boto.s3 import connect_to_region
-    return connect_to_region(settings.AWS_REGION,
-                      aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                      secret_access_key=settings.AWS_SECRET_ACCESS_KEY
-                      )
+    #FIXME: need to update these setting names
+    if hasattr(settings,'DOWNLOADABLE_LINK_KEY') and hasattr(settings,'DOWNLOADABLE_LINK_SECRET'):
+        return connect_to_region(getattr(settings,"AWS_REGION","eu-west-1"),
+                                 aws_access_key_id=settings.DOWNLOADABLE_LINK_KEY,
+                                 aws_secret_access_key=settings.DOWNLOADABLE_LINK_SECRET
+                                 )
+    else:
+        raise RuntimeError("no credentials")
 
+
+CHUNK_SIZE=10*1024*1024
 
 def upload_vsfile_to_s3(file_ref,filename):
     """
@@ -52,29 +61,27 @@ def upload_vsfile_to_s3(file_ref,filename):
     """
     from gnmvidispine.vs_storage import VSFile
     import math
-
     from chunked_downloader import ChunkedDownloader, ChunkDoesNotExist
-    from chunked_downloader import DEFAULT_CHUNKSIZE as CHUNK_SIZE
 
     if not isinstance(file_ref,VSFile):
         raise TypeError
 
     download_url = "{u}:{p}/API/storage/file/{id}/data".format(u=settings.VIDISPINE_URL,p=settings.VIDISPINE_PORT,id=file_ref.name)
 
-    expected_parts = int(math.ceil(file_ref.size / float(CHUNK_SIZE)))
+    expected_parts = int(math.ceil(float(file_ref.size) / float(CHUNK_SIZE)))
 
-    d = ChunkedDownloader(download_url, auth=(settings.VIDISPINE_USERNAME,settings.VIDISPINE_PASSWORD))
+    d = ChunkedDownloader(download_url, auth=(settings.VIDISPINE_USERNAME,settings.VIDISPINE_PASSWORD), chunksize=CHUNK_SIZE)
 
     s3conn = s3_connect()
     bucket = s3conn.get_bucket(settings.DOWNLOADABLE_LINK_BUCKET)
     key = bucket.get_key(filename)
     #FIXME: check that filename does not exist
-    mp = bucket.initiate_multipart_upload(filename)
+    mp = bucket.initiate_multipart_upload(filename,reduced_redundancy=True)
 
     def upload_chunk(data_stream, name, part_num):
         for i in range(15):
             try:
-                uploaded = mp.upload_part_from_file(data_stream, part_num=part_num,)
+                uploaded = mp.upload_part_from_file(data_stream, part_num=part_num+1,)
                 logger.info("{0}: uploaded part {1}".format(name, uploaded.__dict__))
                 return uploaded
             except Exception as x:
@@ -88,7 +95,7 @@ def upload_vsfile_to_s3(file_ref,filename):
 
     while True:
         try:
-            datastream = d.get_chunk(n)
+            datastream = d.stream_chunk(n)
             uploaded = upload_chunk(datastream, filename, n)
             total_size+=uploaded.size
             n+=1
@@ -100,7 +107,7 @@ def upload_vsfile_to_s3(file_ref,filename):
         logger.error("Expected to upload {0} parts, but apparently completed after {1} parts".format(expected_parts, n))
         mp.cancel_upload()
         raise NeedsRetry
-    if total_size<file_ref.size:
+    if int(total_size) != int(file_ref.size):
         logger.error("Expected to upload {0} bytes but only uploaded {1}".format(file_ref.size, total_size))
         mp.cancel_upload()
         raise NeedsRetry
@@ -196,7 +203,7 @@ def create_link_for(item_id, shape_tag, obfuscate=True):
         allow_transcode = True
 
     item_ref=VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
-    item_ref.populate(item_id, specificFields=['title'])
+    item_ref.populate(item_id, specificFields=['title']) #this will raise VSNotFound if the item_id is invalid
 
     try:
         shaperef = get_shape_for(item_ref, shape_tag, allow_transcode=allow_transcode)
@@ -204,7 +211,14 @@ def create_link_for(item_id, shape_tag, obfuscate=True):
         link_model.status = "Transcoding"
         link_model.transcode_job = e.jobid
         link_model.save()
+        create_link_for.apply_async((item_id, shape_tag), kwargs={'obfuscate': obfuscate},
+                                    countdown=getattr(settings,"DOWNLOADABLE_LINK_RETRYTIME",30))
         return "Transcode requested"
+    except NeedsRetry as e:
+        #if it's still not present, call ourselves again in up to 30s time.
+        create_link_for.apply_async((item_id, shape_tag), kwargs={'obfuscate': obfuscate},
+                                    countdown=getattr(settings,"DOWNLOADABLE_LINK_RETRYTIME",30))
+        return "Still waiting for transcode"
 
     link_model.status = "Uploading"
     link_model.save()
@@ -215,9 +229,10 @@ def create_link_for(item_id, shape_tag, obfuscate=True):
         filename = make_filename(item_ref.get('title'))
 
     s3key = upload_to_s3(shaperef, filename=filename)
-    s3key.set_acl("ACL_PUBLIC") #CHECK this is the right call
+    s3key.set_canned_acl("public-read")
     link_model.status = "Available"
-    link_model.public_url = s3key.get_url() #CHECK this is the right call
+    link_model.public_url = s3key.generate_url(expires_in=0, query_auth=False)
     link_model.s3_url = "s3://{0}/{1}".format(settings.DOWNLOADABLE_LINK_BUCKET,s3key.key)
+
     link_model.save()
     return "Media available at {0}".format(link_model.public_url)

@@ -184,3 +184,25 @@ class TestCreateLinkFor(django.test.TestCase):
                         self.assertEqual(mdl_after.status, "Transcoding")
                         self.assertEqual(mdl_after.public_url, '')
                         self.assertEqual(mdl_after.s3_url, "")
+
+
+class TestGetVSFileExtension(django.test.TestCase):
+    def test_get_vsfile_extension(self):
+        from gnmvidispine.vs_storage import VSFile
+        from portal.plugins.gnmdownloadablelink.tasks import get_vsfile_extension
+
+        mock_file = MagicMock(target=VSFile)
+        mock_file.uri = "http://some/path/to/filename.ext"
+
+        result = get_vsfile_extension(mock_file)
+        self.assertEqual(result,"ext")
+
+    def test_get_vsfile_extension_none(self):
+        from gnmvidispine.vs_storage import VSFile
+        from portal.plugins.gnmdownloadablelink.tasks import get_vsfile_extension
+
+        mock_file = MagicMock(target=VSFile)
+        mock_file.uri = "http://some/path/to/filename"
+
+        result = get_vsfile_extension(mock_file)
+        self.assertEqual(result,None)

@@ -4,7 +4,7 @@ from django.conf import settings
 import time
 import logging
 from datetime import timedelta
-
+import re
 logger = logging.getLogger(__name__)
 
 
@@ -52,7 +52,7 @@ def s3_connect():
 
 CHUNK_SIZE=10*1024*1024
 
-def multipart_upload_vsfile_to_s3(file_ref,filename):
+def singlepart_upload_vsfile_to_s3(file_ref,filename,mime_type):
     """
     Attempts to add the given file
     :param file_ref: VSFile reference
@@ -68,8 +68,6 @@ def multipart_upload_vsfile_to_s3(file_ref,filename):
 
     download_url = "{u}:{p}/API/storage/file/{id}/data".format(u=settings.VIDISPINE_URL,p=settings.VIDISPINE_PORT,id=file_ref.name)
 
-    expected_parts = int(math.ceil(float(file_ref.size) / float(CHUNK_SIZE)))
-
     d = ChunkedDownloader(download_url, auth=(settings.VIDISPINE_USERNAME,settings.VIDISPINE_PASSWORD), chunksize=CHUNK_SIZE)
 
     s3conn = s3_connect()
@@ -77,7 +75,7 @@ def multipart_upload_vsfile_to_s3(file_ref,filename):
     key = bucket.get_key(filename)
 
     datastream = d.stream_chunk(0)
-    total_size = key.set_contents_from_file(datastream, reduced_redundancy=True)
+    total_size = key.set_contents_from_file(datastream, headers={'Content-Type': mime_type}, reduced_redundancy=True)
 
     if int(total_size) != int(file_ref.size):
         logger.error("Expected to upload {0} bytes but only uploaded {1}".format(file_ref.size, total_size))
@@ -86,7 +84,7 @@ def multipart_upload_vsfile_to_s3(file_ref,filename):
     return key
 
 
-def singlepart_upload_vsfile_to_s3(file_ref,filename):
+def multipart_upload_vsfile_to_s3(file_ref,filename,mime_type):
     """
     Attempts to add the given file
     :param file_ref: VSFile reference
@@ -110,7 +108,7 @@ def singlepart_upload_vsfile_to_s3(file_ref,filename):
     bucket = s3conn.get_bucket(settings.DOWNLOADABLE_LINK_BUCKET)
 
     #FIXME: check that filename does not exist
-    mp = bucket.initiate_multipart_upload(filename,reduced_redundancy=True)
+    mp = bucket.initiate_multipart_upload(filename,headers={'Content-Type': mime_type}, reduced_redundancy=True)
 
     def upload_chunk(data_stream, name, part_num):
         for i in range(15):
@@ -152,12 +150,23 @@ def singlepart_upload_vsfile_to_s3(file_ref,filename):
     return bucket.get_key(filename)
 
 
-def upload_vsfile_to_s3(file_ref,filename):
-    if int(file_ref.size<CHUNK_SIZE):
+def upload_vsfile_to_s3(file_ref,filename,mime_type):
+    if int(file_ref.size)<CHUNK_SIZE:
         #if we have less than one chunk's worth of data, then upload it all in one go.
-        singlepart_upload_vsfile_to_s3(file_ref,filename)
+        return singlepart_upload_vsfile_to_s3(file_ref,filename,mime_type)
     else:
-        multipart_upload_vsfile_to_s3(file_ref,filename)
+        return multipart_upload_vsfile_to_s3(file_ref,filename,mime_type)
+
+
+extension_xtractor = re.compile(r'\.([^\.]+)$')
+
+def get_vsfile_extension(fileref):
+    parts = extension_xtractor.search(fileref.uri)
+    if parts:
+        return parts.group(1)
+    else:
+        return None
+
 
 def upload_to_s3(shape_ref,filename):
     from gnmvidispine.vs_shape import VSShape
@@ -168,7 +177,8 @@ def upload_to_s3(shape_ref,filename):
 
     for file in shape_ref.files():
         try:
-            s3key = upload_vsfile_to_s3(file, filename)
+            extension = get_vsfile_extension(file)
+            s3key = upload_vsfile_to_s3(file, "{0}.{1}".format(filename, extension),shape_ref.mime_type)
             uploaded = True
             break
         except NeedsRetry:

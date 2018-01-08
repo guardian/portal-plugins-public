@@ -136,7 +136,7 @@ class TestCreateLinkFor(django.test.TestCase):
                         mock_item.populate.assert_called_once_with('VX-11', specificFields=['title'])
                         mock_upload.assert_not_called()
                         mock_s3key.generate_url.assert_not_called()
-                        mock_apply.assert_called_once_with(('VX-11', 'mezzanine'), countdown=30, kwargs={'obfuscate': False})
+                        mock_apply.assert_called_once_with(('VX-11', 'mezzanine'), countdown=30, kwargs={'obfuscate': False, 'is_update': True})
 
                         mdl_after = DownloadableLink.objects.get(item_id="VX-11", shapetag="mezzanine")
                         self.assertEqual(mdl_after.status, "Transcoding")
@@ -178,7 +178,7 @@ class TestCreateLinkFor(django.test.TestCase):
                         mock_get_shape.assert_called_once_with(mock_item,"mezzanine",allow_transcode=False)
                         mock_upload.assert_not_called()
                         mock_s3key.generate_url.assert_not_called()
-                        mock_apply.assert_called_once_with(('VX-16', 'mezzanine'), countdown=30, kwargs={'obfuscate': False})
+                        mock_apply.assert_called_once_with(('VX-16', 'mezzanine'), countdown=30, kwargs={'obfuscate': False, 'is_update': True})
 
                         mdl_after = DownloadableLink.objects.get(item_id="VX-16", shapetag="mezzanine")
                         self.assertEqual(mdl_after.status, "Transcoding")

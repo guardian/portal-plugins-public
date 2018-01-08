@@ -52,7 +52,7 @@ def s3_connect():
 
 CHUNK_SIZE=10*1024*1024
 
-def upload_vsfile_to_s3(file_ref,filename):
+def multipart_upload_vsfile_to_s3(file_ref,filename):
     """
     Attempts to add the given file
     :param file_ref: VSFile reference
@@ -75,6 +75,40 @@ def upload_vsfile_to_s3(file_ref,filename):
     s3conn = s3_connect()
     bucket = s3conn.get_bucket(settings.DOWNLOADABLE_LINK_BUCKET)
     key = bucket.get_key(filename)
+
+    datastream = d.stream_chunk(0)
+    total_size = key.set_contents_from_file(datastream, reduced_redundancy=True)
+
+    if int(total_size) != int(file_ref.size):
+        logger.error("Expected to upload {0} bytes but only uploaded {1}".format(file_ref.size, total_size))
+        raise NeedsRetry
+
+    return key
+
+
+def singlepart_upload_vsfile_to_s3(file_ref,filename):
+    """
+    Attempts to add the given file
+    :param file_ref: VSFile reference
+    :param filename: file name to upload as
+    :return: boto.s3.Key for the uploaded file
+    """
+    from gnmvidispine.vs_storage import VSFile
+    import math
+    from chunked_downloader import ChunkedDownloader, ChunkDoesNotExist
+
+    if not isinstance(file_ref,VSFile):
+        raise TypeError
+
+    download_url = "{u}:{p}/API/storage/file/{id}/data".format(u=settings.VIDISPINE_URL,p=settings.VIDISPINE_PORT,id=file_ref.name)
+
+    expected_parts = int(math.ceil(float(file_ref.size) / float(CHUNK_SIZE)))
+
+    d = ChunkedDownloader(download_url, auth=(settings.VIDISPINE_USERNAME,settings.VIDISPINE_PASSWORD), chunksize=CHUNK_SIZE)
+
+    s3conn = s3_connect()
+    bucket = s3conn.get_bucket(settings.DOWNLOADABLE_LINK_BUCKET)
+
     #FIXME: check that filename does not exist
     mp = bucket.initiate_multipart_upload(filename,reduced_redundancy=True)
 
@@ -118,6 +152,13 @@ def upload_vsfile_to_s3(file_ref,filename):
     return bucket.get_key(filename)
 
 
+def upload_vsfile_to_s3(file_ref,filename):
+    if int(file_ref.size<CHUNK_SIZE):
+        #if we have less than one chunk's worth of data, then upload it all in one go.
+        singlepart_upload_vsfile_to_s3(file_ref,filename)
+    else:
+        multipart_upload_vsfile_to_s3(file_ref,filename)
+
 def upload_to_s3(shape_ref,filename):
     from gnmvidispine.vs_shape import VSShape
     if not isinstance(shape_ref, VSShape):
@@ -151,7 +192,7 @@ def make_filename(string):
     return re.sub(r'_+','_',temp)
 
 
-@periodic_task(run_every=timedelta(seconds=getattr(settings,"DOWNLOADABLE_URL_CHECKINTERVAL",5)))
+@periodic_task(run_every=timedelta(seconds=getattr(settings,"DOWNLOADABLE_URL_CHECKINTERVAL",30)))
 def check_transcode_jobs():
     from models import DownloadableLink
     from gnmvidispine.vs_job import VSJob
@@ -196,7 +237,32 @@ def check_transcode_status(job_id):
     return j
 
 @shared_task
-def create_link_for(item_id, shape_tag, obfuscate=True):
+def create_link_for(item_id, shape_tag, obfuscate=True, is_update=False):
+    """
+    Exception catching wrapper
+    :param item_id:
+    :param shape_tag:
+    :param obfuscate:
+    :param is_update:
+    :return:
+    """
+    from models import DownloadableLink
+    from traceback import format_exc
+    try:
+        create_link_for_main(item_id,shape_tag,obfuscate=obfuscate,is_update=is_update)
+    except Exception as e:
+        try:
+            logger.error(e)
+            logger.error(format_exc())
+            link_model = DownloadableLink.objects.get(item_id=item_id,shapetag=shape_tag)
+            link_model.status = 'Failed'
+            link_model.save()
+            raise
+        except DownloadableLink.DoesNotExist:
+            pass
+
+
+def create_link_for_main(item_id, shape_tag, obfuscate=True, is_update=False):
     """
     Task to trigger the optional transcoding and upload of an item
     :param item_id:
@@ -213,6 +279,9 @@ def create_link_for(item_id, shape_tag, obfuscate=True):
     else:
         allow_transcode = True
 
+    if is_update and link_model.status == "Failed":
+        raise RuntimeError("Create link failed, requires manual retry")
+
     # if link_model.transcode_job!="":
     #     transcode_job = check_transcode_status(link_model.transcode_job)
     #     if transcode_job.didFail(): #also true if it was aborted
@@ -228,12 +297,12 @@ def create_link_for(item_id, shape_tag, obfuscate=True):
         link_model.status = "Transcoding"
         link_model.transcode_job = e.jobid
         link_model.save()
-        create_link_for.apply_async((item_id, shape_tag), kwargs={'obfuscate': obfuscate},
+        create_link_for.apply_async((item_id, shape_tag), kwargs={'obfuscate': obfuscate, 'is_update': True},
                                     countdown=getattr(settings,"DOWNLOADABLE_LINK_RETRYTIME",30))
         return "Transcode requested"
     except NeedsRetry as e:
         #if it's still not present, call ourselves again in up to 30s time.
-        create_link_for.apply_async((item_id, shape_tag), kwargs={'obfuscate': obfuscate},
+        create_link_for.apply_async((item_id, shape_tag), kwargs={'obfuscate': obfuscate, 'is_update': True},
                                     countdown=getattr(settings,"DOWNLOADABLE_LINK_RETRYTIME",30))
         return "Still waiting for transcode"
 

@@ -59,8 +59,8 @@ def singlepart_upload_vsfile_to_s3(file_ref,filename,mime_type):
     :param filename: file name to upload as
     :return: boto.s3.Key for the uploaded file
     """
+    import boto.s3.key
     from gnmvidispine.vs_storage import VSFile
-    import math
     from chunked_downloader import ChunkedDownloader, ChunkDoesNotExist
 
     if not isinstance(file_ref,VSFile):
@@ -72,7 +72,8 @@ def singlepart_upload_vsfile_to_s3(file_ref,filename,mime_type):
 
     s3conn = s3_connect()
     bucket = s3conn.get_bucket(settings.DOWNLOADABLE_LINK_BUCKET)
-    key = bucket.get_key(filename)
+    key = boto.s3.key.Key(bucket)
+    key.key = filename
 
     datastream = d.stream_chunk(0)
     total_size = key.set_contents_from_file(datastream, headers={'Content-Type': mime_type}, reduced_redundancy=True)

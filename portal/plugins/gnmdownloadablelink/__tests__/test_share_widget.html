@@ -1,0 +1,97 @@
+<html>
+<head>
+    <title> Tests </title>
+    <link rel="stylesheet" href="../node_modules/mocha/mocha.css" />
+</head>
+<body>
+<div id="mocha"></div>
+<script src="../node_modules/mocha/mocha.js"></script>
+<script src="../node_modules/chai/chai.js"></script>
+<script src="../node_modules/jquery/dist/jquery.js"></script>
+<script src="../node_modules/sinon/pkg/sinon.js"></script>
+<script>
+    mocha.ui('bdd');
+    mocha.reporter('html');
+    var expect = chai.expect;
+
+    $(document).ready(function() {
+        jQuery.fn.extend({
+            dialog: sinon.stub(),
+            datepicker: sinon.stub()
+        })
+    });
+</script>
+<script src="../static/gnmdownloadablelink/moment.min.js"></script>
+<script src="../static/gnmdownloadablelink/downloadable_link.js"></script>
+<script src="test_populate_shapelist.js"></script>
+<script src="test_link_show.js"></script>
+<script src="test_check_link_status.js"></script>
+<script src="test_downloadable_link_create.js"></script>
+<script>
+
+    if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
+    else { mocha.run(); }
+</script>
+
+<ul>
+    <li>
+        <img src="{% static 'gnmdownloadablelink/share.png' %}" style="height: 20px;">
+        <a href="#" onclick="downloadablelink_show();">Make downloadable link....</a>
+    </li>
+    <li>
+        <ul id="downloadable-link-sharelist" style="margin-left: 2em;margin-top: -0.5em;width:100%">
+                <li class="sharable-link-entry"
+                    data-entrystatus="Requested"
+                    data-entryid="1">
+
+                </li>
+                <li class="sharable-link-entry"
+                    data-entrystatus="Transcoding"
+                    data-entryid="2">
+
+                </li>
+                <li class="sharable-link-entry"
+                    data-entrystatus="Uploading"
+                    data-entryid="3">
+
+                </li>
+                <li class="sharable-link-entry"
+                    data-entrystatus="Available"
+                    data-entryid="4">
+
+                </li>
+        </ul>
+    </li>
+
+    <div id="downloadable-link-create-dlg" style="display: none" title="Downloadable Link">
+        <h2 style="color: #214583; margin-bottom: auto">Select the format to share</h2>
+        <input type="hidden" name="downloadable-link-itemid" id="downloadable-link-itemid" value="{{ master.id }}">
+        <ul class="shapelist-nobullets" id="downloadable-link-shape-list">
+
+        </ul>
+
+        <hr style="margin:0.5em; margin-bottom:1em"/>
+        <h2 style="color: #214583; margin-bottom: auto">Select the expiry time</h2>
+        <ul id="downloadable-link-expiry-controls">
+            <li style="list-style: none;">
+                <label for="downloadable-link-expiry-time-date">Date:</label>
+                <input class="downloadable-link-control" name="expiry-date" id="downloadable-link-expiry-time-date">
+            </li>
+            <li style="list-style: none">
+                <label for="downloadable-link-expiry-time-hours">Time:</label>
+                <select class="downloadable-link-control" name="expiry-hours" id="downloadable-link-expiry-time-hours" style="width: auto;"></select>
+                <label for="downloadable-link-expiry-time-mins">:</label>
+                <select class="downloadable-link-control" name="expiry-mins" id="downloadable-link-expiry-time-mins" style="width: auto;"></select>
+
+            </li>
+        </ul>
+
+        <hr style="margin:0.5em; margin-bottom:1em"/>
+        <p class="error" id="downloadable-link-errormsg"></p>
+
+        <button onclick="downloadablelink_create();">Create</button>
+        <button onclick="downloadablelink_close();">Close</button>
+    </div>
+</ul>
+</body>
+</html>

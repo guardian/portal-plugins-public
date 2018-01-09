@@ -1,16 +1,24 @@
 function downloadablelink_populate_shapelist() {
     $('#downloadable-link-shape-list').empty();
-    $.ajax("/gnmdownloadablelink/api/shapetags")
+    return $.ajax("/gnmdownloadablelink/api/shapetags")
         .done(function(data, jqXHR){
+
             $.each(data.uri, function(idx,ptr){
-                var element = $('<input>',{type: 'radio', class: 'downloadable-link-control downloadable-link-shapetag-group', name: 'downloadable-link-shapetag', value: ptr, selected: idx===0});
+                var element = $('<input>',{
+                    type: 'radio',
+                    class: 'downloadable-link-control downloadable-link-shapetag-group',
+                    name: 'downloadable-link-shapetag',
+                    value: ptr,
+                    selected: idx===0
+                });
+
                 var label = $('<span>').text(ptr);
                 var item = $('<li>',{style: 'list-style: none'});
                 item.append(element);
                 item.append(label);
 
                 $('#downloadable-link-shape-list').append(item);
-            })
+            });
         })
         .fail(function(jqXHR, errorThrown, errorDetail){
             $("#downloadable-link-errormsg").html("Could not get shape tag list: " + errorThrown);
@@ -26,25 +34,24 @@ function get_current_shapetag(){
     return $(".downloadable-link-shapetag-group:checked").val();
 }
 
-function downloadablelink_create(){
-    // var formdata = $('.downloadable-link-control').serializeArray();
-    // console.log(formdata);
+function downloadablelink_create(created_time){
     var datestring = $('#downloadable-link-expiry-time-date').val() + " " + $('#downloadable-link-expiry-time-hours').val() + ":" + $('#downloadable-link-expiry-time-mins').val();
 
+    if(created_time===undefined) created_time = new Date();
     var formdata = {
         status: "Requested",
-        created: new Date().toISOString(),
+        created: created_time.toISOString(),
         expiry: new Date(datestring).toISOString()
     };
 
     var shapetag = get_current_shapetag();
 
-    var postdata = $.toJSON(formdata);
+    var postdata = JSON.stringify(formdata);
     console.log(postdata);
 
     var url = "/gnmdownloadablelink/api/new/" + $('#downloadable-link-itemid').val() + "/" + shapetag;
 
-    $.ajax(url, {type: "POST", data: postdata, contentType: 'application/json'})
+    return $.ajax(url, {type: "POST", data: postdata, contentType: 'application/json'})
         .done(function(data, jqXHR){
             console.log(data);
             $('#downloadable-link-errormsg').html("Successfully requested new link");
@@ -62,16 +69,15 @@ function downloadablelink_close() {
 
 function check_link_status(initial){
     /*called regularly to update link status entries*/
-    $(".sharable-link-entry").each(function(idx,ptr){
+    return $(".sharable-link-entry").map(function(idx,ptr){
         var elem = $(ptr);
 
         var entrystatus = elem.attr("data-entrystatus");
         var entryid = elem.attr("data-entryid");
 
-        if(!initial &&
-            entrystatus!=="Available" && entrystatus!=="Failed"){
 
-            $.ajax("/gnmdownloadablelink/api/link/" + entryid)
+        if(initial || (entrystatus!=="Available" && entrystatus!=="Failed")){
+            return $.ajax("/gnmdownloadablelink/api/link/" + entryid)
                 .done(function(data, jqXHR){
                     var htmlstring = data.shapetag + " " + data.status;
                     if(data.public_url){
@@ -88,7 +94,7 @@ function check_link_status(initial){
 }
 
 function add_new_link(link_url){
-    $.ajax(link_url)
+    return $.ajax(link_url)
         .done(function(data, jqXHR){
             console.log(link_url);
             var entry_id = link_url.split('/').slice(-1).pop();

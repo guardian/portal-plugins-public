@@ -62,6 +62,17 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         return project_collection
 
+    def update_pluto_record(self, item_id):
+        import traceback
+        try:
+            from portal.plugins.gnm_masters.signals import master_external_update
+
+            master_external_update.send(sender=self.__class__, item_id=item_id)
+        except ImportError as e:
+            logger.error("Unable to signal master update: {0}".format(e))
+        except Exception as e:
+            logger.error("An error happened when outputting master_external_create signal: {0}".format(traceback.format_exc()))
+
     def process(self,record, approx_arrival):
         """
         Process a message from the kinesis stream.  Each record is a JSON document which contains keys for atomId, s3Key,
@@ -154,6 +165,8 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                                                  jobMetadata={'gnm_source': 'media_atom'},
                                                  )
         logger.info(u"{0} Import job is at ID {1}".format(master_item.name, job_result.name))
+
+        self.update_pluto_record(master_item.name)
 
         master_item.set_metadata({const.GNM_ASSET_FILENAME: downloaded_path})
 

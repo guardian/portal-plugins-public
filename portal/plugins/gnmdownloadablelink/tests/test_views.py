@@ -59,8 +59,8 @@ class TestViews(APITestCase):
         self.assertEqual(result.status_code, 200)
         self.assertEqual(len(result.data),4)
         self.assertEqual(result.data,[
-            {'public_url': u'', 'status': u'Requested', 'created': datetime.datetime(2018, 1, 5, 17, 23, 54, 141470), 'created_by': 1, 'expiry': datetime.datetime(2018, 1, 5, 17, 23, 54, 143562), 'item_id': u'VX-11', 'shapetag': u'lowres', 'transcode_job': u''},
-            {'public_url': u'', 'status': u'Requested', 'created': datetime.datetime(2018, 1, 5, 17, 23, 54, 141470), 'created_by': 1, 'expiry': datetime.datetime(2018, 1, 5, 17, 23, 54, 143562), 'item_id': u'VX-11', 'shapetag': u'mezzanine', 'transcode_job': u''},
+            {'public_url': u'', 'status': u'Available', 'created': datetime.datetime(2018, 1, 5, 17, 23, 54, 141470), 'created_by': 1, 'expiry': datetime.datetime(2018, 1, 7, 18, 25, 00, 0), 'item_id': u'VX-11', 'shapetag': u'lowres', 'transcode_job': u''},
+            {'public_url': u'http://s3.someregion.amazonaws.com/bucket_name/somethingsomethingsomething', 'status': u'Available', 'created': datetime.datetime(2018, 1, 5, 17, 23, 54, 141470), 'created_by': 1, 'expiry': datetime.datetime(2018, 1, 6, 17, 05, 00, 0), 'item_id': u'VX-11', 'shapetag': u'mezzanine', 'transcode_job': u''},
             {'public_url': u'', 'status': u'Requested', 'created': datetime.datetime(2018, 1, 5, 17, 23, 54, 141470), 'created_by': 1, 'expiry': datetime.datetime(2018, 1, 5, 17, 23, 54, 143562), 'item_id': u'VX-11', 'shapetag': u'original', 'transcode_job': u''},
             {'public_url': u'', 'status': u'Requested', 'created': datetime.datetime(2018, 1, 5, 17, 23, 54, 141470), 'created_by': 1, 'expiry': datetime.datetime(2018, 1, 5, 17, 23, 54, 143562), 'item_id': u'VX-11', 'shapetag': u'webm', 'transcode_job': u''}
         ])

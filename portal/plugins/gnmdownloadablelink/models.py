@@ -24,6 +24,8 @@ class DownloadableLink(Model):
     shapetag = CharField(max_length=64,db_index=True)
     transcode_job = CharField(max_length=32,blank=True,null=True)
 
+    def __str__(self):
+        return "{0} of {1} {2} expiring {3} at {4}".format(self.shapetag, self.item_id, self.status, self.expiry, self.s3_url)
 
     def save(self, *args, **kwargs):
         from django.utils import timezone

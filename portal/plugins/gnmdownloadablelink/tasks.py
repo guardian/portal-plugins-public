@@ -293,12 +293,6 @@ def create_link_for_main(item_id, shape_tag, obfuscate=True, is_update=False):
     if is_update and link_model.status == "Failed":
         raise RuntimeError("Create link failed, requires manual retry")
 
-    # if link_model.transcode_job!="":
-    #     transcode_job = check_transcode_status(link_model.transcode_job)
-    #     if transcode_job.didFail(): #also true if it was aborted
-    #         link_model.status = "Failed"
-    #         return "Transcode job failed"
-    #     elif transcode_job.
     item_ref=VSItem(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
     item_ref.populate(item_id, specificFields=['title']) #this will raise VSNotFound if the item_id is invalid
 
@@ -333,3 +327,77 @@ def create_link_for_main(item_id, shape_tag, obfuscate=True, is_update=False):
 
     link_model.save()
     return "Media available at {0}".format(link_model.public_url)
+
+
+def remove_file_from_s3(s3_url):
+    """
+    Attempt to delete the given S3 url. This obviously assumes that the credentials for DOWNLOADABLE_LINK in the settings have delete permission.
+    AWS exceptions are not caught and sohuld be caught and suitably logged/handled by the caller.
+    Additionally, this function will raise a ValueError if the url passed is not in the s3: scheme, or if the requested
+    file does not exist in the bucket.
+    It will warn if the requested bucket is not the one configured in the settings for DOWNLOADABLE_LINK but will still attempt to delete
+    :param s3_url: S3 url to delete
+    :return: boto.s3.key.Key object representing the deleted file
+    """
+    import urlparse
+    from urllib import quote, unquote
+
+    broken_down_url = urlparse.urlparse(s3_url)
+
+    logger.info("Attempting to delete {0}".format(s3_url))
+    #check url scheme
+    if broken_down_url.scheme!="s3":
+        raise ValueError("Provided URL is not an S3 URL")
+
+    #s3 urls have the bucket in the "hostname" part and then the path to key
+
+    s3path = unquote(broken_down_url.path)
+    if s3path.startswith("/"):
+        s3path = s3path[1:] #remove any leading "/" from the filepath
+
+    if s3path=="":
+        raise ValueError("No file provided to delete")
+    #check bucket name
+    if broken_down_url.hostname!=settings.DOWNLOADABLE_LINK_BUCKET:
+        logger.warning("Provided bucket {0} does not match expected value from settings {1}".format(broken_down_url.hostname,settings.DOWNLOADABLE_LINK_BUCKET))
+
+    s3conn = s3_connect()
+    bucket = s3conn.get_bucket(broken_down_url.hostname)
+
+    key = bucket.get_key(s3path)
+    if key is None:
+        raise ValueError("File {0} on bucket {1} does not appear to exist".format(s3path, broken_down_url.hostname))
+    #exceptions from this are caught in the caller
+    key.delete()
+    logger.info("Successfully deleted {0}".format(s3_url))
+    return key
+
+
+@periodic_task(run_every=getattr(settings,"DOWNLOADABLE_LINK_CHECK_INTERVAL",300))
+def remove_expired_link_files(since=None):
+    """
+    Regular task to purge out uploaded files that are past their expiry date
+    :param since: optional parameter to consider as "now", for testing
+    :return: descriptive string
+    """
+    from models import DownloadableLink
+    from datetime import datetime, timedelta
+    import traceback
+
+    if since is None:
+        since = datetime.now()
+
+    logger.info("Starting remove_expired_link_files")
+    total=0
+    success=0
+    for entry in DownloadableLink.objects.filter(expiry__lte=since):
+        total+=1
+        try:
+            logger.info("Removing {0}".format(str(entry)))
+            remove_file_from_s3(entry.s3_url)
+            entry.delete()
+            success+=1
+        except Exception as e:
+            logger.error(traceback.format_exc())
+    logger.info("remove_expired_link deleted {0} of {1} files".format(success,total))
+    return "Deleted {0} of {1} files".format(success,total)

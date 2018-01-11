@@ -36,9 +36,9 @@ describe("check_link_status", function(){
             expect($.ajax.calledWith("/gnmdownloadablelink/api/link/2")).to.equal(true);
             expect($.ajax.calledWith("/gnmdownloadablelink/api/link/3")).to.equal(true);
         }catch(e){
-            console.log($.ajax.getCall(0).args);
-            console.log($.ajax.getCall(1).args);
-            console.log($.ajax.getCall(2).args);
+            console.error($.ajax.getCall(0).args);
+            console.error($.ajax.getCall(1).args);
+            console.error($.ajax.getCall(2).args);
             throw e;
         }
 
@@ -49,7 +49,7 @@ describe("check_link_status", function(){
             shapetag: 'mezzanine'
         });
         expect(linkentries.eq(0).attr('data-entrystatus')).to.equal('Available');
-        expect(linkentries.eq(0).text()).to.equal('mezzanine Available until February 1st 2018, 12:00:00 am Download');
+        expect(linkentries.eq(0).text()).to.equal('mezzanine Available until February 1st 2018, 12:00:00 am Copy me and paste into an email');
         expect(linkentries.eq(0).find('a').attr('href')).to.equal('http://some/url/to/file.ext');
 
         promise_list[1].resolve({

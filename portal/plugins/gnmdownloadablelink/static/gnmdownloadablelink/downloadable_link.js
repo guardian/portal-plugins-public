@@ -81,7 +81,7 @@ function check_link_status(initial){
                 .done(function(data, jqXHR){
                     var htmlstring = data.shapetag + " " + data.status;
                     if(data.public_url){
-                        htmlstring = htmlstring + ' <a href="' + data.public_url + '">Download</a>';
+                        htmlstring = htmlstring + ' <a href="' + data.public_url + '">Copy me and paste into an email</a>';
                     }
                     elem.html(htmlstring);
                     elem.attr("data-entrystatus",data.status);

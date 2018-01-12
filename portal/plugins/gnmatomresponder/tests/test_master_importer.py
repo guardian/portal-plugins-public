@@ -1,10 +1,7 @@
 import django.test
 from mock import MagicMock, patch
-from gnmvidispine.vs_item import VSItem
-from gnmvidispine.vs_search import VSItemSearch
 from gnmvidispine.vs_collection import VSCollection
 from django.core.management import execute_from_command_line
-import re
 
 execute_from_command_line(['manage.py', 'syncdb', '--noinput'])
 execute_from_command_line(['manage.py', 'migrate', '--noinput'])

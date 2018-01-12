@@ -6,6 +6,7 @@ GNM_MASTERS_MEDIAATOM_UPLOADSTATUS = 'gnm_master_mediaatom_uploadstatus'
 GNM_TYPE = 'gnm_type'
 
 GNM_ASSET_CATEGORY = 'gnm_asset_category'
+GNM_ASSET_FILENAME = 'gnm_asset_filename'
 
 GNM_MASTERS_MEDIAATOM_UPLOADEDBY = 'gnm_master_mediaatom_uploaded_by'
 

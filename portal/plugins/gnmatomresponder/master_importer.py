@@ -145,6 +145,8 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                                                  )
         logger.info(u"{0} Import job is at ID {1}".format(content['atomId'], job_result.name))
 
+        master_item.set_metadata({const.GNM_ASSET_FILENAME: downloaded_path})
+
         try:
             logger.info(u"{n}: Looking for PAC info that has been already registered".format(n=content.get('title','(unknown title)').encode("UTF-8","backslashescape")))
             pac_entry = PacFormXml.objects.get(atom_id=content['atomId'])

@@ -59,6 +59,8 @@ def edl_import_revoked(request=None, signum=None, terminated=None, expired=None,
     taskid = sender.request.id
 
     logger.warning("PAC form import task {0} revoked".format(taskid))
+    if taskid is None:
+        return #can't do anything if we have not had a task id passed
     try:
         pac_xml_task = PacFormXml.objects.get(celery_task_id=taskid)
         pac_xml_task.status = "ERROR"

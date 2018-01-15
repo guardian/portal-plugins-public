@@ -78,7 +78,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         logger.info(content)
 
         #We get two types of message on the stream, one for incoming xml the other for incoming media.
-        if content['type'] == const.MESSAGE_TYPE_MEDIA:
+        if content['type'] == const.MESSAGE_TYPE_MEDIA or content['type'] == const.MESSAGE_TYPE_RESYNC_MEDIA:
             master_item = self.get_item_for_atomid(content['atomId'])
             project_collection = self.get_project_collection(content)
 

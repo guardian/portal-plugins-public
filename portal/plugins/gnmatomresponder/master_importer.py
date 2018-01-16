@@ -147,20 +147,20 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         master_item.set_metadata({const.GNM_ASSET_FILENAME: downloaded_path})
 
-        try:
-            logger.info(u"{n}: Looking for PAC info that has been already registered".format(n=content.get('title','(unknown title)').decode("UTF-8","backslashescape")))
-            pac_entry = PacFormXml.objects.get(atom_id=content['atomId'])
-            logger.info(u"{n}: Found PAC form information at {0}".format(pac_entry.pacdata_url,n=content.get('title','(unknown title)').decode("UTF-8","backslashescape")))
-            proc = PacXmlProcessor(self.role_name, self.session_name)
-            proc.link_to_item(pac_entry, master_item)
-        except PacFormXml.DoesNotExist:
-            logger.info(u"{n}: No PAC form information has yet arrived".format(n=content.get('title','(unknown title)').decode("UTF-8","backslashescape")))
-
         #make a note of the record. This is to link it up with Vidispine's response message.
         record = ImportJob(item_id=master_item.name,job_id=job_result.name,status='STARTED',started_at=datetime.now(),
                            user_email=content.get('user',"Unknown user"), atom_title=content.get('title', "Unknown title"),
                            s3_path=content['s3Key'])
         record.save()
+
+        try:
+            logger.info(u"{n}: Looking for PAC info that has been already registered".format(n=content.get('title','(unknown title)').encode("UTF-8","backslashescape").decode("UTF-8")))
+            pac_entry = PacFormXml.objects.get(atom_id=content['atomId'])
+            logger.info(u"{n}: Found PAC form information at {0}".format(pac_entry.pacdata_url,n=content.get('title','(unknown title)').encode("UTF-8","backslashescape").decode("UTF-8")))
+            proc = PacXmlProcessor(self.role_name, self.session_name)
+            proc.link_to_item(pac_entry, master_item)
+        except PacFormXml.DoesNotExist:
+            logger.info(u"{n}: No PAC form information has yet arrived".format(n=content.get('title','(unknown title)').decode("UTF-8","backslashescape")))
 
         if parent is not None:
             logger.info(u"{0}: Adding item {1} to collection {2}".format(content['atomId'], master_item.name, parent.name))

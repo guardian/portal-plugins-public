@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import django.test
 from mock import MagicMock, patch
 from gnmvidispine.vs_collection import VSCollection
@@ -78,7 +79,8 @@ class TestMasterImporter(django.test.TestCase):
             'atomId': "57AF5F3B-A556-448B-98E1-0628FDE9A5AC",
             's3Key': "path/to/s3data",
             's3Bucket': "sandcastles",
-            'projectId': "VX-567"
+            'projectId': "VX-567",
+            'title': u"Søméthîng wîth ëxtënded çharacters – like this. £"
         }
 
         master_item = MagicMock(target=VSItem)

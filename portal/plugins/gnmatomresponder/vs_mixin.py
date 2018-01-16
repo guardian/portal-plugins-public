@@ -79,8 +79,29 @@ class VSMixin(object):
         item.createPlaceholder(metadata, group='Asset')
         return item
 
+    @staticmethod
+    def set_project_fields_for_master(vsitem, parent_project):
+        """
+        Sets the metadata reference fields on the given master. Raises VSExceptions if the operations fail.
+        :param vsitem: populated VSItem of the master to update
+        :param parent_project: populated VSCollection of the project it is being added to
+        :return: the item passed in
+        """
+        from gnmvidispine.vs_metadata import VSMetadataReference
+        project_name_attribs = parent_project.get_metadata_attributes(const.GNM_PROJECT_HEADLINE)
+        project_name_reference = VSMetadataReference(uuid=project_name_attribs[0].uuid)
 
-    def get_collection_for_id(self, projectid):
+        commission_name_attribs = parent_project.get_metadata_attributes(const.GNM_COMMISSION_TITLE)
+        commission_name_ref = VSMetadataReference(uuid=commission_name_attribs[0].uuid)
+
+        metadata = {
+            const.GNM_PROJECT_HEADLINE: project_name_reference,
+            const.GNM_COMMISSION_TITLE: commission_name_ref
+        }
+        vsitem.set_metadata(metadata, group="Asset")
+        return vsitem
+
+    def get_collection_for_id(self, projectid, expected_type="Project"):
         """
         Returns a VSCollection for the given project ID. Raises VSNotFound if the collection does not exist, or
         exceptions.NotAProject if it is not a project.
@@ -88,6 +109,6 @@ class VSMixin(object):
         """
         collection = VSCollection(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
         collection.populate(projectid)
-        if collection.get('gnm_type')!="Project":
+        if collection.get('gnm_type')!=expected_type:
             raise NotAProjectError("{0} is a {1}".format(projectid, collection.get('gnm_type')))
         return collection

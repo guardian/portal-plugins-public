@@ -91,8 +91,14 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                 logger.info("Created item {0} for atom {1}".format(master_item.name, content['atomId']))
             return self.import_new_item(master_item, content, parent=project_collection)
         elif content['type'] == const.MESSAGE_TYPE_PAC:
+            logger.info("Got PAC form data message")
             record = self.register_pac_xml(content)
             self.ingest_pac_xml(record)
+            logger.info("PAC form data message complete")
+        elif content['type'] == const.MESSAGE_TYPE_PROJECT_ASSIGNED:
+            logger.info("Got project (re-)assignment message: {0}".format(content))
+            self.assign_atom_to_project(content['atomId'], content['commissionId'], content['projectId'])
+            logger.info("Project (re-)assignment complete")
         else:
             raise ValueError("Unrecognised message type: {0}".format(content['type']))
 
@@ -186,3 +192,30 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         #this process will call out to Pluto to do the linkup once the data has been received
         return proc.link_to_item(pac_xml_record, vsitem)
+
+    def assign_atom_to_project(self, atomId, commissionId, projectId):
+        """
+        (re)-assigns the given master to a project.
+        If the project is not associated with the given commission, warns but does not fail.
+        :param atomId:
+        :param commissionId:
+        :param projectId:
+        :return:
+        """
+        vsitem = self.get_item_for_atomid(atomId)
+
+        current_project_id = vsitem.get(const.PARENT_COLLECTION)
+        if current_project_id is not None:
+            logger.warning("Re-assigning master {0} to project {1} so removing from {2}".format(vsitem.name, projectId, current_project_id))
+            current_project_ref = self.get_collection_for_id(current_project_id)
+            current_project_ref.removeFromCollection(vsitem)
+
+        new_project_ref = self.get_collection_for_id(projectId)
+        expected_commission_id = new_project_ref.get(const.PARENT_COLLECTION)
+        if expected_commission_id!=commissionId:
+            logger.warning("Project {0} belongs to commission {1}, but media atom thinks it belongs to commission {2}. Continuing anyway".format(projectId, expected_commission_id, commissionId))
+
+        logger.info("Adding master {0} to collection {1}".format(vsitem.name, new_project_ref.name))
+        new_project_ref.addToCollection(vsitem)
+        logger.info("Setting up project fields for {0}".format(vsitem.name))
+        self.set_project_fields_for_master(vsitem,parent_project=new_project_ref)

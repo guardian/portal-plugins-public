@@ -67,6 +67,40 @@ class TestVsMixin(django.test.TestCase):
 
                 self.assertEqual(result, None)
 
+    def test_set_project_fields_for_master(self):
+        """
+        set_project_fields_for_master should retrieve metadata references for the given collection and set them
+        as metadata on the given item
+        :return:
+        """
+        from gnmvidispine.vs_metadata import VSMetadataAttribute,VSMetadataReference, VSMetadataValue
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+        mock_item = MagicMock(target=VSItem)
+        mock_item.createPlaceholder = MagicMock()
+        mock_project = MagicMock(target=VSCollection)
+        mock_project_name_attrib = MagicMock(target=VSMetadataAttribute)
+        mock_project_name_attrib.uuid = "c4a7cd79-7652-47ba-bd3b-37492cdb91aa"
+        mock_project_name_attrib.values = [VSMetadataValue(uuid="B9A8D873-F704-4BA0-A339-17BF456FEA7C")]
+        mock_commission_name_attrib = MagicMock(target=VSMetadataAttribute)
+        mock_commission_name_attrib.references = [VSMetadataReference(uuid="8CDFBE79-7F08-4D66-9048-0CC33F664937")]
+        mock_commission_name_attrib.uuid = "41cce471-2b30-48fa-8af2-b0d42aff6c7f"
+
+        mock_project.get_metadata_attributes = MagicMock(side_effect=[
+            [mock_project_name_attrib],
+            [mock_commission_name_attrib]
+        ])
+
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
+            with patch('portal.plugins.gnmatomresponder.vs_mixin.VSItem', return_value=mock_item):
+                r = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+                mock_refresh_creds.assert_called_once()
+
+                r.set_project_fields_for_master(mock_item,mock_project)
+                mock_item.set_metadata.assert_called_once_with({
+                    'gnm_commission_title': VSMetadataReference(uuid="41cce471-2b30-48fa-8af2-b0d42aff6c7f"),
+                    'gnm_project_headline': VSMetadataReference(uuid="c4a7cd79-7652-47ba-bd3b-37492cdb91aa")
+                }, group="Asset")
+
     def test_create_placeholder_for_atomid(self):
         """
         create_placeholder_for_atomid should create a placeholder with relevant metadata

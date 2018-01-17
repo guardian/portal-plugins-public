@@ -14,7 +14,8 @@ class DownloadableLink(Model):
         ("Upload Queued", "Upload Queued"),
         ("Uploading", "Uploading"),
         ("Available", "Available"),
-        ("Failed", "Failed")
+        ("Failed", "Failed"),
+        ("Retrying", "Retrying")
     ], db_index=True, default='Requested')
     created = DateTimeField()
     created_by = ForeignKey(to=User)

@@ -49,8 +49,13 @@ describe("check_link_status", function(){
             shapetag: 'mezzanine'
         });
         expect(linkentries.eq(0).attr('data-entrystatus')).to.equal('Available');
-        expect(linkentries.eq(0).text()).to.equal('mezzanine Available until February 1st 2018, 12:00:00 am Copy me and paste into an email');
-        expect(linkentries.eq(0).find('a').attr('href')).to.equal('http://some/url/to/file.ext');
+        //expect(linkentries.eq(0).text()).to.equal('mezzanine Available until February 1st 2018, 12:00:00 am Copy me and paste into an email');
+        console.log(linkentries.eq(0));
+        console.log(linkentries.eq(0).find('span.link-avail-until'));
+        expect(linkentries.eq(0).find('span.link-status').text()).to.equal("Available for 14 days 2 hours");
+        expect(linkentries.eq(0).find('span.link-status').hasClass("link-expires-soon")).to.equal(false);
+        expect(linkentries.eq(0).find())
+        expect(linkentries.eq(0).find('a.download-link').attr('href')).to.equal('http://some/url/to/file.ext');
 
         promise_list[1].resolve({
             expiry: '2018-02-01T00:00:00Z',
@@ -59,7 +64,7 @@ describe("check_link_status", function(){
         });
         expect(linkentries.eq(1).attr('data-entrystatus')).to.equal('Failed');
         expect(linkentries.eq(1).text()).to.equal('lowres Failed');
-        expect(linkentries.eq(1).find('a').length).to.equal(0);
+        expect(linkentries.eq(1).find('a.retry-button').length).to.equal(1);
 
         promise_list[2].resolve({
             expiry: '2018-02-01T00:00:00Z',

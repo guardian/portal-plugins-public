@@ -34,17 +34,17 @@ function get_current_shapetag(){
     return $(".downloadable-link-shapetag-group:checked").val();
 }
 
+/* called when the 'create' button is clicked from the dialog */
 function downloadablelink_create(created_time){
     var datestring = $('#downloadable-link-expiry-time-date').val() + " " + $('#downloadable-link-expiry-time-hours').val() + ":" + $('#downloadable-link-expiry-time-mins').val();
 
+    var shapetag = get_current_shapetag();
     if(created_time===undefined) created_time = new Date();
     var formdata = {
         status: "Requested",
         created: created_time.toISOString(),
         expiry: new Date(datestring).toISOString()
     };
-
-    var shapetag = get_current_shapetag();
 
     var postdata = JSON.stringify(formdata);
     console.log(postdata);
@@ -63,12 +63,56 @@ function downloadablelink_create(created_time){
         });
 }
 
+/* called when the 'retry' link is clicked from the pluginblock */
+function downloadablelink_retry(link_id){
+    var url = "/gnmdownloadablelink/api/retry/" + link_id;
+
+    $('li[data-entryid="' + link_id + '"]').attr('data-entrystatus',"Retrying");
+    return $.ajax(url, {type: "POST", data: {}, contentType: 'application/json'})
+        .done(function(data,jqXHR) {
+            $('#downloadable-link-errormsg').html("Successfully requested retry");
+            $('i#retry-button-' + link_id).fadeOut(400, function(){
+                $('i#retry-tick-' + link_id).fadeIn(400);
+            });
+        })
+        .fail(function(jqXHR, desc, errorThrown){
+            /*show an error icon, and replace the button 5 seconds later*/
+            $('i#retry-button-' + link_id).fadeOut(400, function(){
+                $('i#retry-fail-' + link_id).fadeIn(400);
+            });
+            window.setTimeout(function(){
+                $('i#retry-fail-' + link_id).fadeOut(400, function(){
+                    $('i#retry-button-' + link_id).fadeIn(400);
+                });
+            },5000);
+            console.error(jqXHR);
+        })
+}
+
+/* called when the 'close' button is clicked on the dialog */
 function downloadablelink_close() {
     $('#downloadable-link-create-dlg').dialog("close");
 }
 
+/* Generates the html for a 'retry' link */
+function make_retry_link(entryid, parent_elem){
+    /* create a retry button */
+    return $('<a>',{onClick: 'downloadablelink_retry("' + entryid + '")',
+        onMouseOver: "$(this).css('background-color', '#BBBBBB')",
+        onMouseOut: "$(this).css('background-color', '')",
+        class: 'retry-button',
+        title: 'Retry creating failed link',
+        style: 'margin-left: 0.4em; height:8px; cursor: pointer; border-radius: 25px; padding: -12px'}
+    ).append($('<i>',{class: 'fa fa-refresh', id: 'retry-button-' + entryid })
+    ).append($('<i>', {class: 'fa fa-check', id: 'retry-tick-' + entryid, title: 'Retry requested', style: 'color: green; display: none'})
+    ).append($('<i>', {class: 'fa fa-exclamation-circle', id: 'retry-fail-' + entryid, title: 'Request failed', style: 'color: red; display: none'}));
+}
+
+var one_day = 24*3600*1000;
+
+/*called regularly from window.setTimer to update link status entries*/
 function check_link_status(initial){
-    /*called regularly to update link status entries*/
+
     return $(".sharable-link-entry").map(function(idx,ptr){
         var elem = $(ptr);
 
@@ -79,11 +123,38 @@ function check_link_status(initial){
         if(initial || (entrystatus!=="Available" && entrystatus!=="Failed")){
             return $.ajax("/gnmdownloadablelink/api/link/" + entryid)
                 .done(function(data, jqXHR){
-                    var htmlstring = data.shapetag + " " + data.status;
-                    if(data.public_url){
-                        htmlstring = htmlstring + ' <a href="' + data.public_url + '">Copy me and paste into an email</a>';
+                    var statusstring;
+                    var statusElem;
+                    var labelClass = "link-status";
+                    if(data.status==="Available"){
+                        console.log("expiry date: " + data.expiry);
+                        var expiryMoment = moment(data.expiry);
+                        console.log("expiry moment: " + expiryMoment.format('MMMM Do YYYY, h:mm:ss a'));
+
+                        var expiryDiff = moment(expiryMoment.diff(moment(Date.now())));
+                        console.log("now moment: " + moment(Date.now()).format('MMMM Do YYYY, h:mm:ss a'));
+                        console.log("expiryDiff: " + expiryDiff);
+                        console.log("compare: " + 1*one_day);
+                        
+                        if(expiryDiff < one_day ) labelClass = " link-expires-soon";
+
+                        statusElem = $('<span>',{class: labelClass}).html("Available for " + expiryDiff.format('DD') + " days "+ expiryDiff.format('h') + " hours");
+                    } else {
+                        statusElem = $('<span>',{class: labelClass}).html(data.status);
                     }
-                    elem.html(htmlstring);
+                    var shapeElem = $('<span>',{id: data.shapetag + "_elem"}).html(data.shapetag);
+
+                    elem.append(shapeElem);
+                    elem.append(statusElem);
+                    if(data.public_url){
+                        elem.append(
+                            $('<a>',{class: "download-link", href: data.public_url}).html("Copy me and paste into an email")
+                                .append($('i', {class: "fa fa-link"}))
+                        );
+                    }
+                    if(data.status==="Failed"){
+                        elem.append(make_retry_link(entryid, elem));
+                    }
                     elem.attr("data-entrystatus",data.status);
                 })
                 .fail(function(jqXHR, errorThrown){

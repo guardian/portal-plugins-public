@@ -18,7 +18,7 @@ from rest_framework.parsers import JSONParser, XMLParser
 from serializers import DownloadableLinkSerializer
 from models import DownloadableLink
 from django.views.generic import View
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.core.urlresolvers import reverse_lazy, reverse
 import requests
 import django.db
@@ -94,6 +94,28 @@ class CreateLinkRequest(CreateAPIView):
         response = create_link_for.delay(kwargs['item_id'],kwargs['shape_tag'])
         logger.info("Returning")
         return Response({'status': 'ok', 'link': reverse("downloadable_link_item", kwargs={'pk': self.object.id}), 'task': response.id})
+
+
+class RetryLinkRequest(APIView):
+    renderer_classes = (JSONRenderer,XMLRenderer, )
+    parser_classes = (JSONParser,  )
+    serializer_class = DownloadableLinkSerializer
+    model = DownloadableLink
+
+    def post(self, request, *args, **kwargs):
+        from tasks import create_link_for
+
+        try:
+            model = self.model.objects.get(pk=kwargs['pk'])
+        except self.model.DoesNotExist:
+            return Response({'status': 'error', 'error': 'invalid request'}, status=400)
+
+        model.status="Retrying" #change the status from Failed, so that the UI knows to keep checking it
+        model.save()
+        logger.info("Retry link: triggering background task to transcode/upload")
+        response = create_link_for.delay(model.item_id, model.shapetag)
+        logger.info("Returning")
+        return Response({'status': 'ok', 'link': reverse("downloadable_link_item", kwargs={'pk': model.id}), 'task': response.id})
 
 
 class ShapeTagList(View):

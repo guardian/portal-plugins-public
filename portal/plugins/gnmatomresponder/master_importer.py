@@ -120,6 +120,9 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         from pac_xml import PacXmlProcessor
         from mock import MagicMock
         if not isinstance(master_item, VSItem) and not isinstance(master_item, MagicMock): raise TypeError #for intellij
+
+        safe_title = content.get('title','(unknown title)').encode("UTF-8","backslashescape").decode("UTF-8")
+
         #using a signed URL is preferred, but right now VS seems to have trouble ingesting it.
         #so, we download instead and ingest that. get_s3_signed_url is left in to make it simple to switch back
         #download_url = self.get_s3_signed_url(bucket=settings.ATOM_RESPONDER_DOWNLOAD_BUCKET, key=content['s3Key'])
@@ -130,8 +133,9 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         download_url = "file://" + urllib.quote(downloaded_path)
 
+        logger.info(u"{n}: Ingesting atom with title '{0}' from media atom with ID {1}".format(safe_title, content['atomId'], n=master_item.name))
         try:
-            logger.info(u"{2}: Download URL for {0} is {1}".format(content['atomId'], download_url, content.get('title','(unknown title)').encode("UTF-8","backslashescape")))
+            logger.info(u"{n}: Download URL is {0}".format(download_url, n=master_item.name))
         except UnicodeEncodeError:
             pass
         except UnicodeDecodeError:
@@ -143,7 +147,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                                                  priority=getattr(settings,"ATOM_RESPONDER_IMPORT_PRIORITY","HIGH"),
                                                  jobMetadata={'gnm_source': 'media_atom'},
                                                  )
-        logger.info(u"{0} Import job is at ID {1}".format(content['atomId'], job_result.name))
+        logger.info(u"{0} Import job is at ID {1}".format(master_item.name, job_result.name))
 
         master_item.set_metadata({const.GNM_ASSET_FILENAME: downloaded_path})
 
@@ -154,20 +158,20 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         record.save()
 
         try:
-            logger.info(u"{n}: Looking for PAC info that has been already registered".format(n=content.get('title','(unknown title)').encode("UTF-8","backslashescape").decode("UTF-8")))
+            logger.info(u"{n}: Looking for PAC info that has been already registered".format(n=master_item.name))
             pac_entry = PacFormXml.objects.get(atom_id=content['atomId'])
-            logger.info(u"{n}: Found PAC form information at {0}".format(pac_entry.pacdata_url,n=content.get('title','(unknown title)').encode("UTF-8","backslashescape").decode("UTF-8")))
+            logger.info(u"{n}: Found PAC form information at {0}".format(pac_entry.pacdata_url,n=master_item.name))
             proc = PacXmlProcessor(self.role_name, self.session_name)
             proc.link_to_item(pac_entry, master_item)
         except PacFormXml.DoesNotExist:
-            logger.info(u"{n}: No PAC form information has yet arrived".format(n=content.get('title','(unknown title)').encode("UTF-8","backslashescape").decode("UTF-8")))
+            logger.info(u"{n}: No PAC form information has yet arrived".format(n=master_item.name))
 
         if parent is not None:
-            logger.info(u"{0}: Adding item {1} to collection {2}".format(content['atomId'], master_item.name, parent.name))
+            logger.info(u"{0}: Adding to collection {1}".format(master_item.name, parent.name))
             parent.addToCollection(master_item)
-            logger.info(u"{0}: Done".format(content['atomId']))
+            logger.info(u"{0}: Done".format(master_item.name))
         else:
-            logger.error(u"{0}: No parent collection specified for item {1}!".format(content['atomId'], master_item.name))
+            logger.error(u"{0}: No parent collection specified for item!".format(master_item.name))
         
     def ingest_pac_xml(self, pac_xml_record):
         """

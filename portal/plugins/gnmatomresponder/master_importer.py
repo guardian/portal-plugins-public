@@ -160,7 +160,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
             proc = PacXmlProcessor(self.role_name, self.session_name)
             proc.link_to_item(pac_entry, master_item)
         except PacFormXml.DoesNotExist:
-            logger.info(u"{n}: No PAC form information has yet arrived".format(n=content.get('title','(unknown title)').decode("UTF-8","backslashescape")))
+            logger.info(u"{n}: No PAC form information has yet arrived".format(n=content.get('title','(unknown title)').encode("UTF-8","backslashescape").decode("UTF-8")))
 
         if parent is not None:
             logger.info(u"{0}: Adding item {1} to collection {2}".format(content['atomId'], master_item.name, parent.name))

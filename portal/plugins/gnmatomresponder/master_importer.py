@@ -166,10 +166,9 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                                                  )
         logger.info(u"{0} Import job is at ID {1}".format(master_item.name, job_result.name))
 
-        self.update_pluto_record(master_item.name)
-
         master_item.set_metadata({const.GNM_ASSET_FILENAME: downloaded_path})
 
+        self.update_pluto_record(master_item.name)
         #make a note of the record. This is to link it up with Vidispine's response message.
         record = ImportJob(item_id=master_item.name,job_id=job_result.name,status='STARTED',started_at=datetime.now(),
                            user_email=content.get('user',"Unknown user"), atom_title=content.get('title', "Unknown title"),
@@ -236,3 +235,5 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         new_project_ref.addToCollection(vsitem)
         logger.info("Setting up project fields for {0}".format(vsitem.name))
         self.set_project_fields_for_master(vsitem,parent_project=new_project_ref)
+        logger.info("Telling gnm_masters about updates for {0}".format(vsitem.name))
+        self.update_pluto_record(vsitem.name)

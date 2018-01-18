@@ -38,7 +38,9 @@ GNM_MASTERS_WEBSITE_HEADLINE = 'gnm_master_website_headline'
 MESSAGE_TYPE_MEDIA = "video-upload"
 MESSAGE_TYPE_PAC = "pac-file-upload"
 MESSAGE_TYPE_RESYNC_MEDIA = "video-upload-resync"
+MESSAGE_TYPE_PROJECT_ASSIGNED = "project-assigned"
 
 GNM_PROJECT_HEADLINE = 'gnm_project_headline'
 GNM_COMMISSION_TITLE = 'gnm_commission_title'
 
+PARENT_COLLECTION = "__parent_collection"

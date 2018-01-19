@@ -332,7 +332,7 @@ def create_link_for_main(item_id, shape_tag, obfuscate=True, is_update=False):
 def remove_file_from_s3(s3_url):
     """
     Attempt to delete the given S3 url. This obviously assumes that the credentials for DOWNLOADABLE_LINK in the settings have delete permission.
-    AWS exceptions are not caught and sohuld be caught and suitably logged/handled by the caller.
+    AWS exceptions are not caught and should be caught and suitably logged/handled by the caller.
     Additionally, this function will raise a ValueError if the url passed is not in the s3: scheme, or if the requested
     file does not exist in the bucket.
     It will warn if the requested bucket is not the one configured in the settings for DOWNLOADABLE_LINK but will still attempt to delete

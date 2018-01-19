@@ -110,6 +110,24 @@ function make_retry_link(entryid, parent_elem){
 
 var one_day = 24*3600*1000;
 
+/*returns a jquery object for a suitable icon for the given status*/
+function icon_for_status(status){
+    if(status==='Requested'){
+        return $('<i>', {class: "fa fa-hourglass-start downloadable-link-statusicon", style: 'color: darkgrey'});
+    } else if(status==='Transcoding'){
+        return $('<i>', {class: 'fa fa-car downloadable-link-statusicon', style: 'color: darkgreen'});
+    }else if(status==='Upload Queued'){
+        return $('<i>', {class: 'fa fa-bars downloadable-link-statusicon', style: 'color: darkgreen'});
+    }else if(status==='Uploading'){
+        return $('<i>', {class: 'fa fa-chevron-circle-up downloadable-link-statusicon', style: 'color: orange'});
+    }else if(status==='Available'){
+        return $('<i>', {class: 'fa fa-share-alt downloadable-link-statusicon', style: 'color: green'});
+    }else if(status==='Failed'){
+        return $('<i>', {class: 'fa fa-exclamation downloadable-link-statusicon', style: 'color: red'});
+    }else if(status==='Retrying'){
+        return $('<i>', {class: 'fa fa-history downloadable-link-statusicon', style: 'color: blue'});
+    }
+}
 /*called regularly from window.setTimer to update link status entries*/
 function check_link_status(initial, override_now_time){
 
@@ -145,6 +163,8 @@ function check_link_status(initial, override_now_time){
                         statusElem = $('<span>',{class: labelClass}).html(data.status);
                     }
                     var shapeElem = $('<span>',{class: "link-shape-name"}).html(data.shapetag);
+
+                    elem.append(icon_for_status(data.status));
 
                     elem.append(shapeElem);
                     elem.append(statusElem);

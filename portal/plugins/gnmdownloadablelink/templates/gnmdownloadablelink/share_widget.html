@@ -1,12 +1,12 @@
 {% load static %}
 <script src="{% static 'gnmdownloadablelink/downloadable_link.js' %}"></script>
-<ul>
+<ul c>
     <li>
         <img src="{% static 'gnmdownloadablelink/share.png' %}" style="height: 20px;">
         <a href="#" onclick="downloadablelink_show();">Make shareable link....</a>
     </li>
     <li>
-        <ul id="downloadable-link-sharelist" style="margin-left: 2em;margin-top: -0.5em;">
+        <ul id="downloadable-link-sharelist" class="shareable-link-list">
             {% for entry in existing_shares %}
             <li class="sharable-link-entry"
                 data-entrystatus="{{ entry.status }}"

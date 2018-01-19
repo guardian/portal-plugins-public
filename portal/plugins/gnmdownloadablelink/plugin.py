@@ -70,3 +70,32 @@ class GnmdownloadablelinkRegister(Plugin):
 
 gnmdownloadablelinkplugin = GnmdownloadablelinkRegister()
 
+class GnmDownloadableLinkCSS(Plugin):
+    """
+    Injects CSS overrides into all Portal pages; in practise, it will only inject ones with items or collections
+    in their context
+    """
+    implements(IPluginBlock)
+
+    def __init__(self):
+        self.name = "header_css_js"
+        self.plugin_guid = '46ac18fe-8753-499f-b026-02ca7d9b2e89'
+        log.warning('Initiated glacier CSS')
+
+    def return_string(self, tagname, *args):
+        """
+        Returns a dictionary containing rendering information
+        :param tagname: tag name
+        :param args: passed in from Portal
+        :return: dictionary of context, guid and template
+        """
+        import traceback
+        ctx={}
+
+        return {'guid'    : self.plugin_guid,
+                'template': 'gnmdownloadablelink/css_injection_template.html',
+                'context' : ctx
+                }
+
+
+cssplug = GnmDownloadableLinkCSS()

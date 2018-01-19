@@ -62,6 +62,17 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         return project_collection
 
+    def update_pluto_record(self, item_id):
+        import traceback
+        try:
+            from portal.plugins.gnm_masters.signals import master_external_update
+
+            master_external_update.send(sender=self.__class__, item_id=item_id)
+        except ImportError as e:
+            logger.error("Unable to signal master update: {0}".format(e))
+        except Exception as e:
+            logger.error("An error happened when outputting master_external_create signal: {0}".format(traceback.format_exc()))
+
     def process(self,record, approx_arrival):
         """
         Process a message from the kinesis stream.  Each record is a JSON document which contains keys for atomId, s3Key,
@@ -157,6 +168,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         master_item.set_metadata({const.GNM_ASSET_FILENAME: downloaded_path})
 
+        self.update_pluto_record(master_item.name)
         #make a note of the record. This is to link it up with Vidispine's response message.
         record = ImportJob(item_id=master_item.name,job_id=job_result.name,status='STARTED',started_at=datetime.now(),
                            user_email=content.get('user',"Unknown user"), atom_title=content.get('title', "Unknown title"),
@@ -227,3 +239,5 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         new_project_ref.addToCollection(vsitem)
         logger.info("Setting up project fields for {0}".format(vsitem.name))
         self.set_project_fields_for_master(vsitem,parent_project=new_project_ref)
+        logger.info("Telling gnm_masters about updates for {0}".format(vsitem.name))
+        self.update_pluto_record(vsitem.name)

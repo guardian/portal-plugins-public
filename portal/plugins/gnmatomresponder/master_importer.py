@@ -208,6 +208,10 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         """
         vsitem = self.get_item_for_atomid(atomId)
 
+        if vsitem is None:
+            logger.error("Cannot re-assign atom to project: atom id {0} does not have a master yet.".format(atomId))
+            return
+
         current_project_id = vsitem.get(const.PARENT_COLLECTION)
         if current_project_id is not None:
             logger.warning("Re-assigning master {0} to project {1} so removing from {2}".format(vsitem.name, projectId, current_project_id))

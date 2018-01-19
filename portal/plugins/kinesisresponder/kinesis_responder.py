@@ -110,13 +110,17 @@ class KinesisResponder(Thread):
                 record = self._conn.get_records(iterator,limit=10)
                 if sleep_delay>1:
                     sleep_delay /= 2
+            except kinesis.exceptions.ExpiredIteratorException as e:
+                logger.warning("Received expired iterator exception, getting new iterator: {0}".format(str(e)))
+                iterator = self.new_shard_iterator()
+                continue
             except kinesis.exceptions.ProvisionedThroughputExceededException:
                 sleep(sleep_delay)
                 sleep_delay*=2
                 continue
             except boto.exception.JSONResponseError as e:
                 if e.error_code=='ExpiredTokenException':
-                    logging.warning("Access credentials expired, refreshing...")
+                    logger.warning("Access credentials expired, refreshing...")
                     self.refresh_access_credentials()
                 continue
 

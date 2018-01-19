@@ -84,3 +84,45 @@ class PlutoConverterGearboxPlugin(PlutoConverterGenericGearboxPlugin):
         log.debug("Registering PlutoConverterGearboxPlugin")
 
 gnmplutoconvertergearbo = PlutoConverterGearboxPlugin()
+
+class Gnm_GlacierCSS(Plugin):
+    """
+    Injects CSS overrides into all Portal pages; in practise, it will only inject ones with items or collections
+    in their context
+    """
+    implements(IPluginBlock)
+
+    def __init__(self):
+        self.name = "header_css_js"
+        self.plugin_guid = '46ac18fe-8753-499f-b026-02ca7d9b2e89'
+        log.warning('Initiated glacier CSS')
+
+    def return_string(self, tagname, *args):
+        """
+        Returns a dictionary containing rendering information
+        :param tagname: tag name
+        :param args: passed in from Portal
+        :return: dictionary of context, guid and template
+        """
+        import traceback
+        ctx={}
+        try:
+            context = args[1]
+            if 'item' in context:
+                ctx = self.context_for_item(context['item'])
+            elif 'collection' in context:
+                ctx = self.context_for_collection(context['collection'])
+            else:
+
+                return None #don't render anything
+        except:
+            log.error(traceback.format_exc())
+            return None #do not render anything
+
+        return {'guid'    : self.plugin_guid,
+                'template': 'gnmdownloadablelink/css_injection_template.html',
+                'context' : ctx
+                }
+
+
+cssplug = Gnm_GlacierCSS()

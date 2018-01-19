@@ -111,7 +111,7 @@ function make_retry_link(entryid, parent_elem){
 var one_day = 24*3600*1000;
 
 /*called regularly from window.setTimer to update link status entries*/
-function check_link_status(initial){
+function check_link_status(initial, override_now_time){
 
     return $(".sharable-link-entry").map(function(idx,ptr){
         var elem = $(ptr);
@@ -119,30 +119,32 @@ function check_link_status(initial){
         var entrystatus = elem.attr("data-entrystatus");
         var entryid = elem.attr("data-entryid");
 
+        var nowtime = override_now_time ? override_now_time : Date.now();
 
         if(initial || (entrystatus!=="Available" && entrystatus!=="Failed")){
             return $.ajax("/gnmdownloadablelink/api/link/" + entryid)
                 .done(function(data, jqXHR){
-                    var statusstring;
                     var statusElem;
                     var labelClass = "link-status";
+                    elem.empty();
+
                     if(data.status==="Available"){
-                        console.log("expiry date: " + data.expiry);
+                        // console.log("expiry date: " + data.expiry);
                         var expiryMoment = moment(data.expiry);
-                        console.log("expiry moment: " + expiryMoment.format('MMMM Do YYYY, h:mm:ss a'));
+                        // console.log("expiry moment: " + expiryMoment.format('MMMM Do YYYY, h:mm:ss a'));
 
-                        var expiryDiff = moment(expiryMoment.diff(moment(Date.now())));
-                        console.log("now moment: " + moment(Date.now()).format('MMMM Do YYYY, h:mm:ss a'));
-                        console.log("expiryDiff: " + expiryDiff);
-                        console.log("compare: " + 1*one_day);
+                        var expiryDiff = moment(expiryMoment.diff(moment(nowtime)));
+                        // console.log("now moment: " + moment(nowtime).format('MMMM Do YYYY, h:mm:ss a'));
+                        // console.log("expiryDiff: " + expiryDiff);
+                        // console.log("compare: " + 1*one_day);
                         
-                        if(expiryDiff < one_day ) labelClass = " link-expires-soon";
+                        if(expiryDiff < one_day ) labelClass += " link-expires-soon";
 
-                        statusElem = $('<span>',{class: labelClass}).html("Available for " + expiryDiff.format('DD') + " days "+ expiryDiff.format('h') + " hours");
+                        statusElem = $('<span>',{class: labelClass}).html("Available for " + expiryDiff.format('D') + " days "+ expiryDiff.format('h') + " hours");
                     } else {
                         statusElem = $('<span>',{class: labelClass}).html(data.status);
                     }
-                    var shapeElem = $('<span>',{id: data.shapetag + "_elem"}).html(data.shapetag);
+                    var shapeElem = $('<span>',{class: "link-shape-name"}).html(data.shapetag);
 
                     elem.append(shapeElem);
                     elem.append(statusElem);

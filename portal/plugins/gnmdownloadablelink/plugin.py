@@ -39,7 +39,6 @@ class GnmdownloadablelinkMasterPagePlugin(Plugin):
         from models import DownloadableLink
         context=args[1]
         master_id = context['master'].id
-        print "Master id is {0}".format(master_id)
         return {'guid': self.plugin_guid,
                 'template': 'gnmdownloadablelink/share_widget.html',
                 'context': {

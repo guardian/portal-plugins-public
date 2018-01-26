@@ -33,6 +33,8 @@ test:
     - nosetests -v portal/plugins/gnmpagerduty/tests
     - DJANGO_SETTINGS_MODULE=portal.plugins.gnmlibrarytool.tests.django_test_settings nosetests -v portal/plugins/gnmlibrarytool/tests
     - DJANGO_SETTINGS_MODULE=portal.plugins.gnmatomresponder.tests.django_test_settings nosetests -v portal/plugins/gnmatomresponder/tests
+    - DJANGO_SETTINGS_MODULE=portal.plugins.gnmdownloadablelink.tests.django_test_settings nosetests -v portal/plugins/gnmdownloadablelink/tests
+    - cd portal/plugins/gnmdownloadablelink; npm run test
     - npm run test
     - npm run lint
     - npm run testcss
@@ -41,6 +43,11 @@ deployment:
   master:
     branch: /.*/
     commands:
+      #these are needed for testing, but supplied by the real system when deployed. if we include them in the build
+      #then it will break portal when installed!
+      - rm -f portal/__init__.py; rm -f portal/plugins/__init__.py
+      - sudo mkdir -p /opt/cantemo/portal/portal/plugins; sudo chown -R ubuntu /opt/cantemo
+      - rm -rf portal/plugins/gnmdownloadablelink/node_modules
       - chmod a+x *.sh
       - ./buildrpms.sh
       - rpmbuild -bb portal-codemirror.spec
@@ -55,10 +62,4 @@ deployment:
       - cp -a static/knockout-3.3.0.js ${HOME}/rpmbuild/BUILD/static
       - rpmbuild -bb portal-knockout.spec
       - ./upload_with_hash.sh ${HOME}/rpmbuild/RPMS/noarch/portal-knockout-3.3.0-1.noarch.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins/static/portal-knockout-3.3.0-1.noarch.rpm
-      #these are needed for testing, but supplied by the real system when deployed. if we include them in the build
-      #then it will break portal when installed!
-      - rm -f portal/__init__.py; rm -f portal/plugins/__init__.py
-      - sudo mkdir -p /opt/cantemo/portal/portal/plugins; sudo chown -R ubuntu /opt/cantemo
-      - chmod a+x buildrpms.sh
-      - ./buildrpms.sh
       - for x in `ls ${HOME}/rpmbuild/RPMS/noarch/*.rpm`; do aws s3 cp "$x" s3://gnm-multimedia-deployables/gnm_portal_plugins/public_repo/${CIRCLE_BUILD_NUM}/`basename $x` --acl public-read; done

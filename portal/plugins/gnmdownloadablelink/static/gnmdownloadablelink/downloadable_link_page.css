@@ -1,0 +1,18 @@
+span.link-expires-soon {
+    color: darkorange;
+}
+
+span.link-shape-name {
+    margin-right: 0.5em;
+}
+
+i.downloadable-link-statusicon {
+    margin-left: -6px;
+    margin-right: 6px;
+}
+
+ul.shareable-link-list {
+    width: 100%;
+    margin-left: 2em;
+    margin-top: -0.5em;
+}

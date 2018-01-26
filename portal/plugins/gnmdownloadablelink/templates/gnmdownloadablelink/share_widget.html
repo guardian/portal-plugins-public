@@ -1,0 +1,53 @@
+{% load static %}
+<script src="{% static 'gnmdownloadablelink/downloadable_link.js' %}"></script>
+<ul c>
+    <li>
+        <img src="{% static 'gnmdownloadablelink/share.png' %}" style="height: 20px;">
+        <a href="#" onclick="downloadablelink_show();">Make shareable link....</a>
+    </li>
+    <li>
+        <ul id="downloadable-link-sharelist" class="shareable-link-list">
+            {% for entry in existing_shares %}
+            <li class="sharable-link-entry"
+                data-entrystatus="{{ entry.status }}"
+                data-entryid="{{ entry.pk }}">
+                {{ entry.shapetag }}: {{ entry.status }}
+
+                {% if entry.status == "Available" %}
+                    <a href="{{ entry.public_url }}">Download</a>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </li>
+
+    <div id="downloadable-link-create-dlg" style="display: none" title="Downloadable Link">
+            <h2 style="color: #214583; margin-bottom: auto">Select the format to share</h2>
+            <input type="hidden" name="downloadable-link-itemid" id="downloadable-link-itemid" value="{{ master.id }}">
+            <ul class="shapelist-nobullets" id="downloadable-link-shape-list">
+
+            </ul>
+
+            <hr style="margin:0.5em; margin-bottom:1em"/>
+            <h2 style="color: #214583; margin-bottom: auto">Select the expiry time</h2>
+            <ul id="downloadable-link-expiry-controls">
+                <li style="list-style: none;">
+                <label for="downloadable-link-expiry-time-date">Date:</label>
+                <input class="downloadable-link-control" name="expiry-date" id="downloadable-link-expiry-time-date">
+                </li>
+                <li style="list-style: none">
+                    <label for="downloadable-link-expiry-time-hours">Time:</label>
+                    <select class="downloadable-link-control" name="expiry-hours" id="downloadable-link-expiry-time-hours" style="width: auto;"></select>
+                    <label for="downloadable-link-expiry-time-mins">:</label>
+                    <select class="downloadable-link-control" name="expiry-mins" id="downloadable-link-expiry-time-mins" style="width: auto;"></select>
+
+                </li>
+            </ul>
+
+            <hr style="margin:0.5em; margin-bottom:1em"/>
+        <p class="error" id="downloadable-link-errormsg"></p>
+
+        <button onclick="downloadablelink_create();">Create</button>
+        <button onclick="downloadablelink_close();">Close</button>
+    </div>
+</ul>

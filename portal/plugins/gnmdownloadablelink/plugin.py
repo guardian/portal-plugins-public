@@ -78,8 +78,8 @@ class GnmDownloadableLinkCSS(Plugin):
 
     def __init__(self):
         self.name = "header_css_js"
-        self.plugin_guid = '46ac18fe-8753-499f-b026-02ca7d9b2e89'
-        log.warning('Initiated glacier CSS')
+        self.plugin_guid = '10031a8e-2e25-4753-9be5-f8e48ccf218b'
+        log.warning('Initiated downloadable link CSS')
 
     def return_string(self, tagname, *args):
         """

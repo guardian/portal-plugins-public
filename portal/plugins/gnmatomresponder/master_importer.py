@@ -116,7 +116,9 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
             logger.info("PAC form data message complete")
         elif content['type'] == const.MESSAGE_TYPE_PROJECT_ASSIGNED:
             logger.info("Got project (re-)assignment message: {0}".format(content))
-            self.assign_atom_to_project(content['atomId'], content['commissionId'], content['projectId'], content)
+            project_collection = self.get_project_collection(content)
+            master_item, created = self.create_master_item(content['atomId'], content['title'], project_collection, content['user'])
+            self.assign_atom_to_project(content['atomId'], content['commissionId'], content['projectId'], content, master_item, created, project_collection)
             logger.info("Project (re-)assignment complete")
         else:
             raise ValueError("Unrecognised message type: {0}".format(content['type']))
@@ -217,7 +219,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         #this process will call out to Pluto to do the linkup once the data has been received
         return proc.link_to_item(pac_xml_record, vsitem)
 
-    def assign_atom_to_project(self, atomId, commissionId, projectId, content):
+    def assign_atom_to_project(self, atomId, commissionId, projectId, content, master_item, created, project_collection):
         """
         (re)-assigns the given master to a project.
         If the project is not associated with the given commission, warns but does not fail.
@@ -228,9 +230,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         """
         vsitem = self.get_item_for_atomid(atomId)
 
-        if vsitem is None:
-            logger.error("Cannot re-assign atom to project: atom id {0} does not have a master yet.".format(atomId))
-            master_item, project_collection = self.process_content(content)
+        if created is True:
             self.import_new_item(master_item, content, parent=project_collection)
 
         current_project_id = vsitem.get(const.PARENT_COLLECTION)

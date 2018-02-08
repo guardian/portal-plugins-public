@@ -73,6 +73,19 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         except Exception as e:
             logger.error("An error happened when outputting master_external_create signal: {0}".format(traceback.format_exc()))
 
+    def process_content(self, content):
+        master_item = self.get_item_for_atomid(content['atomId'])
+        project_collection = self.get_project_collection(content)
+
+        if master_item is None:
+            master_item = self.create_placeholder_for_atomid(content['atomId'],
+                                                             title=content.get('title',None),
+                                                             user=content.get('user', None),
+                                                             parent=project_collection
+                                                             )
+            logger.info("Created item {0} for atom {1}".format(master_item.name, content['atomId']))
+        return master_item, project_collection
+
     def process(self,record, approx_arrival):
         """
         Process a message from the kinesis stream.  Each record is a JSON document which contains keys for atomId, s3Key,
@@ -90,16 +103,8 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         #We get two types of message on the stream, one for incoming xml the other for incoming media.
         if content['type'] == const.MESSAGE_TYPE_MEDIA or content['type'] == const.MESSAGE_TYPE_RESYNC_MEDIA:
-            master_item = self.get_item_for_atomid(content['atomId'])
-            project_collection = self.get_project_collection(content)
+            master_item, project_collection = self.process_content(content)
 
-            if master_item is None:
-                master_item = self.create_placeholder_for_atomid(content['atomId'],
-                                                                 title=content.get('title',None),
-                                                                 user=content.get('user', None),
-                                                                 parent=project_collection
-                                                                 )
-                logger.info("Created item {0} for atom {1}".format(master_item.name, content['atomId']))
             return self.import_new_item(master_item, content, parent=project_collection)
         elif content['type'] == const.MESSAGE_TYPE_PAC:
             logger.info("Got PAC form data message")
@@ -108,7 +113,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
             logger.info("PAC form data message complete")
         elif content['type'] == const.MESSAGE_TYPE_PROJECT_ASSIGNED:
             logger.info("Got project (re-)assignment message: {0}".format(content))
-            self.assign_atom_to_project(content['atomId'], content['commissionId'], content['projectId'])
+            self.assign_atom_to_project(content['atomId'], content['commissionId'], content['projectId'], content)
             logger.info("Project (re-)assignment complete")
         else:
             raise ValueError("Unrecognised message type: {0}".format(content['type']))
@@ -209,7 +214,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         #this process will call out to Pluto to do the linkup once the data has been received
         return proc.link_to_item(pac_xml_record, vsitem)
 
-    def assign_atom_to_project(self, atomId, commissionId, projectId):
+    def assign_atom_to_project(self, atomId, commissionId, projectId, content):
         """
         (re)-assigns the given master to a project.
         If the project is not associated with the given commission, warns but does not fail.
@@ -222,7 +227,8 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         if vsitem is None:
             logger.error("Cannot re-assign atom to project: atom id {0} does not have a master yet.".format(atomId))
-            return
+            master_item, project_collection = self.process_content(content)
+            self.import_new_item(master_item, content, parent=project_collection)
 
         current_project_id = vsitem.get(const.PARENT_COLLECTION)
         if current_project_id is not None:

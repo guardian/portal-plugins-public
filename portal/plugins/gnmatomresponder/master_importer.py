@@ -73,18 +73,20 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         except Exception as e:
             logger.error("An error happened when outputting master_external_create signal: {0}".format(traceback.format_exc()))
 
-    def process_content(self, content):
-        master_item = self.get_item_for_atomid(content['atomId'])
-        project_collection = self.get_project_collection(content)
+    def create_master_item(self, atomId, title, project_collection, user):
+        master_item = self.get_item_for_atomid(atomId)
+
+        created = False
 
         if master_item is None:
-            master_item = self.create_placeholder_for_atomid(content['atomId'],
-                                                             title=content.get('title',None),
-                                                             user=content.get('user', None),
+            master_item = self.create_placeholder_for_atomid(atomId,
+                                                             title=title,
+                                                             user=user,
                                                              parent=project_collection
                                                              )
-            logger.info("Created item {0} for atom {1}".format(master_item.name, content['atomId']))
-        return master_item, project_collection
+            logger.info("Created item {0} for atom {1}".format(master_item.name, atomId))
+            created = True
+        return master_item, created
 
     def process(self,record, approx_arrival):
         """
@@ -103,7 +105,8 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         #We get two types of message on the stream, one for incoming xml the other for incoming media.
         if content['type'] == const.MESSAGE_TYPE_MEDIA or content['type'] == const.MESSAGE_TYPE_RESYNC_MEDIA:
-            master_item, project_collection = self.process_content(content)
+            project_collection = self.get_project_collection(content)
+            master_item, created = self.create_master_item(content['atomId'], content['title'], project_collection, content['user'])
 
             return self.import_new_item(master_item, content, parent=project_collection)
         elif content['type'] == const.MESSAGE_TYPE_PAC:

@@ -16,3 +16,25 @@ Plugins for Cantemo Portal developed by the Guardian
 * gnmzeitgeist - widgets for showing popular field values, intended for search pages
 * helloworld - basic "hello world" boilerplate code
 * rabbitmon - monitoring rabbitmq state
+
+When testing on a virtualenv on MacOS X the following commands are useful: -
+
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+brew install swig
+brew install openssl
+LDFLAGS="-L$(brew --prefix openssl)/lib" CFLAGS="-I$(brew --prefix openssl)/include" SWIG_FEATURES="-I$(brew --prefix openssl)/include" pip install m2crypto==0.22.3
+
+What does all the do?
+
+1. Installs a useful package manager for Mac OS X called Homebrew
+2. Installs Swig
+3. Installs OpenSSL (if not present)
+4. Installs M2Crypto
+
+You should then be able to run the command below to install the rest of the requirements: -
+
+pip install -r test-requirements.txt
+
+
+
+

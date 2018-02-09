@@ -24,7 +24,7 @@ brew install swig
 brew install openssl
 LDFLAGS="-L$(brew --prefix openssl)/lib" CFLAGS="-I$(brew --prefix openssl)/include" SWIG_FEATURES="-I$(brew --prefix openssl)/include" pip install m2crypto==0.22.3
 
-What does all the do?
+What does all that do?
 
 1. Installs a useful package manager for Mac OS X called Homebrew
 2. Installs Swig

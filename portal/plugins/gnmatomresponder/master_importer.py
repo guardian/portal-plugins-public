@@ -118,7 +118,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
             logger.info("Got project (re-)assignment message: {0}".format(content))
             project_collection = self.get_project_collection(content)
             master_item, created = self.get_or_create_master_item(content['atomId'], content['title'], project_collection, content['user'])
-            if created is True:
+            if created:
                 self.import_new_item(master_item, content, parent=project_collection)
             self.assign_atom_to_project(content['atomId'], content['commissionId'], content['projectId'], master_item)
             logger.info("Project (re-)assignment complete")
@@ -231,7 +231,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         :return:
         """
 
-        current_project_id = vsitem.get(const.PARENT_COLLECTION)
+        current_project_id = master_item.get(const.PARENT_COLLECTION)
         if current_project_id is not None:
             logger.warning("Re-assigning master {0} to project {1} so removing from {2}".format(master_item.name, projectId, current_project_id))
             current_project_ref = self.get_collection_for_id(current_project_id)

@@ -250,7 +250,7 @@ class TestMasterImporter(django.test.TestCase):
             m.get_collection_for_id = MagicMock(return_value=mock_collection)
             m.set_project_fields_for_master = MagicMock(return_value=mock_item)
 
-            m.assign_atom_to_project("D64EEBD7-6033-4DC6-A0CA-1BBFA5A6DD95","VX-123","VX-456")
+            m.assign_atom_to_project("D64EEBD7-6033-4DC6-A0CA-1BBFA5A6DD95","VX-123","VX-456",mock_item)
             mock_item.get.assert_called_once_with(const.PARENT_COLLECTION)
             mock_collection.get.assert_called_once_with(const.PARENT_COLLECTION)
             mock_collection.addToCollection.assert_called_once_with(mock_item)
@@ -282,7 +282,7 @@ class TestMasterImporter(django.test.TestCase):
             m.get_collection_for_id = MagicMock(side_effect=[mock_old_collection, mock_collection])
             m.set_project_fields_for_master = MagicMock(return_value=mock_item)
 
-            m.assign_atom_to_project("D64EEBD7-6033-4DC6-A0CA-1BBFA5A6DD95","VX-123","VX-456")
+            m.assign_atom_to_project("D64EEBD7-6033-4DC6-A0CA-1BBFA5A6DD95","VX-123","VX-456",mock_item)
             mock_item.get.assert_called_once_with(const.PARENT_COLLECTION)
             mock_old_collection.removeFromCollection.assert_called_once_with(mock_item)
             mock_collection.get.assert_called_once_with(const.PARENT_COLLECTION)

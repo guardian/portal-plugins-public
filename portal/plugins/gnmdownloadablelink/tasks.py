@@ -175,9 +175,11 @@ def upload_to_s3(shape_ref,filename):
         raise TypeError
     uploaded = False
     s3key = None
+    n = 0
 
     for file in shape_ref.files():
         try:
+            n+=1
             extension = get_vsfile_extension(file)
             s3key = upload_vsfile_to_s3(file, "{0}.{1}".format(filename, extension),shape_ref.mime_type)
             uploaded = True
@@ -185,6 +187,10 @@ def upload_to_s3(shape_ref,filename):
         except NeedsRetry:
             logger.warning("Upload of file {0} from shape {1} failed, trying next one".format(file.name, shape_ref.name))
             pass
+
+    if n==0:
+        #this is caught at the caller, and causes the task to schedule a retry
+        raise NeedsRetry("Shape {0} does not yet have any files.".format(shape_ref.name))
 
     if not uploaded:
         logger.error("No files uploaded")
@@ -319,8 +325,15 @@ def create_link_for_main(item_id, shape_tag, obfuscate=True, is_update=False):
     else:
         filename = make_filename(item_ref.get('title'))
 
-    s3key = upload_to_s3(shaperef, filename=filename)
-    s3key.set_canned_acl("public-read")
+    try:
+        s3key = upload_to_s3(shaperef, filename=filename)
+        s3key.set_canned_acl("public-read")
+    except NeedsRetry as e:
+        #if it's still not present, call ourselves again in up to 30s time.
+        create_link_for.apply_async((item_id, shape_tag), kwargs={'obfuscate': obfuscate, 'is_update': True},
+                                    countdown=getattr(settings,"DOWNLOADABLE_LINK_RETRYTIME",30))
+        return str(e)
+
     link_model.status = "Available"
     link_model.public_url = s3key.generate_url(expires_in=0, query_auth=False)
     link_model.s3_url = "s3://{0}/{1}".format(settings.DOWNLOADABLE_LINK_BUCKET,s3key.key)

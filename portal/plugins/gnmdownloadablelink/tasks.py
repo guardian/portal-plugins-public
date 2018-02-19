@@ -192,10 +192,9 @@ def upload_to_s3(shape_ref,filename):
                 pass
         if uploaded:
             break
-
-    if n==0:
-        #this is caught at the caller, and causes the task to schedule a retry
-        raise NeedsRetry("Shape {0} does not yet have any files.".format(shape_ref.name))
+        if n==0:
+            #this is caught at the caller, and causes the task to schedule a retry
+            raise NeedsRetry("Shape {0} does not yet have any files.".format(shape_ref.name))
 
     if not uploaded:
         logger.error("No files uploaded")

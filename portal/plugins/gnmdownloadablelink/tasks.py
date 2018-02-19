@@ -411,7 +411,10 @@ def remove_expired_link_files(since=None):
         total+=1
         try:
             logger.info("Removing {0}".format(str(entry)))
-            remove_file_from_s3(entry.s3_url)
+            if entry.status == "Available" or entry.status == "Uploading":
+                remove_file_from_s3(entry.s3_url)
+            else:
+                logger.warning("Removing entry for never completed upload '{0}'".format(str(entry)))
             entry.delete()
             success+=1
         except Exception as e:

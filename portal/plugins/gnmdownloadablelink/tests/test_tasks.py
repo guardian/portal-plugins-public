@@ -222,10 +222,11 @@ class TestRemoveExpiredLinkFiles(django.test.TestCase):
 
         with patch('portal.plugins.gnmdownloadablelink.tasks.remove_file_from_s3') as mock_remove:
             from portal.plugins.gnmdownloadablelink.tasks import remove_expired_link_files
-            remove_expired_link_files(since=datetime(2018, 1, 6, 19,00,00)) #fake "now" time, for consistent testing
+            result = remove_expired_link_files(since=datetime(2018, 1, 6, 19,00,00)) #fake "now" time, for consistent testing
 
             mock_remove.assert_any_call('s3://bucket_name/path/to/file.ext')
-            self.assertEqual(mock_remove.call_count, 5)
+            self.assertEqual(mock_remove.call_count, 1)
+            self.assertEqual(result, "Deleted 5 of 5 files")
 
 
 class TestRemoveFileFromS3(django.test.TestCase):

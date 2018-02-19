@@ -178,7 +178,7 @@ def upload_to_s3(shape_ref,filename):
     s3key = None
     n = 0
 
-    for retry in range(1, int(getattr(settings,'DOWNLOADABLE_LINK_RETRY_LIMIT'), 15)):
+    for retry in range(1, int(getattr(settings,'DOWNLOADABLE_LINK_RETRY_LIMIT', 15))):
         logger.info("Upload of any shape for {0}, attempt {1}".format(shape_ref.name, retry))
         for file in shape_ref.files():
             try:

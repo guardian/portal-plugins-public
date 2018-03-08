@@ -42,3 +42,4 @@ You should then be able to run the command below to install the rest of the requ
 `pip install -r test-requirements.txt`
 
 'Why is this needed?', you may ask. At the time of writing Mac OS versions older than 10.12 have an older version of OpenSSL installed than M2Crypto wants. We install a newer version of OpenSSL, then tell M2Crypto to use it when it compiles the C code routines. 
+

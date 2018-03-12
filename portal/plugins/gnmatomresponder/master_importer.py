@@ -79,6 +79,10 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         created = False
 
         if master_item is None:
+            if title is None:
+                raise RuntimeError("Title field not set for atom {0}.".format(atomId))
+            if user is None:
+                raise RuntimeError("User field not set for atom {0}.".format(atomId))
             master_item = self.create_placeholder_for_atomid(atomId,
                                                              title=title,
                                                              user=user,
@@ -117,7 +121,15 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         elif content['type'] == const.MESSAGE_TYPE_PROJECT_ASSIGNED:
             logger.info("Got project (re-)assignment message: {0}".format(content))
             project_collection = self.get_project_collection(content)
-            master_item, created = self.get_or_create_master_item(content['atomId'], content['title'], project_collection, content['user'])
+            if 'title' in content:
+                atom_title = content['title']
+            else:
+                atom_title = None
+            if 'user' in content:
+                atom_user = content['user']
+            else:
+                atom_user = None
+            master_item, created = self.get_or_create_master_item(content['atomId'], atom_title, project_collection, atom_user)
             if created:
                 self.import_new_item(master_item, content, parent=project_collection)
             self.assign_atom_to_project(content['atomId'], content['commissionId'], content['projectId'], master_item)

@@ -82,10 +82,13 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
             if title is None:
                 raise RuntimeError("Title field not set for atom {0}.".format(atomId))
             if user is None:
-                raise RuntimeError("User field not set for atom {0}.".format(atomId))
+                logger.warning("User field not set for atom {0}.".format(atomId))
+                user_to_set="unknown_user"
+            else:
+                user_to_set="user"
             master_item = self.create_placeholder_for_atomid(atomId,
                                                              title=title,
-                                                             user=user,
+                                                             user=user_to_set,
                                                              parent=project_collection
                                                              )
             logger.info("Created item {0} for atom {1}".format(master_item.name, atomId))

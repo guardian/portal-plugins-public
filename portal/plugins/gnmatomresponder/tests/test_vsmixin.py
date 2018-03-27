@@ -67,6 +67,31 @@ class TestVsMixin(django.test.TestCase):
 
                 self.assertEqual(result, None)
 
+    def test_get_item_for_atomid_multiple(self):
+        """
+        get_item_for_atomid should return the first item if multiple records match
+        :return:
+        """
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+
+        mock_item = MagicMock(target=VSItem)
+        mock_search = MagicMock(target=VSItemSearch)
+        mock_search.addCriterion = MagicMock()
+        mock_search.execute = MagicMock(return_value=self.MockSearchResult([mock_item, MagicMock(target=VSItem), MagicMock(target=VSItem)]))
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
+            with patch('portal.plugins.gnmatomresponder.vs_mixin.VSItemSearch', return_value = mock_search):
+
+                r = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+                mock_refresh_creds.assert_called_once()
+
+                result = r.get_item_for_atomid("f6ba9036-3f53-4850-9c75-fe3bcfbae4b2")
+                mock_search.addCriterion.assert_called_once_with(
+                    {'gnm_master_mediaatom_atomid': "f6ba9036-3f53-4850-9c75-fe3bcfbae4b2",
+                     'gnm_type': 'Master'}
+                )
+
+                self.assertEqual(result, mock_item)
+
     def test_set_project_fields_for_master(self):
         """
         set_project_fields_for_master should retrieve metadata references for the given collection and set them

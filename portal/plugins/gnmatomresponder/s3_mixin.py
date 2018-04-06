@@ -11,6 +11,18 @@ multiple_underscore_re = re.compile(r'_{2,}')
 extract_extension = re.compile(r'^(?P<basename>.*)\.(?P<extension>[^\.]+)$')
 
 
+class FileDoesNotExist(StandardError):
+    def __init__(self, bucket, key):
+        self.bucket = bucket
+        self.key = key
+
+    def __unicode__(self):
+        return u"s3://{0}/{1} does not exist".format(self.bucket, self.key)
+
+    def __str__(self):
+        return str(self.__unicode__())
+
+
 class S3Mixin(object):
     """
     Mixin class to abstract S3 connections
@@ -48,7 +60,6 @@ class S3Mixin(object):
         keyref = bucketref.get_key(key)
         return keyref.generate_url(self.default_expiry_time, query_auth=True)
 
-
     def download_to_local_location(self, bucket=None, key=None, filename=None, retries=10, retry_delay=2):
         """
         Downloads the content from the bucket to a location given by the settings
@@ -63,6 +74,8 @@ class S3Mixin(object):
         bucketref = conn.get_bucket(bucket)
         keyref = bucketref.get_key(key)
 
+        if keyref is None:
+            raise FileDoesNotExist(bucket, key)
         n=0
         while True:
             logger.info("Downloading {0}/{1} to {2}, attempt {3}...".format(bucket, key, dest_path,n))

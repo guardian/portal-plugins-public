@@ -2,7 +2,7 @@ from portal.plugins.kinesisresponder.kinesis_responder import KinesisResponder
 import json
 import urllib
 from django.conf import settings
-from s3_mixin import S3Mixin
+from s3_mixin import S3Mixin, FileDoesNotExist
 from vs_mixin import VSMixin
 import logging
 from gnmvidispine.vs_item import VSItem, VSNotFound

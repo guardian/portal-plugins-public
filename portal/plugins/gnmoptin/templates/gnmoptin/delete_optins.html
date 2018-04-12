@@ -1,0 +1,10 @@
+{% themeextends  "users/base_user.html" %}
+
+{% block title %}My Opt-ins{% endblock %}
+{% block heading %}My Opt-ins{% endblock heading %}
+{% block content %}
+    <form action="" method="post">{% csrf_token %}
+        <p>Are you sure you want to delete "{{ object.feature }}"?</p>
+        <input type="submit" value="Confirm" />
+    </form>
+{% endblock %}

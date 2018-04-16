@@ -1,0 +1,18 @@
+- model: gnmoptin.useroptin
+  pk: 1
+  fields:
+    user: 1
+    feature: swanky stuff
+    enabled: true
+- model: gnmoptin.useroptin
+  pk: 2
+  fields:
+    user: 2
+    feature: swanky stuff
+    enabled: false
+- model:  gnmoptin.useroptin
+  pk: 3
+  fields:
+    user: 1
+    feature: broken stuff
+    enabled: false

@@ -8,10 +8,10 @@ Name: %{name}
 Version: %{version}
 Release: %{release}
 License: Internal GNM software
-Source0: gnmpropagation.tar.gz
+Source0: gnmoptin.tar.gz
 Group: Applications/Productivity
 #BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
-BuildRoot: %{_tmppath}/gnmsyndication
+BuildRoot: %{_tmppath}/gnmoptin
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: David Allison <david.allison@theguardian.com> and Andy Gallagher <andy.gallagher@theguardian.com>

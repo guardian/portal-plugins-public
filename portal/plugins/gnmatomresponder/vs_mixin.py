@@ -27,9 +27,11 @@ class VSMixin(object):
         elif result.totalItems==1:
             return result.results(shouldPopulate=True).next()
         else:
-            potential_master_ids = map(lambda item: item.name, result.results(shouldPopulate=False))
+            resultList = map(lambda item: item, result.results(shouldPopulate=False))
+            potential_master_ids = map(lambda item: item.name, resultList)
             logger.warning("Multiple masters returned for atom ID {0}: {1}. Using the first.".format(atomid, potential_master_ids))
-            return potential_master_ids[0]
+            resultList[0].populate(resultList[0].name)
+            return resultList[0]
 
     @staticmethod
     def get_userid_for_email(email_address):

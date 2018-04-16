@@ -82,10 +82,13 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
             if title is None:
                 raise RuntimeError("Title field not set for atom {0}.".format(atomId))
             if user is None:
-                raise RuntimeError("User field not set for atom {0}.".format(atomId))
+                logger.warning("User field not set for atom {0}.".format(atomId))
+                user_to_set="unknown_user"
+            else:
+                user_to_set=user
             master_item = self.create_placeholder_for_atomid(atomId,
                                                              title=title,
-                                                             user=user,
+                                                             user=user_to_set,
                                                              parent=project_collection
                                                              )
             logger.info("Created item {0} for atom {1}".format(master_item.name, atomId))
@@ -103,6 +106,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         :param approx_arrival:
         :return:
         """
+        from media_atom import request_atom_resend
         content = json.loads(record)
 
         logger.info(content)
@@ -110,7 +114,11 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         #We get two types of message on the stream, one for incoming xml the other for incoming media.
         if content['type'] == const.MESSAGE_TYPE_MEDIA or content['type'] == const.MESSAGE_TYPE_RESYNC_MEDIA:
             project_collection = self.get_project_collection(content)
-            master_item, created = self.get_or_create_master_item(content['atomId'], content['title'], project_collection, content['user'])
+            if 'user' in content:
+                atom_user = content['user']
+            else:
+                atom_user = None
+            master_item, created = self.get_or_create_master_item(content['atomId'], content['title'], project_collection, atom_user)
 
             return self.import_new_item(master_item, content, parent=project_collection)
         elif content['type'] == const.MESSAGE_TYPE_PAC:
@@ -120,19 +128,23 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
             logger.info("PAC form data message complete")
         elif content['type'] == const.MESSAGE_TYPE_PROJECT_ASSIGNED:
             logger.info("Got project (re-)assignment message: {0}".format(content))
-            project_collection = self.get_project_collection(content)
-            if 'title' in content:
-                atom_title = content['title']
+            # project_collection = self.get_project_collection(content)
+            # if 'title' in content:
+            #     atom_title = content['title']
+            # else:
+            #     atom_title = None
+            # if 'user' in content:
+            #     atom_user = content['user']
+            # else:
+            #     atom_user = None
+
+            master_item = self.get_item_for_atomid(content['atomId'])
+            if master_item is not None:
+                logger.info("Master item for atom already exists at {0}, assigning".format(master_item.name))
+                self.assign_atom_to_project(content['atomId'], content['commissionId'], content['projectId'], master_item)
             else:
-                atom_title = None
-            if 'user' in content:
-                atom_user = content['user']
-            else:
-                atom_user = None
-            master_item, created = self.get_or_create_master_item(content['atomId'], atom_title, project_collection, atom_user)
-            if created:
-                self.import_new_item(master_item, content, parent=project_collection)
-            self.assign_atom_to_project(content['atomId'], content['commissionId'], content['projectId'], master_item)
+                logger.warning("No master item exists for atom {0}.  Requesting a re-send from media atom tool".format(content['atomId']))
+                request_atom_resend(content['atomId'], settings.ATOM_TOOL_HOST, settings.ATOM_TOOL_SECRET)
             logger.info("Project (re-)assignment complete")
         else:
             raise ValueError("Unrecognised message type: {0}".format(content['type']))

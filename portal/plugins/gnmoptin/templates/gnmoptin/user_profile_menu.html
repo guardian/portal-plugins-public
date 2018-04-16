@@ -1,0 +1,7 @@
+<ol>
+    <li><a href="{% url my_optins %}"
+            {% ifequal request.path my_optins %}
+           class="selected"
+            {% endifequal %}><span class="iicon" style="background-position:-197px -334px"></span>My Opt-Ins</a>
+    </li>
+</ol>

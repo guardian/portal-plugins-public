@@ -1,0 +1,13 @@
+{% themeextends  "users/base_user.html" %}
+
+{% block title %}Opt-ins{% endblock %}
+{% block heading %}Opt-ins{% endblock heading %}
+{% block content %}
+    <p>Please enter the name of the feature that you want to opt-in to.
+        If you don't know this then please contact
+        <a href="mailto:multimediatech@theguardian.com">multimediatech@theguardian.com</a></p>
+    <form action="" method="post">{% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Save" />
+    </form>
+{% endblock %}

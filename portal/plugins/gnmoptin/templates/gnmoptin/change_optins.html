@@ -1,0 +1,24 @@
+{% themeextends  "users/base_user.html" %}
+
+{% block title %}Opt-ins{% endblock %}
+{% block heading %}Opt-ins{% endblock heading %}
+{% block content %}
+    {{ form.non_field_errors }}
+    <form action="" method="post">{% csrf_token %}
+        <div style="display: none;">
+            {{ form.user.errors }}
+            {{ form.user }}
+        </div>
+        <div>
+            {{ form.feature.errors }}
+            <label for="{{ form.feature.id_for_label }}">Feature:</label>
+            {{ form.feature }}
+        </div>
+        <div>
+            {{ form.enabled.errors }}
+            <label for="{{ form.enabled.id_for_label }}">Enabled:</label>
+            {{ form.enabled }}
+        </div>
+        <input type="submit" value="Save" />
+    </form>
+{% endblock %}

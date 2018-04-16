@@ -1,0 +1,21 @@
+{% themeextends "users/base_user.html" %}
+{% load optin_indicator static %}
+
+{% block title %}Opt-ins{% endblock %}
+{% block heading %}Opt-ins{% endblock heading %}
+{% block head %}
+    <link rel="stylesheet" href="{% static "font-awesome-4.7.0/css/font-awesome.min.css" %}">
+{% endblock %}
+{% block content %}
+    <a class="blue-button" href="{% url add_optins %}">Add...</a>
+    <form method="POST" style="margin-top:1em">
+    <ul>
+        {% for item in object_list %}
+            <li><a href={% url edit_optins item.pk %}>Edit</a> | <a href={% url delete_optins item.pk %}>Delete</a> | {{ item.feature }} - {{ item.enabled|optin_indicator }}</li>
+        {% empty %}
+            <li>You have not enabled any optional features at the moment.  Why not <a href="{% url add_optins %}">add</a> one?</li>
+        {% endfor %}
+    </ul>
+    </form>
+
+{% endblock %}

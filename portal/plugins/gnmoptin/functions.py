@@ -2,11 +2,11 @@ from models import UserOptIn
 
 
 def userfeature(user, feature):
-    features = {}
-    for item in UserOptIn.objects.filter(user=user):
-        features[item.feature] = item.enabled
+    count=0
+    for item in UserOptIn.objects.filter(user=user, feature=feature):
+        count+=1
 
-    if feature in features:
-        return features[feature]
+    if count>0:
+        return True
     else:
-        return 'None'
+        return False

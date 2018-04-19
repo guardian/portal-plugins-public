@@ -1,4 +1,5 @@
 {% load syndicationstats_customfilters %}
+{% load syndicationstats_customfilterstwo %}
 
 {% if error %}
 <p class="error">{{ error }}</p>
@@ -86,7 +87,7 @@
                 </span>
                 <br />
                 <span style="margin-left: auto; margin-right:0;display: block; padding-top: 5px">
-                    <span style="vertical-align: top;">Upload intentions:</span> {{ item.gnm_master_generic_intendeduploadplatforms|platformindicator }}
+                    <span style="vertical-align: top;">Upload intentions:</span> {{ item.gnm_master_generic_intendeduploadplatforms|platformindicatortwo }}
                 </span>
             </td>
             <td>{{ item.gnm_master_website_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_master_publication_time|displaydate }}</span></td>
@@ -162,7 +163,7 @@
                 </span>
                 <br />
                 <span style="margin-left: auto; margin-right:0;display: block; padding-top: 5px">
-                    <span style="vertical-align: top">Upload intentions:</span> {{ item.gnm_master_generic_intendeduploadplatforms|platformindicator }}
+                    <span style="vertical-align: top">Upload intentions:</span> {{ item.gnm_master_generic_intendeduploadplatforms|platformindicatortwo }}
                 </span>
             </td>
             <td>{{ item.gnm_master_website_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_master_publication_time|displaydate }}</span></td>
@@ -179,7 +180,7 @@
                 <span class="small"><img width="15" src="/sitemedia/img/gnm/icon_commission.png" alt="Commission" class="inline_icon">{{ item.gnm_commission_title }}</span>&nbsp;&NonBreakingSpace;
                 <br>
                 <span style="margin-left: auto; margin-right:0;display: block; padding-top: 5px">
-                    <span style="vertical-align: top; border-top: 50px">Upload intentions:</span> {{ item.gnm_project_intendeduploadplatforms|platformindicator }}
+                    <span style="vertical-align: top; border-top: 50px">Upload intentions:</span> {{ item.gnm_project_intendeduploadplatforms|platformindicatortwo }}
                 </span>
             </td>
         </tr>
@@ -255,7 +256,7 @@
                     </div>
                 </span>
                 <span style="margin-left: auto; margin-right:0;display: block; padding-top: 5px">
-                    <span style="vertical-align: top;">Upload intentions:</span> {{ item.gnm_master_generic_intendeduploadplatforms|platformindicator }}
+                    <span style="vertical-align: top;">Upload intentions:</span> {{ item.gnm_master_generic_intendeduploadplatforms|platformindicatortwo }}
                 </span>
             </td>
             <td>{{ item.gnm_master_website_uploadstatus|syndicationstatus_icon }}<br><span class="small">{{ item.gnm_master_publication_time|displaydate }}</span></td>

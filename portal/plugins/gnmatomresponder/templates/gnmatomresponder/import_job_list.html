@@ -8,6 +8,26 @@
 {% endblock %}
 
 {% block content %}
+    <form method="GET">
+    <table>
+        <tr>
+            <td width="20%"><label for="id_itemId">Item ID</label></td>
+            <td width="20%"><input type="text" name="itemId" id="id_itemId"></td>
+        </tr>
+        <tr>
+            <td><label for="id_status">Job status</label></td>
+            <td>
+                <select name="status" id="id_status">
+                    <option name="FAILED_TOTAL">FAILED_TOTAL</option>
+                    <option name="FINISHED_WARNING">FINISHED_WARNING</option>
+                    <option name="STARTED">STARTED</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+    <input type="submit" value="Search">
+    </form>
+
 <table>
     <thead>
         <tr>
@@ -24,12 +44,12 @@
             <td><a href="/vs/item/{{ jobinfo.item_id }}">{{ jobinfo.item_id }}</a></td>
             <td><a href="/vs/job/{{ jobinfo.job_id }}">{{ jobinfo.job_id }}</a></td>
             <td>{{ jobinfo.status }}</td>
-            <td>{{ jobinfo.started }}</td>
-            <td>{{ jobinfo.completed }}</td>
+            <td>{{ jobinfo.started_at }}</td>
+            <td>{{ jobinfo.completed_at }}</td>
         </tr>
     {% empty %}
         <tr>
-        No jobs yet!
+            <td>No jobs yet!</td>
         </tr>
     {% endfor %}
     </tbody>

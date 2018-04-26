@@ -1,0 +1,6 @@
+{% load i18n staticfiles %}
+<li>
+    <!--<span class="iicon" style="background-image: url('{% static 'purgemeister/target_icon.png' %}');"></span>-->
+    <img src="{% static 'gnmatomresponder/atomicon.png' %}" class="iicon" style="background: none">
+    <a href="{% url gnmatomresponder:job_list %}">Atom Imports</a>
+</li>

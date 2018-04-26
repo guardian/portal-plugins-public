@@ -42,3 +42,15 @@ class AtomResponderRegister(Plugin):
 
 
 register = AtomResponderRegister()
+
+class GnmAtomResponderAdminPlugin(Plugin):
+    implements(IPluginBlock)
+
+    def __init__(self):
+        self.name = "AdminLeftPanelBottomPanePlugin"
+        self.plugin_guid = '600d9796-67c9-421e-a98f-a18778f80d54'
+
+    def return_string(self,tagname,*args):
+        return {'guid': self.plugin_guid, 'template': 'gnmatomresponder/navigation.html'}
+
+adminplug = GnmAtomResponderAdminPlugin()

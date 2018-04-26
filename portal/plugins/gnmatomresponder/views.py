@@ -45,6 +45,16 @@ class ImportJobListView(ListView):
 
     template_name = "gnmatomresponder/import_job_list.html"
 
+    def get_queryset(self):
+        qs = self.model.objects.all()
+
+        if 'status' in self.request.GET:
+            qs = qs.filter(status=self.request.GET['status'])
+        if 'itemId' in self.request.GET and self.request.GET['itemId']!='':
+            qs = qs.filter(item_id=self.request.GET['itemId'])
+
+        return qs.order_by('-completed_at', '-started_at')
+
     def get_context_data(self, **kwargs):
         rtn = super(ImportJobListView, self).get_context_data(**kwargs)
         if 'intest' in self.request.GET:

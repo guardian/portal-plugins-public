@@ -43,7 +43,7 @@ class AtomResponderRegister(Plugin):
 
 register = AtomResponderRegister()
 
-class GnmgridintegrationAdminPlugin(Plugin):
+class GnmAtomResponderAdminPlugin(Plugin):
     implements(IPluginBlock)
 
     def __init__(self):
@@ -51,7 +51,6 @@ class GnmgridintegrationAdminPlugin(Plugin):
         self.plugin_guid = '600d9796-67c9-421e-a98f-a18778f80d54'
 
     def return_string(self,tagname,*args):
-        #raise StandardError("testing")
         return {'guid': self.plugin_guid, 'template': 'gnmatomresponder/navigation.html'}
 
-adminplug = GnmgridintegrationAdminPlugin()
+adminplug = GnmAtomResponderAdminPlugin()

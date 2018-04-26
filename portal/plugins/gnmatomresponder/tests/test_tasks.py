@@ -28,9 +28,9 @@ class TestTasks(django.test.TestCase):
         from portal.plugins.gnmatomresponder.tasks import cleanup_old_importjobs
         #FIXME: should patch datetime.now() to always return the same value, for time being rely on fixture values being much
         #older than 60 days.
-        self.assertEqual(ImportJob.objects.all().count(), 5)
+        self.assertEqual(ImportJob.objects.all().count(), 6)
         cleanup_old_importjobs()
-        self.assertEqual(ImportJob.objects.all().count(), 3)
+        self.assertEqual(ImportJob.objects.all().count(), 4)
 
     def test_delete_from_s3(self):
         """

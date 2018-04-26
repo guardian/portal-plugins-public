@@ -8,6 +8,7 @@ from .signals import *
 class ImportJob(models.Model):
     item_id = models.CharField(max_length=64, db_index=True)
     job_id = models.CharField(max_length=64, db_index=True, unique=True)
+    atom_id = models.CharField(max_length=64,db_index=True)
     status = models.CharField(max_length=64, choices=[
         ('READY', 'Ready'),
         ('STARTED','Started'),
@@ -19,13 +20,33 @@ class ImportJob(models.Model):
         ('ABORTED', 'Cancelled by admin')
     ])
     atom_title = models.CharField(max_length=1024, default="Unknown title")
-    user_email = models.CharField(max_length=1024, default="Unknow user", db_index=True)
+    user_email = models.CharField(max_length=1024, default="Unknown user", db_index=True)
     started_at = models.DateTimeField()
     completed_at = models.DateTimeField(null=True)
     s3_path = models.CharField(max_length=2048, null=True)
+    retry_number = models.IntegerField(default=0)
 
     class Meta:
         ordering = ['-started_at']
+
+    def is_failed(self):
+        """
+        Returns a boolean indicating whether the status of this job represents any kind of failure
+        :return:
+        """
+        if self.status=='FAILED_TOTAL' or self.status=='FINISHED_WARNING' or self.status=='ABORTED':
+            return True
+        else:
+            return False
+
+    def previous_attempt(self):
+        """
+        Either returns the job reference of the previous attempt of this import, or None
+        :return: an ImportJob instance or None
+        """
+        for entry in ImportJob.objects.filter(atom_id=self.atom_id).order_by('-retry_number')[:1]:
+            return entry
+        return None
 
     def __unicode__(self):
         return u"Import of {0} from {1} to item {2}".format(self.atom_title, self.user_email, self.item_id)

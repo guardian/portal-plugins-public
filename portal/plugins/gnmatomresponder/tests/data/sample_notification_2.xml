@@ -106,7 +106,7 @@
     </field>
     <field>
         <key>status</key>
-        <value>FINISHED_WARNING</value>
+        <value>FINISHED</value>
     </field>
     <field>
         <key>fileId</key>

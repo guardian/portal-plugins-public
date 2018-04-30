@@ -38,14 +38,13 @@ def get_shape_for(itemref, shape_tag, allow_transcode=True):
             raise NeedsRetry()
 
 
-def s3_connect():
+def s3_connect(debug=0):
     from boto.s3 import connect_to_region
-    #FIXME: need to update these setting names
     if hasattr(settings,'DOWNLOADABLE_LINK_KEY') and hasattr(settings,'DOWNLOADABLE_LINK_SECRET'):
         return connect_to_region(getattr(settings,"AWS_REGION","eu-west-1"),
                                  aws_access_key_id=settings.DOWNLOADABLE_LINK_KEY,
-                                 aws_secret_access_key=settings.DOWNLOADABLE_LINK_SECRET
-                                 )
+                                 aws_secret_access_key=settings.DOWNLOADABLE_LINK_SECRET,
+                                 debug=debug)
     else:
         raise RuntimeError("no credentials")
 
@@ -105,7 +104,7 @@ def multipart_upload_vsfile_to_s3(file_ref,filename,mime_type):
 
     d = ChunkedDownloader(download_url, auth=(settings.VIDISPINE_USERNAME,settings.VIDISPINE_PASSWORD), chunksize=CHUNK_SIZE)
 
-    s3conn = s3_connect()
+    s3conn = s3_connect(debug=2)
     bucket = s3conn.get_bucket(settings.DOWNLOADABLE_LINK_BUCKET)
 
     #FIXME: check that filename does not exist

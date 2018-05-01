@@ -19,5 +19,5 @@ class TestImportJob(django.test.TestCase):
                       atom_title=u"€ symbol is for utf")
 
         j.save()
-        self.assertEqual(unicode(j), u"Import of € symbol is for utf from Unknow user to item VX-123")
-        self.assertEqual(str(j),"Import of \u20ac symbol is for utf from Unknow user to item VX-123")
+        self.assertEqual(unicode(j), u"Import of € symbol is for utf from Unknown user to item VX-123")
+        self.assertEqual(str(j),"Import of \u20ac symbol is for utf from Unknown user to item VX-123")

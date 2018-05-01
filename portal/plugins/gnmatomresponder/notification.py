@@ -172,6 +172,24 @@ def find_notification(retries=10,sleep_delay=10):
     return None
 
 
+def handle_failed_job(import_job):
+    """
+    If the job failed, request a resend with an exponential delay
+    :param import_job: ImportJob model instance representing the failed job
+    :return:
+    """
+    from tasks import timed_request_resend
+
+    logger.info("{0} ({1}): failed on attempt {2}".format(import_job.item_id, import_job.atom_id, import_job.retry_number))
+    retry_delay = 4 ** (import_job.retry_number+1)
+    if retry_delay>3600:    #cap it at 1 hour
+        retry_delay=3600
+
+    logger.info("{0} ({1}): retrying after {2} seconds (via Celery)".format(import_job.item_id, import_job.atom_id, retry_delay))
+
+    timed_request_resend.apply_async(args=(import_job.atom_id, ), countdown=retry_delay)
+
+
 def process_notification(notification):
     """
     This is called by the jobnotification view to actually process the notification
@@ -181,4 +199,8 @@ def process_notification(notification):
     from models import ImportJob
     importjob = ImportJob.objects.get(job_id=notification.jobId)
     importjob.status = notification.status
+
+    if importjob.is_failed():
+        handle_failed_job(importjob)
+
     importjob.save()

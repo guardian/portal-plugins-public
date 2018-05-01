@@ -28,9 +28,9 @@ class TestTasks(django.test.TestCase):
         from portal.plugins.gnmatomresponder.tasks import cleanup_old_importjobs
         #FIXME: should patch datetime.now() to always return the same value, for time being rely on fixture values being much
         #older than 60 days.
-        self.assertEqual(ImportJob.objects.all().count(), 5)
+        self.assertEqual(ImportJob.objects.all().count(), 6)
         cleanup_old_importjobs()
-        self.assertEqual(ImportJob.objects.all().count(), 3)
+        self.assertEqual(ImportJob.objects.all().count(), 4)
 
     def test_delete_from_s3(self):
         """
@@ -137,3 +137,14 @@ class TestTasks(django.test.TestCase):
 
         with self.assertRaises(ValueError):
             delete_s3_url(conn,"https://bucketname/path/to/somefile")
+
+    def test_timed_request_resend(self):
+        """
+        timed_request_resend should call out to request_atom_resend
+        :return:
+        """
+        with patch("portal.plugins.gnmatomresponder.media_atom.request_atom_resend") as mock_resend:
+            from portal.plugins.gnmatomresponder.tasks import timed_request_resend
+
+            timed_request_resend('060386C2-3764-47F9-B338-F71E4E0704A7')
+            mock_resend.assert_called_once_with('060386C2-3764-47F9-B338-F71E4E0704A7','https://atomtool','sauce')

@@ -206,9 +206,18 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         self.update_pluto_record(master_item.name)
         #make a note of the record. This is to link it up with Vidispine's response message.
-        record = ImportJob(item_id=master_item.name,job_id=job_result.name,status='STARTED',started_at=datetime.now(),
-                           user_email=content.get('user',"Unknown user"), atom_title=content.get('title', "Unknown title"),
+        record = ImportJob(item_id=master_item.name,
+                           job_id=job_result.name,
+                           status='STARTED',
+                           started_at=datetime.now(),
+                           user_email=content.get('user',"Unknown user"),
+                           atom_id=content['atomId'],
+                           atom_title=content.get('title', "Unknown title"),
                            s3_path=content['s3Key'])
+        previous_attempt = record.previous_attempt()
+        if previous_attempt:
+            record.retry_number = previous_attempt.retry_number+1
+            logger.info(u"{0} Import job is retry number {1}".format(master_item.name, record.retry_number))
         record.save()
 
         try:

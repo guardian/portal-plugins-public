@@ -5,6 +5,15 @@
     item_id: VX-1
     status: STARTED
     started_at: 2017-09-14T13:21:02Z
+    atom_id: CB05A372-DC89-4F55-82F6-0BF45B4688A3
+- model: gnmatomresponder.importjob
+  pk: 6
+  fields:
+    job_id: VX-23
+    item_id: VX-99
+    status: STARTED
+    started_at: 2017-09-14T13:21:02Z
+    atom_id: AFF32555-2EBD-455D-BAAA-74EF8BEE2877
 - model: gnmatomresponder.importjob
   pk: 2
   fields:

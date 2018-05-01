@@ -20,6 +20,9 @@ class ProcessResult(object):
         else:
             self.storage_sum[storage_id] += float(size_in_bytes)/1024.0**3
 
+    def __str__(self):
+        return "{0}".format(self.storage_sum)
+
     def save(self,project_id):
         """
         saves the contents of the ProcessResult to a series of data model entries, one for each storage
@@ -132,10 +135,12 @@ def process_next_page(project_id, process_result, start_at, limit, unattached=Fa
 
     if response.status_code==200:
         xmldoc = ResponseProcessor(response.text)
+        logger.info("{0}: Got page with {1} items".format(project_id, xmldoc.total_hits))
         if xmldoc.total_hits==0:
             logger.info("{0}: all items from project counted".format(project_id))
             return (process_result, False)
         xmldoc.page_size(process_result)
+        logger.info("{0}: Running total is {1}".format(project_id, process_result))
         return (process_result, True)
     else:
         raise HttpError(response)
@@ -154,6 +159,7 @@ def update_project_size(project_id):
     more_pages = True
     while more_pages:
         try:
+            logger.info("{0}: Getting page starting at {1} of contents...".format(project_id,page_start))
             (result, more_pages) = process_next_page(project_id, result, start_at=page_start, limit=page_size)
         except HttpError as e:
             logger.error(str(e))
@@ -162,4 +168,5 @@ def update_project_size(project_id):
                 raise
             logger.info("Retrying after 10s delay")
             sleep(10)
+    logger.info("{0}: Completed")
     return result

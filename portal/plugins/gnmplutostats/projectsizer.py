@@ -98,7 +98,7 @@ class ResponseProcessor(object):
             self.item_size(item_entry, process_result, shape_tag)
 
 
-def process_next_page(project_id, process_result, start_at, limit):
+def process_next_page(project_id, process_result, start_at, limit, unattached=False):
     """
     grabs another page of search results and processes them
     :param project_id: project id to search
@@ -107,12 +107,20 @@ def process_next_page(project_id, process_result, start_at, limit):
     :param limit: page size
     :return: tuple of (process_result, more_pages)
     """
-    searchdoc = """<ItemSearchDocument xmlns="http://xml.vidispine.com/schema/vidispine">
-	<field>
+    if unattached:
+        searchdoc = """<ItemSearchDocument xmlns="http://xml.vidispine.com/schema/vidispine">
+	<operator operation="NOT"><field>
 		<name>__collection</name>
-		<value>{0}</value>
-	</field>
-</ItemSearchDocument>""".format(project_id)
+		<value>*</value>
+	</field></operator>
+</ItemSearchDocument>"""
+    else:
+        searchdoc = """<ItemSearchDocument xmlns="http://xml.vidispine.com/schema/vidispine">
+        <field>
+            <name>__collection</name>
+            <value>{0}</value>
+        </field>
+    </ItemSearchDocument>""".format(project_id)
 
     response = requests.put("{url}:{port}/API/item;start={start};number={limit}?content=shape".format(
                                 url=settings.VIDISPINE_URL,

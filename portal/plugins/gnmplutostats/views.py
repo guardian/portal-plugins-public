@@ -13,6 +13,9 @@ from portal.generic.baseviews import ClassView
 from portal.vidispine.iitem import ItemHelper
 from portal.vidispine.iexception import NotFoundError
 from rest_framework.views import APIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.renderers import JSONRenderer, XMLRenderer, YAMLRenderer
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
@@ -272,3 +275,34 @@ class GetStatsView(BaseStatsView):
         pprint(data)
 
         return Response({'status': 'ok', 'data': self.process_facets(data)})
+
+
+class ProjectScanReceiptView(ListAPIView):
+    from serializers import ProjectScanReceiptSerializer
+    from models import ProjectScanReceipt
+    serializer_class = ProjectScanReceiptSerializer
+    permission_classes = (IsAuthenticated, )
+    renderer_classes = (JSONRenderer, XMLRenderer, YAMLRenderer, )
+    model = ProjectScanReceipt
+
+    def get_queryset(self):
+        return self.model.objects.all().order_by('last_scan')
+
+
+class ProjectStatInfoList(ListAPIView):
+    from serializers import ProjectSizeInfoSerializer
+    from models import ProjectSizeInfoModel
+
+    serializer_class = ProjectSizeInfoSerializer
+    permission_classes = (IsAuthenticated, )
+    renderer_classes = (JSONRenderer, XMLRenderer, YAMLRenderer, )
+    model = ProjectSizeInfoModel
+
+
+# class ProjectStatInfoGet(RetrieveAPIView):
+#     from serializers import ProjectSizeInfoSerializer
+#     serializer_class = ProjectSizeInfoSerializer
+#     permission_classes = (IsAuthenticated, )
+#
+#     def get_queryset(self):
+#

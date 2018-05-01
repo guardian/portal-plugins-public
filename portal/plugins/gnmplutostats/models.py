@@ -19,7 +19,7 @@ class ProjectScanReceipt(Model):
     project_id = CharField(max_length=32, db_index=True, null=False, unique=True)
     last_scan = DateTimeField(null=True)
     project_status = CharField(max_length=32, null=True)
-    project_title = CharField(max_length=1024, blank=True)
+    project_title = CharField(max_length=1024, blank=True,null=True)
     last_scan_duration = IntegerField(null=True)
     last_scan_error = CharField(max_length=4096, blank=True)
 

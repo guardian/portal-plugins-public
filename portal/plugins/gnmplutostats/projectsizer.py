@@ -41,7 +41,7 @@ class ResponseProcessor(object):
     xmlns = "{http://xml.vidispine.com/schema/vidispine}"
 
     def __init__(self, textcontent):
-        self._doc = ET.fromstring(textcontent)
+        self._doc = ET.fromstring(textcontent.decode('utf-8').encode('ascii','xmlcharrefreplace'))
 
     @property
     def total_hits(self):

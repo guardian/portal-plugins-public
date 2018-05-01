@@ -17,8 +17,8 @@ class ProjectInfo(object):
         if isinstance(self.status, list):
             self.status = self.status[0]
 
-    def __str__(self):
-        return "{0}: {1} ({2})".format(self.name, self.title, self.status)
+    def __unicode__(self):
+        return u"{0}: {1} ({2})".format(self.name, self.title, self.status)
 
     def _get_vs_meta(self, parent_entry, fieldname):
         """
@@ -90,9 +90,9 @@ class ProjectScanner(object):
             data=searchdoc,headers={'Content-Type': 'application/xml', 'Accept': 'application/xml'})
 
         if response.status_code==200:
-            xmldoc = ET.fromstring(response.text)
+            xmldoc = ET.fromstring(response.text.encode('ascii','xmlcharrefreplace'))
             for entry in self._get_entries_for(xmldoc):
-                logger.info("Got project {0}".format(entry))
+                logger.info(u"Got project {0}".format(unicode(entry)))
                 yield entry
         else:
             raise self.HttpError(response)

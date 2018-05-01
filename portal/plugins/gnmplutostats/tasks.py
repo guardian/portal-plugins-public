@@ -36,10 +36,12 @@ def scan_all_projects():
     :return:
     """
     from projectscanner import ProjectScanner
+    #ensure that new items get scanned by setting their last scan time to this.
+    needs_scan_time = datetime.now() - timedelta(days=30)
 
     s = ProjectScanner()
     for projectinfo in s.scan_all():
-        projectinfo.save_receipt()
+        projectinfo.save_receipt(needs_scan_time)
 
 
 @periodic_task(run_every=timedelta(minutes=30))
@@ -48,12 +50,17 @@ def launch_project_sizing():
     celery task to launch the scanning of projects.
     A maximum of GNMPLUTOSTATS_PROJECT_SCAN_LIMIT are triggered at once (default 10); "In production" are highest priority,
     if none of these are applicable then "New", if none of these are applicable then everything else.
+    If GNMPLUTOSTATS_PROJECT_SCAN_ENABLED is not present or False, then no scan is run
     "In Production" projects are scanned at most once a day, "New" are scanned
     at most once a day and everything else is scanned at most once a week.
     The calculate_project_size task is queued on the queue given by GNMPLUTOSTATS_PROJECT_SCAN_QUEUE (default 'celery')
     :return:
     """
     from models import ProjectScanReceipt
+    if not getattr(settings,"GNMPLUTOSTATS_PROJECT_SCAN_ENABLED",False):
+        logger.error("GNMPLUTOSTATS_PROJECT_SCAN_ENABLED is false, not going to trigger launching")
+        return "GNMPLUTOSTATS_PROJECT_SCAN_ENABLED is false, not going to trigger launching"
+
     trigger_limit = int(getattr(settings,"GNMPLUTOSTATS_PROJECT_SCAN_LIMIT",10))
     to_trigger = []
     c=0
@@ -86,7 +93,10 @@ def launch_project_sizing():
             if c>=trigger_limit:
                 break
 
-    logger.debug("Projects to scan: ".format(to_trigger))
+    logger.info("Projects to scan: ".format(to_trigger))
+    if len(to_trigger)==0:
+        logger.info("No projects need to be scanned right now")
+
     n=0
     for entry in to_trigger:
         n+=1

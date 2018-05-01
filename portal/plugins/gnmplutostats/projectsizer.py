@@ -122,15 +122,16 @@ def process_next_page(project_id, process_result, start_at, limit, unattached=Fa
         </field>
     </ItemSearchDocument>""".format(project_id)
 
-    response = requests.put("{url}:{port}/API/item;start={start};number={limit}?content=shape".format(
+    response = requests.put("{url}:{port}/API/item;first={start};number={limit}?content=shape".format(
                                 url=settings.VIDISPINE_URL,
                                 port=settings.VIDISPINE_PORT,
                                 start=start_at,
                                 limit=limit),
                             auth=HTTPBasicAuth(settings.VIDISPINE_USERNAME,settings.VIDISPINE_PASSWORD),
-                            body=searchdoc,headers={'Content-Type': 'application/xml', 'Accept': 'application/xml'})
+                            data=searchdoc,headers={'Content-Type': 'application/xml', 'Accept': 'application/xml'})
+
     if response.status_code==200:
-        xmldoc = ResponseProcessor(response.content)
+        xmldoc = ResponseProcessor(response.text)
         if xmldoc.total_hits==0:
             logger.info("{0}: all items from project counted".format(project_id))
             return (process_result, False)

@@ -35,7 +35,7 @@ test:
     - DJANGO_SETTINGS_MODULE=portal.plugins.gnmatomresponder.tests.django_test_settings nosetests -v portal/plugins/gnmatomresponder/tests
     - DJANGO_SETTINGS_MODULE=portal.plugins.gnmdownloadablelink.tests.django_test_settings nosetests -v portal/plugins/gnmdownloadablelink/tests
     - DJANGO_SETTINGS_MODULE=portal.plugins.gnmoptin.tests.django_test_settings nosetests -v portal/plugins/gnmoptin/tests
-    - nosetests -v portal/plugins/gnmplutostats/tests
+    - DJANGO_SETTINGS_MODULE=portal.plugins.gnmplutostats.tests.django_test_settings nosetests -v portal/plugins/gnmplutostats/tests
     - cd portal/plugins/gnmdownloadablelink; npm run test
     - npm run test
     - npm run lint

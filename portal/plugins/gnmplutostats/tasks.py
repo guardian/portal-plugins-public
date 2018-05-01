@@ -6,6 +6,7 @@ import re
 import logging
 from datetime import datetime, timedelta
 from django.db.models import Q
+from time import time
 
 logger = logging.getLogger(__name__)
 id_validator = re.compile(r'^\w{2}-\d+$')
@@ -18,14 +19,34 @@ def calculate_project_size(project_id=None):
     :param project_id:
     :return:
     """
+    import traceback
+    from models import ProjectScanReceipt
     if project_id is not None and not id_validator.match(project_id):
         raise ValueError("{0} is not a valid vidispine id".format(project_id))
 
     from projectsizer import update_project_size
+    if project_id is not None:
+        receipt = ProjectScanReceipt.objects.get(project_id=project_id)
+        receipt.last_scan = datetime.now()
+        receipt.save()
+    start_time = time()
     #project ID of None=>unattached
-    result = update_project_size(project_id)
-    logger.info("{0}: Project size information: {1}".format(project_id, result.storage_sum))
-    result.save(project_id)
+    last_error = ""
+    try:
+        result = update_project_size(project_id)
+        logger.info("{0}: Project size information: {1}".format(project_id, result.storage_sum))
+        result.save(project_id)
+    except Exception as e:
+        last_error = traceback.format_exc()
+        logger.error(last_error)
+
+    if project_id is not None:
+        receipt = ProjectScanReceipt.objects.get(project_id=project_id)
+        receipt.last_scan = datetime.now()
+        receipt.last_scan_duration = time() - start_time
+        receipt.last_scan_error = last_error
+        receipt.save()
+
     logger.info("Done")
 
 

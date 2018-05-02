@@ -263,15 +263,9 @@ class GetStatsView(BaseStatsView):
         ffieldEl.text = self.recognised_types[type]['status_field']
 
         searchDoc = tostring(xmlroot,encoding="UTF-8")
-        #print searchDoc
 
         (headers, content) = self._make_vidispine_request(httplib2.Http(),"PUT","/API/search;number=0",searchDoc,
                                                {'Accept': 'application/json'})
-        #print "\nreturned:"
-        #print content
-
-        data = json.loads(content)
-        pprint(data)
 
         return Response({'status': 'ok', 'data': self.process_facets(data)})
 

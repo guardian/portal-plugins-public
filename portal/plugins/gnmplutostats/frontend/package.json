@@ -1,0 +1,48 @@
+{
+  "name": "plutostats-frontend",
+  "version": "1.0.0",
+  "description": "Front end for gnmplutostats",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "build": "webpack -p",
+    "dev": "webpack -d --watch"
+  },
+  "jest": {
+    "moduleNameMapper": {
+      "\\.(css|less)$": "identity-obj-proxy"
+    }
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-preset-env": "^1.6.1",
+    "enzyme": "^2.9.1",
+    "jest": "^20.0.4",
+    "moxios": "^0.4.0",
+    "object.entries": "^1.0.4",
+    "react-test-renderer": "^15.6.1",
+    "sinon": "^2.3.7",
+    "webpack-cli": "^2.1.2"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.4",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-decorators": "^6.24.1",
+    "babel-plugin-transform-react-constant-elements": "^6.23.0",
+    "babel-plugin-transform-react-inline-elements": "^6.22.0",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "chart.js": "^2.3",
+    "lodash.omit": "^4.5.0",
+    "moment": "^2.22.1",
+    "raven-js": "^3.24.2",
+    "react": "^16.3.2",
+    "react-chartjs-2": "^2.7.2",
+    "react-dom": "^16.3.2",
+    "webpack": "^4.6.0"
+  }
+}

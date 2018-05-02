@@ -8,14 +8,18 @@ framework code refer to the Django developers documentation.
 """
 import logging
 
+import json
+import requests
+from requests.auth import HTTPBasicAuth
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from portal.generic.baseviews import ClassView
-from portal.vidispine.iitem import ItemHelper
-from portal.vidispine.iexception import NotFoundError
+from django.views.generic import TemplateView
 from rest_framework.views import APIView
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.renderers import JSONRenderer, XMLRenderer, YAMLRenderer
-from rest_framework.permissions import IsAdminUser, IsAuthenticated
+from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
@@ -270,11 +274,16 @@ class GetStatsView(BaseStatsView):
         return Response({'status': 'ok', 'data': self.process_facets(data)})
 
 
+class StorageDashMain(TemplateView):
+    template_name = "gnmplutostats/storage_dash.html"
+
+
 class ProjectScanReceiptView(ListAPIView):
     from serializers import ProjectScanReceiptSerializer
     from models import ProjectScanReceipt
     serializer_class = ProjectScanReceiptSerializer
     permission_classes = (IsAuthenticated, )
+    authentication_classes = (SessionAuthentication, )
     renderer_classes = (JSONRenderer, XMLRenderer, YAMLRenderer, )
     model = ProjectScanReceipt
 
@@ -298,22 +307,31 @@ class ProjectStatInfoList(ListAPIView):
 
     serializer_class = ProjectSizeInfoSerializer
     permission_classes = (IsAuthenticated, )
+    authentication_classes = (SessionAuthentication, )
     renderer_classes = (JSONRenderer, XMLRenderer, YAMLRenderer, )
     model = ProjectSizeInfoModel
 
     def get_queryset(self):
+        limit=20
+        if 'limit' in self.request.GET:
+            limit=int(self.request.GET['limit'])
+
+        start=0
+        if 'start' in self.request.GET:
+            start=int(self.request.GET['start'])
         if 'storage_id' in self.kwargs:
-            return self.model.objects.filter(storage_id=self.kwargs['storage_id']).order_by('-size_used_gb')
+            return self.model.objects.filter(storage_id=self.kwargs['storage_id']).order_by('-size_used_gb')[start:start+limit]
         elif 'project_id' in self.kwargs:
-            return self.model.objects.filter(project_id=self.kwargs['project_id']).order_by('-size_used_gb')
+            return self.model.objects.filter(project_id=self.kwargs['project_id']).order_by('-size_used_gb')[start:start+limit]
         else:
-            return self.model.objects.all().order_by('-size_used_gb', 'project_id','storage_id')
+            return self.model.objects.all().order_by('-size_used_gb', 'project_id','storage_id')[start:start+limit]
 
 
 class TotalSpaceByStorage(APIView):
     from models import ProjectSizeInfoModel
 
-    permission_classes = (IsAuthenticated, )
+    permission_classes = (AllowAny, )
+    authentication_classes = (SessionAuthentication, )
     renderer_classes = (JSONRenderer, XMLRenderer, YAMLRenderer, )
     model = ProjectSizeInfoModel
 
@@ -323,3 +341,25 @@ class TotalSpaceByStorage(APIView):
         for s in storages:
             result[s['storage_id']] = self.ProjectSizeInfoModel.objects.filter(storage_id=s['storage_id']).aggregate(Sum('size_used_gb'))
         return Response(result)
+
+
+class StorageCapacityView(APIView):
+    permission_classes = (IsAdminUser, )
+    renderer_classes = (JSONRenderer, XMLRenderer, YAMLRenderer, )
+    authentication_classes = (SessionAuthentication, )
+
+    def get(self, request, storage_id):
+        response = requests.get("{0}:{1}/API/storage/{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,storage_id),
+                                auth=HTTPBasicAuth(settings.VIDISPINE_USERNAME,settings.VIDISPINE_PASSWORD),
+                                headers={'Accept': 'application/json'})
+
+        if response.status_code==200:
+            returned_data = response.json()
+            fields = ['id','state','type','capacity','freeCapacity']
+            rtn = {}
+            for f in fields:
+                rtn[f] = returned_data[f]
+            return Response(rtn)
+        else:
+            log.error(response.text)
+            return Response({'status': 'error','detail': "Vidispine error"},status=500)

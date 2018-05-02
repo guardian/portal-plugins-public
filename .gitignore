@@ -168,3 +168,4 @@ pip-selfcheck.json
 !/portal/plugins/gnmlibrarytool/jstest/lib/jquery.js
 !/portal/plugins/gnmlibrarytool/jstest/lib/
 /portal/plugins/gnmplutostats/frontend/node_modules/
+/portal/plugins/gnmplutostats/static/plutostats/frontend.js

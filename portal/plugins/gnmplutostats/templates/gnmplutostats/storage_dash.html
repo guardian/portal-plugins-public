@@ -1,0 +1,16 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress staticfiles  %}
+{% block title %}{% trans 'PLUTO Object Statistics' %}{% endblock %}
+{% block heading %}{% trans 'PLUTO Object Statistics' %}{% endblock %}
+
+{% block head %}
+{% endblock %}
+
+{% block extra_script %}
+
+{% endblock %}
+
+{% block content %}
+<div id="app"></div>
+    <script src="{% static 'plutostats/frontend.js' %}"></script>
+{% endblock %}

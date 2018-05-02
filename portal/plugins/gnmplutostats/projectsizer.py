@@ -147,7 +147,7 @@ def process_next_page(project_id, process_result, start_at, limit, unattached=Fa
     :param limit: page size
     :return: tuple of (process_result, more_pages)
     """
-    if unattached:
+    if project_id is None:
         searchdoc = """<ItemSearchDocument xmlns="http://xml.vidispine.com/schema/vidispine">
 	<operator operation="NOT"><field>
 		<name>__collection</name>

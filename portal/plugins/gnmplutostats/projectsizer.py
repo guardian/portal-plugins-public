@@ -212,5 +212,5 @@ def update_project_size(project_id):
                 raise
             logger.info("Retrying after 10s delay")
             sleep(10)
-    logger.info("{0}: Completed")
+    logger.info("{0}: Completed".format(project_id))
     return result

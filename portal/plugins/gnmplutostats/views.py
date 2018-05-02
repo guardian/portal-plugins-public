@@ -20,6 +20,7 @@ from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from vsmixin import VSMixin
+from django.db.models import Count,Avg,Sum
 
 log = logging.getLogger(__name__)
 
@@ -126,9 +127,7 @@ class GetLibraryStats(BaseStatsView):
                                      "/API/library/{0};number=0".format(libid),
                                      body="",
                                      headers={'Accept': 'application/xml'})
-        #print "checking {0}".format(libid)
         data=fromstring(content)
-        #print content
 
         try:
             return int(data.find('{http://xml.vidispine.com/schema/vidispine}hits').text)
@@ -308,11 +307,25 @@ class ProjectStatInfoList(ListAPIView):
     renderer_classes = (JSONRenderer, XMLRenderer, YAMLRenderer, )
     model = ProjectSizeInfoModel
 
+    def get_queryset(self):
+        if 'storage_id' in self.kwargs:
+            return self.model.objects.filter(storage_id=self.kwargs['storage_id']).order_by('-size_used_gb')
+        elif 'project_id' in self.kwargs:
+            return self.model.objects.filter(project_id=self.kwargs['project_id']).order_by('-size_used_gb')
+        else:
+            return self.model.objects.all().order_by('-size_used_gb', 'project_id','storage_id')
 
-# class ProjectStatInfoGet(RetrieveAPIView):
-#     from serializers import ProjectSizeInfoSerializer
-#     serializer_class = ProjectSizeInfoSerializer
-#     permission_classes = (IsAuthenticated, )
-#
-#     def get_queryset(self):
-#
+
+class TotalSpaceByStorage(APIView):
+    from models import ProjectSizeInfoModel
+
+    permission_classes = (IsAuthenticated, )
+    renderer_classes = (JSONRenderer, XMLRenderer, YAMLRenderer, )
+    model = ProjectSizeInfoModel
+
+    def get(self, request):
+        storages = self.ProjectSizeInfoModel.objects.values('storage_id').distinct()
+        result = {}
+        for s in storages:
+            result[s['storage_id']] = self.ProjectSizeInfoModel.objects.filter(storage_id=s['storage_id']).aggregate(Sum('size_used_gb'))
+        return Response(result)

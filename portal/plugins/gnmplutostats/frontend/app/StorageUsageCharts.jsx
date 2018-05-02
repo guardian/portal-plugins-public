@@ -65,15 +65,23 @@ class StorageUsageCharts extends React.Component {
     }
 
     componentWillMount(){
-        axios.get('/gnmplutostats/projectsize/storage/totals').then(response=>{
-            const storage_details = Object.entries(response.data).reduce((acc,item)=>{
-                return acc.concat({storageId: item[0], totalAccountedFor: item[1]})
-            },[]);
-
+        const total_entry_count=10;
+        axios.get('/gnmplutostats/projectsize/project/graph?limit='+total_entry_count).then(response=>{
             this.setState({
-                known_storages: storage_details,
-                visible_storages: Object.keys(storage_details)
-            }, ()=>this.updateDatasets());
+                known_storages: response.data.storage_key,
+                visible_storages: response.data.storage_key,
+                datasets: response.data.projects.map((proj,idx)=>{
+                    return {
+                        label: proj.project_id,
+                        backgroundColor: this.backgroundColourFor(idx, total_entry_count, false),
+                        borderColor: 'rgba(255,99,132,1)',
+                        borderWidth: 1,
+                        hoverBackgroundColor: this.backgroundColourFor(idx, total_entry_count, true),
+                        hoverBorderColor: 'rgba(255,99,132,1)',
+                        data: proj.sizes
+                    }
+                })
+            })
         }).catch(err=>{
             console.error(err);
             this.setState({error: err})
@@ -82,7 +90,7 @@ class StorageUsageCharts extends React.Component {
 
     render(){
         const chartData = {
-            labels: this.state.known_storages.map(entry=>entry.storageId),
+            labels: this.state.known_storages,
             datasets: this.state.datasets
         };
         console.log(chartData);

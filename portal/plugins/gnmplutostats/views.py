@@ -327,6 +327,44 @@ class ProjectStatInfoList(ListAPIView):
             return self.model.objects.all().order_by('-size_used_gb', 'project_id','storage_id')[start:start+limit]
 
 
+class ProjectInfoGraphView(APIView):
+    from serializers import ProjectSizeInfoSerializer
+    from models import ProjectSizeInfoModel
+
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (SessionAuthentication, )
+    renderer_classes = (JSONRenderer, )
+
+    def entry_for_record(self,proj_id,storage_id):
+        try:
+            print self.ProjectSizeInfoModel.objects.get(project_id=proj_id, storage_id=storage_id).size_used_gb
+            return self.ProjectSizeInfoModel.objects.get(project_id=proj_id, storage_id=storage_id).size_used_gb
+        except self.ProjectSizeInfoModel.DoesNotExist:
+            return 0
+
+    def entries_for_project(self,proj_id, all_storages):
+        print map(lambda storage_entry: storage_entry.items()[0][1], all_storages)
+        return map(lambda storage_entry: self.entry_for_record(proj_id,storage_entry.items()[0][1]),all_storages)
+
+    def get(self, request):
+        limit=15
+        if 'limit' in self.request.GET:
+            limit = int(self.request.GET['limit'])
+
+        all_storages = sorted(map(lambda x: x, self.ProjectSizeInfoModel.objects.values('storage_id').distinct()))
+        all_projects = self.ProjectSizeInfoModel.objects.order_by('-size_used_gb').values('project_id').distinct()[0:limit]
+
+        # rtn = []
+        # for proj_id in all_projects:
+        #     print proj_id.items()[0][1]
+        #     rtn.append(self.entries_for_project(proj_id.items()[0][1],all_storages))
+
+        rtn = map(lambda project_entry: {"project_id": project_entry.items()[0][1], "sizes": self.entries_for_project(project_entry.items()[0][1],all_storages)}, all_projects)
+        return Response({"status":"ok",
+                         "storage_key": map(lambda entry: entry.items()[0][1],all_storages),
+                         "projects": rtn})
+
+
 class TotalSpaceByStorage(APIView):
     from models import ProjectSizeInfoModel
 

@@ -31,8 +31,12 @@ class ProcessResult(object):
         """
         from models import ProjectSizeInfoModel
         n=0
-        for storage_id,total_size in self.storage_sum:
-            (record, created) = ProjectSizeInfoModel.objects.get_or_create(project_id=project_id, storage_id=storage_id)
+        for storage_id,total_size in self.storage_sum.items():
+            if total_size is None:
+                continue
+            (record, created) = ProjectSizeInfoModel.objects.get_or_create(project_id=project_id,
+                                                                           storage_id=storage_id,
+                                                                           defaults={"size_used_gb": total_size,"last_updated": datetime.now()})
             record.size_used_gb = total_size
             record.last_updated = datetime.now()
             record.save()
@@ -44,7 +48,11 @@ class ResponseProcessor(object):
     xmlns = "{http://xml.vidispine.com/schema/vidispine}"
 
     def __init__(self, textcontent):
-        self._doc = ET.fromstring(textcontent.decode('utf-8').encode('ascii','xmlcharrefreplace'))
+        try:
+            self._doc = ET.fromstring(textcontent.encode('ascii','xmlcharrefreplace'))
+        except UnicodeDecodeError as e:
+            logger.warning(e)
+            self._doc = ET.fromstring(textcontent.decode('utf-8').encode('ascii','xmlcharrefreplace'))
 
     @property
     def total_hits(self):
@@ -75,6 +83,23 @@ class ResponseProcessor(object):
         else:
             return node.text
 
+    @staticmethod
+    def get_right_component(item_entry):
+        """
+        returns the right component for the "main" content
+        :param item_entry:
+        :return:
+        """
+        possible_components = [
+            "{0}containerComponent".format(ResponseProcessor.xmlns),
+            "{0}binaryComponent".format(ResponseProcessor.xmlns),
+        ]
+
+        for c in possible_components:
+            if item_entry.find(c) is not None:
+                return c
+        return None
+
     def item_size(self, item_entry, process_result, shape_tag="original"):
         """
         get the total size of files of the given shape tag for the given item
@@ -87,8 +112,20 @@ class ResponseProcessor(object):
             entry_shape_tag = self._get_xml_entry(shape_entry, "{0}tag".format(self.xmlns))
             if entry_shape_tag!=shape_tag:
                 continue
-            process_result.add_entry(self._get_xml_entry(shape_entry,"{0}containerComponent/{0}file/{0}storage".format(self.xmlns)),
-                                     self._get_xml_entry(shape_entry,"{0}containerComponent/{0}file/{0}size".format(self.xmlns)))
+            component_name = self.get_right_component(shape_entry)
+            if component_name is None:
+                logger.warning("Original content: {0}".format(ET.tostring(shape_entry)))
+                raise RuntimeError("Could not determine the right content type to use")
+
+            try:
+                process_result.add_entry(self._get_xml_entry(shape_entry,"{1}/{0}file/{0}storage".format(self.xmlns, component_name)),
+                                         self._get_xml_entry(shape_entry,"{1}/{0}file/{0}size".format(self.xmlns, component_name)))
+            except TypeError as e:
+                logger.warning("Original content: {0}".format(ET.tostring(shape_entry)))
+                logger.warning("Value {0} for {1} does not seem to be a number (can't convert to float)"
+                               .format(self._get_xml_entry(shape_entry,"{1}/{0}file/{0}size".format(self.xmlns, component_name)),
+                                       self._get_xml_entry(shape_entry,"{1}/{0}file/{0}path".format(self.xmlns, component_name)))
+                               )
 
     def page_size(self, process_result,shape_tag="original"):
         """
@@ -135,8 +172,8 @@ def process_next_page(project_id, process_result, start_at, limit, unattached=Fa
 
     if response.status_code==200:
         xmldoc = ResponseProcessor(response.text)
-        logger.info("{0}: Got page with {1} items".format(project_id, xmldoc.total_hits))
-        if xmldoc.total_hits==0:
+        logger.info("{0}: Got page with {1}/{2} items".format(project_id, xmldoc.entries, xmldoc.total_hits))
+        if xmldoc.entries==0:
             logger.info("{0}: all items from project counted".format(project_id))
             return (process_result, False)
         xmldoc.page_size(process_result)
@@ -152,17 +189,24 @@ def update_project_size(project_id):
     :param project_id: project to scan
     :return: ProcessResult object
     """
-    page_size = 10
+    page_size = 40
     page_start=1
+    retry_limit=5
+    retry_count=0
     result = ProcessResult()
 
     more_pages = True
     while more_pages:
         try:
-            logger.info("{0}: Getting page starting at {1} of contents...".format(project_id,page_start))
+            logger.info("{0}: Getting page for items {1} to {2}...".format(project_id,page_start, page_start+page_size))
             (result, more_pages) = process_next_page(project_id, result, start_at=page_start, limit=page_size)
+            page_start+=page_size+1
         except HttpError as e:
             logger.error(str(e))
+            retry_count+=1
+            if retry_count>=retry_limit:
+                logger.error("Retried {0} times already, aborting".format(retry_count))
+                raise
             if e.status_code>=400 and e.status_code<=500:
                 logger.error("Not retrying")
                 raise

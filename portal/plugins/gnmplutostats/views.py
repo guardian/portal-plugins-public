@@ -286,7 +286,17 @@ class ProjectScanReceiptView(ListAPIView):
     model = ProjectScanReceipt
 
     def get_queryset(self):
-        return self.model.objects.all().order_by('last_scan')
+        if 'start' in self.request.GET:
+            start = int(self.request.GET['start'])
+        else:
+            start = 0
+
+        if 'limit' in self.request.GET:
+            end = start + int(self.request.GET['limit'])
+        else:
+            end = start + 100
+
+        return self.model.objects.all().order_by('last_scan')[start:end]
 
 
 class ProjectStatInfoList(ListAPIView):

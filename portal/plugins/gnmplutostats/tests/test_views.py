@@ -103,11 +103,9 @@ class TestProjectInfoGraphView(unittest2.TestCase):
 
         v = ProjectInfoGraphView()
         all_projects = ProjectSizeInfoModel.objects.order_by('-size_used_gb').values('project_id')
-        print all_projects
 
+        result = v.dedupe_project_set(all_projects,limit)
 
-        result = v.dedupe_project_set(all_projects,10)
-
-        self.assertEqual(len(result),10)
+        self.assertEqual(len(result),limit)
         print result
         self.assertTrue(self.allUnique(result))

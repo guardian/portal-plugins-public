@@ -331,7 +331,7 @@ class ProjectInfoGraphView(APIView, StorageCapacityMixin):
             #this relies on storage_capacities
             storage_name = all_storages[n]
             try:
-                used_capacity = float(storage_capacities[storage_name]['capacity']/1024^3) - float(storage_capacities[storage_name]['freeCapacity']/1024^3)
+                used_capacity = float(storage_capacities[storage_name]['capacity']/1024**3) - float(storage_capacities[storage_name]['freeCapacity']/1024**3)
                 #we store capacity in Gb, Vidispine stores it in bytes
                 relative_values.append(float(absolute_values[n]) / used_capacity)
             except TypeError:
@@ -354,7 +354,7 @@ class ProjectInfoGraphView(APIView, StorageCapacityMixin):
         if not relative:
             return absolute_value
 
-        used_capacity = float(storage_capacities[storage_id]['capacity']/1024^3) - float(storage_capacities[storage_id]['freeCapacity']/1024^3)
+        used_capacity = float(storage_capacities[storage_id]['capacity']/1024**3) - float(storage_capacities[storage_id]['freeCapacity']/1024**3)
         relative_value = float(absolute_value)/used_capacity
         return relative_value
 
@@ -374,6 +374,24 @@ class ProjectInfoGraphView(APIView, StorageCapacityMixin):
                 rtn[all_storages[n]] += entry['sizes'][n]
 
         return rtn
+
+    def get_total_uncounted(self, storage_id, storage_capacities, relative=False):
+        """
+        return a number indicating the total amount of storage that is not counted at all in the database
+        :param storage_id: check this storage
+        :param all_counted:
+        :param storage_capacities:
+        :param relative:
+        :return:
+        """
+        database_result = self.ProjectSizeInfoModel.objects.filter(storage_id=storage_id).aggregate(Sum('size_used_gb'))
+        used_capacity = float(storage_capacities[storage_id]['capacity']/1024**3) - float(storage_capacities[storage_id]['freeCapacity']/1024**3)
+        absolute_value = used_capacity - database_result['size_used_gb__sum']
+
+        if not relative:
+            return absolute_value
+        else:
+            return float(absolute_value)/float(used_capacity)
 
     def dedupe_project_set(self, project_id_set, limit):
         """
@@ -398,7 +416,7 @@ class ProjectInfoGraphView(APIView, StorageCapacityMixin):
         limit=15
         if 'limit' in self.request.GET:
             limit = int(self.request.GET['limit'])
-        relative=False
+        relative=True
         if 'absolute' in self.request.GET:
             relative=False
 
@@ -414,6 +432,11 @@ class ProjectInfoGraphView(APIView, StorageCapacityMixin):
             project_entries.append({
                 "project_id": "Other",
                 "sizes": map(lambda storage_id: self.get_total_other(storage_id, explicit_projects, storage_capacities, relative=relative), all_storages)
+            })
+
+            project_entries.append({
+                "project_id": "Uncounted",
+                "sizes": map(lambda storage_id: self.get_total_uncounted(storage_id, storage_capacities, relative=relative), all_storages)
             })
 
             return Response({"status":"ok",

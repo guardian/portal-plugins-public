@@ -62,7 +62,7 @@ class TestProjectInfoGraphView(unittest2.TestCase):
 
         v = ProjectInfoGraphView()
         result = v.entries_for_project("KP-21048", self.all_storages, self.storage_capacities, relative=True)
-        self.assertEqual(result,[0.0, 1.5975781630141477e-10, 5.650631737882143e-09, 0.0, 7.121341722924416e-09, 0.0, 0.0, 0.0, 0.0, 0.0, 2.1967614758862637e-10, 0.0])
+        self.assertEqual(result,[0.0, 0.00016751821760616466, 0.005925120219830547, 0.0, 0.007467287404138122, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0002303471960464045, 0.0])
 
     def test_absolute_get_total_other(self):
         from portal.plugins.gnmplutostats.views import ProjectInfoGraphView
@@ -76,7 +76,7 @@ class TestProjectInfoGraphView(unittest2.TestCase):
 
         v = ProjectInfoGraphView()
         result = v.get_total_other("KP-2",self.explicitly_accounted_for,self.storage_capacities,relative=True)
-        self.assertEqual(result,1.0968231073821473e-08)
+        self.assertEqual(result,0.011501030455690406)
 
     def test_counted_project_entres(self):
         from portal.plugins.gnmplutostats.views import ProjectInfoGraphView
@@ -107,5 +107,4 @@ class TestProjectInfoGraphView(unittest2.TestCase):
         result = v.dedupe_project_set(all_projects,limit)
 
         self.assertEqual(len(result),limit)
-        print result
         self.assertTrue(self.allUnique(result))

@@ -15,6 +15,16 @@ import {Bar, Doughnut, Pie} from 'react-chartjs-2';
  * then query each one
  *
  */
+function chartClicked(event, activeElems){
+    console.log(this);
+    console.log(this.getElementAtEvent(event));
+    console.log(event, activeElems);
+    const elemData = this.getElementAtEvent(event)[0];
+
+    const clickedName = (elemData["_view"]["datasetLabel"]);
+    console.log("You clicked " + clickedName);
+}
+
 class StorageUsageCharts extends React.Component {
     constructor(props){
         super(props);
@@ -117,9 +127,12 @@ class StorageUsageCharts extends React.Component {
                          display: true,
                          position: "right"
                      },
+                     tooltips: {
+                         mode: "label"
+                     },
                      barPercentage: 1.0,
                      categoryPercentage: 1.0,
-
+                     onClick: chartClicked
                  }}/>
         </div>
 

@@ -448,11 +448,11 @@ class ProjectInfoGraphView(APIView, StorageCapacityMixin):
             return Response({"status":"error","error":"Unable to communicate with Vidispine","detail": str(e), "server_response":e.content})
 
 
-class TotalSpaceByStorage(APIView):
+class TotalSpaceByStorage(APIView,StorageCapacityMixin):
     from models import ProjectSizeInfoModel
 
-    permission_classes = (AllowAny, )
-    authentication_classes = (SessionAuthentication, )
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (BasicAuthentication, SessionAuthentication, )
     renderer_classes = (JSONRenderer, XMLRenderer, YAMLRenderer, )
     model = ProjectSizeInfoModel
 
@@ -460,7 +460,17 @@ class TotalSpaceByStorage(APIView):
         storages = self.ProjectSizeInfoModel.objects.values('storage_id').distinct()
         result = {}
         for s in storages:
-            result[s['storage_id']] = self.ProjectSizeInfoModel.objects.filter(storage_id=s['storage_id']).aggregate(Sum('size_used_gb'))
+            try:
+                storage_data = self.get_storage_capacity(s['storage_id'])
+                storage_total = storage_data['capacity']/1024**3
+            except HttpError as e:
+                log.warn(str(e))
+                storage_total = 200000
+
+            result[s['storage_id']] = {
+                "counted": self.ProjectSizeInfoModel.objects.filter(storage_id=s['storage_id']).aggregate(Sum('size_used_gb'))['size_used_gb__sum'],
+                "total": storage_total
+            }
         return Response(result)
 
 

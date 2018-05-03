@@ -7,13 +7,14 @@ class App extends React.Component {
     constructor(props){
         super(props);
         this.state = {
-            selectedProject: null
+            selectedProject: null,
+            selectedStorage: null
         }
     }
 
     render(){
         return <div style={{width: "100%", height: "100%",overflow:"hidden"}}>
-                <StorageUsageCharts onProjectSelected={newProject=>this.setState({selectedProject: newProject})}/>
+                <StorageUsageCharts onProjectSelected={(newProject,newStorage)=>this.setState({selectedProject: newProject, selectedStorage:newStorage})}/>
                 <ProjectSummaryArea projectId={this.state.selectedProject}/>
         </div>
     }

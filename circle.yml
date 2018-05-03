@@ -3,7 +3,7 @@ machine:
   python:
     version: 2.7.12
   node:
-    version: 6.4.0 
+    version: 6.14.2
   pre:
     - sudo apt-get -y install rpm libsasl2-dev libldap2-dev libssl-dev
     - sudo mkdir -p /opt/cantemo/portal/portal/plugins
@@ -15,6 +15,7 @@ dependencies:
   override:
     - npm install
     - pip install -r test-requirements.txt
+    - cd portal/plugins/gnmplutostats/frontend; yarn install
   cache_directories:
     - node_modules
     - "/home/ubuntu/.cache/pip"
@@ -50,6 +51,8 @@ deployment:
       - rm -f portal/__init__.py; rm -f portal/plugins/__init__.py
       - sudo mkdir -p /opt/cantemo/portal/portal/plugins; sudo chown -R ubuntu /opt/cantemo
       - rm -rf portal/plugins/gnmdownloadablelink/node_modules
+      - cd portal/plugins/gnmplutostats/frontend; npm run build
+      - rm -rf portal/plugins/gnmplutostats/frontend
       - chmod a+x *.sh
       - ./buildrpms.sh
       - rpmbuild -bb portal-codemirror.spec

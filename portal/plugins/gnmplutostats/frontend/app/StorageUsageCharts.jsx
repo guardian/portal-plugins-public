@@ -3,29 +3,25 @@ import PropTypes from 'prop-types';
 import axios from 'axios';
 import StorageUsageBar from './StorageUsageBar.jsx';
 import {Bar, Doughnut, Pie} from 'react-chartjs-2';
+import {Chart} from 'chart.js';
 
-/**
- * How it _SHOULD_ work
- *
- * each project is a dataset
- * this contains an array of entries of capacity used in each storage
- * so i am loading the data the wrong way around
- *
- * need to get a list of all projects
- * then query each one
- *
+/*
+thanks to https://stackoverflow.com/questions/13851088/how-to-bind-function-arguments-without-binding-this
+this allows us to bind the value of `this` in the context of the React object to an arbitary argument
+in the context of the callback without over-writing the callback's `this` context (in this case, the chart)
  */
-function chartClicked(event, activeElems){
-    console.log(this);
-    console.log(this.getElementAtEvent(event));
-    console.log(event, activeElems);
-    const elemData = this.getElementAtEvent(event)[0];
-
-    const clickedName = (elemData["_view"]["datasetLabel"]);
-    console.log("You clicked " + clickedName);
-}
+Function.prototype.bindArgs =
+    function (...boundArgs)
+    {
+        let context = this;
+        return function(...args) { return context.call(this, ...boundArgs, ...args); };
+    };
 
 class StorageUsageCharts extends React.Component {
+    static propTypes = {
+        onProjectSelected: PropTypes.func.isRequired
+    };
+
     constructor(props){
         super(props);
 
@@ -33,7 +29,11 @@ class StorageUsageCharts extends React.Component {
             known_storages: [],
             visible_storages: [],
             error: null,
-            datasets: []
+            datasets: [],
+            showAbsolute: false,
+            showLegend: false,
+            projectLimit: 10,
+            maximumStorageValue: 0
         }
     }
 
@@ -59,7 +59,9 @@ class StorageUsageCharts extends React.Component {
     }
 
     updateDatasets(){
-        const futuresList = this.state.known_storages.map(entry=>axios.get("/gnmplutostats/projectsize/storage/" + entry.storageId));
+        const args = this.state.showAbsolute ? "?absolute=true" : "";
+
+        const futuresList = this.state.known_storages.map(entry=>axios.get("/gnmplutostats/projectsize/storage/" + entry.storageId + args));
 
         Promise.all(futuresList).then(storageResults=>{
             const multidimensional = storageResults.map((result, idx)=>this.dataSetForResult(result,idx));
@@ -74,13 +76,31 @@ class StorageUsageCharts extends React.Component {
             })
     }
 
-    componentWillMount(){
-        const total_entry_count=10;
-        axios.get('/gnmplutostats/projectsize/project/graph?limit='+total_entry_count).then(response=>{
+    componentWillMount() {
+        console.log("componentWillMount");
+        this.updateGraph();
+    }
+
+    componentDidUpdate(oldProps,oldState){
+        console.log("componentDidUpdate", oldState, this.state);
+        if(oldState.showAbsolute!==this.state.showAbsolute) this.updateGraph();
+    }
+
+    updateGraph(){
+        console.log("updateGraph");
+        const args = this.state.showAbsolute ? "&absolute=true" : "";
+        const total_entry_count=this.state.projectLimit;
+
+        const futures = [
+            axios.get('/gnmplutostats/projectsize/project/graph?limit='+total_entry_count+args),
+            axios.get('/gnmplutostats/projectsize/storage/totals')
+        ];
+
+        Promise.all(futures).then(responses=>{
             this.setState({
-                known_storages: response.data.storage_key,
-                visible_storages: response.data.storage_key,
-                datasets: response.data.projects.map((proj,idx)=>{
+                known_storages: responses[0].data.storage_key,
+                visible_storages: responses[0].data.storage_key,
+                datasets: responses[0].data.projects.map((proj,idx)=>{
                     return {
                         label: proj.project_id,
                         backgroundColor: this.backgroundColourFor(idx, total_entry_count, false),
@@ -90,7 +110,8 @@ class StorageUsageCharts extends React.Component {
                         hoverBorderColor: 'rgba(255,99,132,1)',
                         data: proj.sizes
                     }
-                })
+                }),
+                maximumStorageValue: responses[1].data.reduce((acc,entry)=>entry.total>acc ? entry.total : acc, 0)
             })
         }).catch(err=>{
             console.error(err);
@@ -103,28 +124,47 @@ class StorageUsageCharts extends React.Component {
             labels: this.state.known_storages,
             datasets: this.state.datasets
         };
-        console.log(chartData);
 
-        return <div className="chart-holder" style={{width: "480px", height: "900px"}}>
+        const tickConfig = this.state.showAbsolute ? {
+            callback: (value, index, values)=>(value/1024).toString() + "Tb",
+            max: self.state.maximumStorageValue
+        } : {
+            callback: (value, index, values)=>(value *100).toString() + "%",
+            max: 1.0
+        };
+
+        return <div>
+            <span className="chart-controls">
+                <input id="id-show-absolute" type="checkbox" value={this.state.showAbsolute} onChange={evt=>this.setState({showAbsolute: !this.state.showAbsolute})}/>
+                <label style={{paddingRight: "1em"}} htmlFor="id-show-absolute">Absolute Values</label>
+                <input id="id-show-legend" type="checkbox"
+                       style={{paddingLeft: "1em"}}
+                       value={this.state.showLegend}
+                       onChange={evt=>this.setState({showLegend: !this.state.showLegend})}/>
+                <label htmlFor="id-show-legend">Show Legend</label>
+            </span>
+        <div className="chart-holder" style={{width: "480px", height: "700px"}}>
             <Bar data={chartData}
                  options={{
                      scales: {
                          xAxes: [{
-                             stacked:true,
+                             stacked: true,
                              gridLines: {
                                  display: false
                              }
                          }],
                          yAxes: [{
+                             display: true, //this.state.showAbsolute,
                              stacked:true,
                              gridLines: {
                                  display: false
-                             }
+                             },
+                             ticks: tickConfig
                          }]
                      },
                      maintainAspectRatio: false,
                      legend: {
-                         display: true,
+                         display: this.state.showLegend,
                          position: "right"
                      },
                      tooltips: {
@@ -132,10 +172,24 @@ class StorageUsageCharts extends React.Component {
                      },
                      barPercentage: 1.0,
                      categoryPercentage: 1.0,
-                     onClick: chartClicked
+                     onClick: this.chartClicked.bindArgs(this)
                  }}/>
         </div>
+        </div>
+    }
 
+    chartClicked(reactobj,event, activeElems){
+        console.log(this);
+        console.log(reactobj);
+        console.log(event, activeElems);
+
+        console.log(this.getElementAtEvent(event));
+        const elemData = this.getElementAtEvent(event)[0];
+
+        const clickedName = (elemData["_view"]["datasetLabel"]);
+        const clickedStorage = (elemData["_view"]['label']);
+        console.log("You clicked " + clickedName);
+        reactobj.props.onProjectSelected(clickedName, clickedStorage);
     }
 }
 

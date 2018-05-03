@@ -10,7 +10,13 @@ class HttpError(StandardError):
         self.content = content
 
     def __unicode__(self):
-        return u'HTTP error {0} accessing {1}. Content: {2}'.format(self.headers['status'],self.url,self.content)
+        if 'status' in self.headers:
+            status = self.headers['status']
+        elif 'status_code' in self.headers:
+            status = self.headers['status_code']
+        else:
+            status = 'unknown'
+        return u'HTTP error {0} accessing {1}. Content: {2}'.format(status,self.url,self.content)
 
     def __str__(self):
         return self.__unicode__().encode('ascii')
@@ -64,3 +70,28 @@ class VSMixin(object):
             raise HttpError(url,method, body, headers, content)
 
         return (headers,content)
+
+
+class StorageCapacityMixin(object):
+
+    def get_storage_capacity(self,storage_id):
+        import requests
+        from requests.auth import HTTPBasicAuth
+        response = requests.get("{0}:{1}/API/storage/{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,storage_id),
+                                auth=HTTPBasicAuth(settings.VIDISPINE_USERNAME,settings.VIDISPINE_PASSWORD),
+                                headers={'Accept': 'application/json'})
+
+        if response.status_code==200:
+            returned_data = response.json()
+            fields = ['id','state','type','capacity','freeCapacity']
+            rtn = {}
+            for f in fields:
+                rtn[f] = returned_data[f]
+            return rtn
+        else:
+            raise HttpError(url="{0}:{1}/API/storage/{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,storage_id),
+                            method="GET",
+                            sent_body="",
+                            headers=response.headers,
+                            content=response.text)
+

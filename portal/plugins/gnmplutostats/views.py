@@ -13,7 +13,6 @@ import requests
 from requests.auth import HTTPBasicAuth
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from portal.generic.baseviews import ClassView
 from django.views.generic import TemplateView
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -23,27 +22,14 @@ from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from vsmixin import VSMixin
+from vsmixin import VSMixin, StorageCapacityMixin, HttpError
 from django.db.models import Count,Avg,Sum
 
 log = logging.getLogger(__name__)
 
 
-class GenericAppView(ClassView):
-    """ Show the page. Add your python code here to show dynamic content or feed information in
-        to external apps
-    """
-    def __call__(self):
-        # __call__ responds to the incoming request. It will already have a information associated to it, such as self.template and self.request
-
-        log.debug("%s Viewing page" % self.request.user)
-        ctx = {}
-        
-        # return a response to the request
-        return self.main(self.request, self.template, ctx)
-
-# setup the object, and decorate so that only logged in users can see it
-GenericAppView = GenericAppView._decorate(login_required)
+class IndexView(TemplateView):
+    template_name = 'gnmplutostats/index.html'
 
 
 class InvalidPlutoType(StandardError):
@@ -151,13 +137,11 @@ class GetLibraryStats(BaseStatsView):
         :param data: data dict, containing fieldname -> count pairs
         :return: fieldname of the minimum
         """
-        from pprint import pprint
-        pprint(overlap)
         n=9999999999
         min_field = None
 
         for fieldname in overlap:
-            print "checking {0} for min".format(fieldname)
+            log.debug("checking {0} for min".format(fieldname))
             if data[fieldname]<n:
                 min_field = fieldname
                 n = data[fieldname]
@@ -191,8 +175,6 @@ class GetLibraryStats(BaseStatsView):
         import httplib2
         from django.http import HttpResponseBadRequest
         import json
-        from pprint import pprint
-
         counts = {}
         self._agent = httplib2.Http()
 
@@ -213,7 +195,6 @@ class GetLibraryStats(BaseStatsView):
         else:
             return HttpResponseBadRequest("Report type not recognised")
 
-        pprint(counts)
         d = self.process_overlaps(type,counts)
 
         rtn = {
@@ -251,7 +232,6 @@ class GetStatsView(BaseStatsView):
         from xml.etree.cElementTree import Element,SubElement,tostring
         import httplib2
         import json
-        from pprint import pprint
 
         if not type.lower() in self.recognised_types:
             raise InvalidPlutoType("{0} is not a recognised pluto type".format(type))
@@ -327,7 +307,7 @@ class ProjectStatInfoList(ListAPIView):
             return self.model.objects.all().order_by('-size_used_gb', 'project_id','storage_id')[start:start+limit]
 
 
-class ProjectInfoGraphView(APIView):
+class ProjectInfoGraphView(APIView, StorageCapacityMixin):
     from serializers import ProjectSizeInfoSerializer
     from models import ProjectSizeInfoModel
 
@@ -337,32 +317,112 @@ class ProjectInfoGraphView(APIView):
 
     def entry_for_record(self,proj_id,storage_id):
         try:
-            print self.ProjectSizeInfoModel.objects.get(project_id=proj_id, storage_id=storage_id).size_used_gb
             return self.ProjectSizeInfoModel.objects.get(project_id=proj_id, storage_id=storage_id).size_used_gb
         except self.ProjectSizeInfoModel.DoesNotExist:
             return 0
 
-    def entries_for_project(self,proj_id, all_storages):
-        print map(lambda storage_entry: storage_entry.items()[0][1], all_storages)
-        return map(lambda storage_entry: self.entry_for_record(proj_id,storage_entry.items()[0][1]),all_storages)
+    def entries_for_project(self,proj_id, all_storages, storage_capacities, relative=False):
+        absolute_values = map(lambda storage_id: self.entry_for_record(proj_id,storage_id),all_storages)
+        if not relative:
+            return absolute_values
+
+        relative_values = []
+        for n in range(0,len(all_storages)):
+            #this relies on storage_capacities
+            storage_name = all_storages[n]
+            try:
+                used_capacity = float(storage_capacities[storage_name]['capacity']/1024^3) - float(storage_capacities[storage_name]['freeCapacity']/1024^3)
+                #we store capacity in Gb, Vidispine stores it in bytes
+                relative_values.append(float(absolute_values[n]) / used_capacity)
+            except TypeError:
+                log.error("could not convert {0} or {1}".format(absolute_values[n], storage_capacities[storage_name]['capacity']))
+                relative_values.append(0)
+        return relative_values
+
+    def get_total_other(self, storage_id, explicit_projects, storage_capacities, relative=False):
+        """
+        work out how much on the storage is "other" projects, i.e. ones that we have not counted already but do have in the database
+        :param storage_id: storage id to check
+        :param storage_capacities: list of total storage capacities
+        :param explicit_projects: hash of total storage accounted for through explicit project entries, keyed by storage
+        :param relative: if True, express as a fraction of the total storage capacity
+        :return: number
+        """
+        database_result = self.ProjectSizeInfoModel.objects.filter(storage_id=storage_id).aggregate(Sum('size_used_gb'))
+
+        absolute_value = database_result['size_used_gb__sum'] - explicit_projects[storage_id]
+        if not relative:
+            return absolute_value
+
+        used_capacity = float(storage_capacities[storage_id]['capacity']/1024^3) - float(storage_capacities[storage_id]['freeCapacity']/1024^3)
+        relative_value = float(absolute_value)/used_capacity
+        return relative_value
+
+    def counted_project_entries(self, project_entries, all_storages):
+        """
+        return a hash indicating the total amount of storage for indicated in the project_entries structure
+        :param project_entries:
+        :param all_storages:
+        :return: hash of storage_name -> total counted
+        """
+        rtn = {}
+        for n in range(0,len(all_storages)):
+            rtn[all_storages[n]] = 0
+
+        for entry in project_entries:
+            for n in range(0,len(all_storages)):
+                rtn[all_storages[n]] += entry['sizes'][n]
+
+        return rtn
+
+    def dedupe_project_set(self, project_id_set, limit):
+        """
+        dedupes project entries based on project_id
+        :param project_id_set: set of results as returned from django ORM .values()
+        :param limit: maximmum results to return
+        :return:
+        """
+
+        rtn = []
+        it = project_id_set.iterator()
+        while len(rtn)<limit:
+            try:
+                row = next(it)
+                if not row['project_id'] in rtn:
+                    rtn.append(row['project_id'])
+            except StopIteration:
+                break
+        return rtn
 
     def get(self, request):
         limit=15
         if 'limit' in self.request.GET:
             limit = int(self.request.GET['limit'])
+        relative=False
+        if 'absolute' in self.request.GET:
+            relative=False
 
-        all_storages = sorted(map(lambda x: x, self.ProjectSizeInfoModel.objects.values('storage_id').distinct()))
-        all_projects = self.ProjectSizeInfoModel.objects.order_by('-size_used_gb').values('project_id').distinct()[0:limit]
+        try:
+            all_storages = sorted(map(lambda x: x.items()[0][1], self.ProjectSizeInfoModel.objects.values('storage_id').distinct()))
+            storage_capacities = dict(map(lambda storage_id: (storage_id, self.get_storage_capacity(storage_id)), all_storages))
+            #so, distinct() doesn't want to work here, when we are sorting on size_used_gb, so have to dedupe ourselves
+            all_projects = self.dedupe_project_set(self.ProjectSizeInfoModel.objects.order_by('-size_used_gb').values('project_id'),limit)
 
-        # rtn = []
-        # for proj_id in all_projects:
-        #     print proj_id.items()[0][1]
-        #     rtn.append(self.entries_for_project(proj_id.items()[0][1],all_storages))
+            project_entries = map(lambda project_id: {"project_id": project_id, "sizes": self.entries_for_project(project_id,all_storages,storage_capacities,relative=relative)}, all_projects)
+            explicit_projects = self.counted_project_entries(project_entries,all_storages)
 
-        rtn = map(lambda project_entry: {"project_id": project_entry.items()[0][1], "sizes": self.entries_for_project(project_entry.items()[0][1],all_storages)}, all_projects)
-        return Response({"status":"ok",
-                         "storage_key": map(lambda entry: entry.items()[0][1],all_storages),
-                         "projects": rtn})
+            project_entries.append({
+                "project_id": "Other",
+                "sizes": map(lambda storage_id: self.get_total_other(storage_id, explicit_projects, storage_capacities, relative=relative), all_storages)
+            })
+
+            return Response({"status":"ok",
+                             "storage_key": all_storages,
+                             "projects": project_entries
+                             })
+        except HttpError as e:
+            log.error(str(e))
+            return Response({"status":"error","error":"Unable to communicate with Vidispine","detail": str(e), "server_response":e.content})
 
 
 class TotalSpaceByStorage(APIView):
@@ -381,23 +441,14 @@ class TotalSpaceByStorage(APIView):
         return Response(result)
 
 
-class StorageCapacityView(APIView):
+class StorageCapacityView(APIView, StorageCapacityMixin):
     permission_classes = (IsAdminUser, )
     renderer_classes = (JSONRenderer, XMLRenderer, YAMLRenderer, )
     authentication_classes = (SessionAuthentication, )
 
     def get(self, request, storage_id):
-        response = requests.get("{0}:{1}/API/storage/{2}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,storage_id),
-                                auth=HTTPBasicAuth(settings.VIDISPINE_USERNAME,settings.VIDISPINE_PASSWORD),
-                                headers={'Accept': 'application/json'})
-
-        if response.status_code==200:
-            returned_data = response.json()
-            fields = ['id','state','type','capacity','freeCapacity']
-            rtn = {}
-            for f in fields:
-                rtn[f] = returned_data[f]
-            return Response(rtn)
-        else:
-            log.error(response.text)
-            return Response({'status': 'error','detail': "Vidispine error"},status=500)
+        try:
+            return Response(self.get_storage_capacity(storage_id))
+        except HttpError as e:
+            log.error(str(e))
+            return Response({"status":"error","error": "vidispine returned an error", "detail":e.content},status=500)

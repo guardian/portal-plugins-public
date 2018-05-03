@@ -12,7 +12,7 @@ class App extends React.Component {
     }
 
     render(){
-        return <div>
+        return <div style={{width: "100%", height: "100%",overflow:"hidden"}}>
                 <StorageUsageCharts onProjectSelected={newProject=>this.setState({selectedProject: newProject})}/>
                 <ProjectSummaryArea projectId={this.state.selectedProject}/>
         </div>

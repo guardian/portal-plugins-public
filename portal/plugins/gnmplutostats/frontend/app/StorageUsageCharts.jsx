@@ -95,7 +95,7 @@ class StorageUsageCharts extends React.Component {
         };
         console.log(chartData);
 
-        return <div className="chart-holder">
+        return <div className="chart-holder" style={{width: "480px", height: "900px"}}>
             <Bar data={chartData}
                  options={{
                      scales: {
@@ -114,8 +114,12 @@ class StorageUsageCharts extends React.Component {
                      },
                      maintainAspectRatio: false,
                      legend: {
-                         display: false
-                     }
+                         display: true,
+                         position: "right"
+                     },
+                     barPercentage: 1.0,
+                     categoryPercentage: 1.0,
+
                  }}/>
         </div>
 

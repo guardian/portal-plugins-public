@@ -58,36 +58,15 @@ class StorageUsageCharts extends React.Component {
         }
     }
 
-    updateDatasets(){
-        const args = this.state.showAbsolute ? "?absolute=true" : "";
-
-        const futuresList = this.state.known_storages.map(entry=>axios.get("/gnmplutostats/projectsize/storage/" + entry.storageId + args));
-
-        Promise.all(futuresList).then(storageResults=>{
-            const multidimensional = storageResults.map((result, idx)=>this.dataSetForResult(result,idx));
-            console.log(multidimensional);
-            this.setState({
-                datasets: [].concat(...multidimensional)
-            });
-
-            }).catch(err=>{
-                console.log(err);
-                this.setState({error: err});
-            })
-    }
-
     componentWillMount() {
-        console.log("componentWillMount");
         this.updateGraph();
     }
 
     componentDidUpdate(oldProps,oldState){
-        console.log("componentDidUpdate", oldState, this.state);
         if(oldState.showAbsolute!==this.state.showAbsolute) this.updateGraph();
     }
 
     updateGraph(){
-        console.log("updateGraph");
         const args = this.state.showAbsolute ? "&absolute=true" : "";
         const total_entry_count=this.state.projectLimit;
 
@@ -111,7 +90,9 @@ class StorageUsageCharts extends React.Component {
                         data: proj.sizes
                     }
                 }),
-                maximumStorageValue: responses[1].data.reduce((acc,entry)=>entry.total>acc ? entry.total : acc, 0)
+                maximumStorageValue: Object.keys(responses[1].data)
+                    .map(storageName=>responses[1].data[storageName])
+                    .reduce((acc,entry)=>entry.total>acc ? entry.total : acc, 0)
             })
         }).catch(err=>{
             console.error(err);
@@ -179,11 +160,6 @@ class StorageUsageCharts extends React.Component {
     }
 
     chartClicked(reactobj,event, activeElems){
-        console.log(this);
-        console.log(reactobj);
-        console.log(event, activeElems);
-
-        console.log(this.getElementAtEvent(event));
         const elemData = this.getElementAtEvent(event)[0];
 
         const clickedName = (elemData["_view"]["datasetLabel"]);

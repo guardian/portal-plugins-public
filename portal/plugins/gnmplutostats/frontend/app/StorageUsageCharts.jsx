@@ -108,7 +108,7 @@ class StorageUsageCharts extends React.Component {
 
         const tickConfig = this.state.showAbsolute ? {
             callback: (value, index, values)=>(value/1024).toString() + "Tb",
-            max: self.state.maximumStorageValue
+            max: this.state.maximumStorageValue
         } : {
             callback: (value, index, values)=>(value *100).toString() + "%",
             max: 1.0
@@ -122,7 +122,9 @@ class StorageUsageCharts extends React.Component {
                        style={{paddingLeft: "1em"}}
                        value={this.state.showLegend}
                        onChange={evt=>this.setState({showLegend: !this.state.showLegend})}/>
-                <label htmlFor="id-show-legend">Show Legend</label>
+                <label style={{paddingRight: "1em"}} htmlFor="id-show-legend">Show Legend</label>
+                <input id="id-project-limit" style={{ width: "40px"}} type="number" value={this.state.projectLimit} onChange={evt=>this.setState({projectLimit: parseInt(evt.target.value)})}/>
+                <label style={{paddingRight: "1em"}} htmlFor="id-project-limit">Limit projects</label>
             </span>
         <div className="chart-holder" style={{width: "480px", height: "700px"}}>
             <Bar data={chartData}

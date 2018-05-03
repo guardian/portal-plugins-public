@@ -18,6 +18,7 @@ dependencies:
     - cd portal/plugins/gnmplutostats/frontend; yarn install
   cache_directories:
     - node_modules
+    - portal/plugins/gnmplutostats/frontend/node_modules
     - "/home/ubuntu/.cache/pip"
 
 checkout:
@@ -38,7 +39,7 @@ test:
     - DJANGO_SETTINGS_MODULE=portal.plugins.gnmoptin.tests.django_test_settings nosetests -v portal/plugins/gnmoptin/tests
     - DJANGO_SETTINGS_MODULE=portal.plugins.gnmplutostats.tests.django_test_settings nosetests -v portal/plugins/gnmplutostats/tests
     - cd portal/plugins/gnmdownloadablelink; npm run test
-    - cd portal/plugins/gnmplutostats; npm run test
+    - cd portal/plugins/gnmplutostats/frontend; npm run test
     - npm run test
     - npm run lint
     - npm run testcss

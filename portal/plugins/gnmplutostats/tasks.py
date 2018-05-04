@@ -88,7 +88,7 @@ def launch_project_sizing():
 
     logger.info("Gathering projects to measure")
 
-    highest_priority = ProjectScanReceipt.objects.filter(project_status="In Production",last_scan__lt=datetime.now()-timedelta(days=1)).order_by('-last_scan')
+    highest_priority = ProjectScanReceipt.objects.filter(project_status="In Production",last_scan__lt=datetime.now()-timedelta(days=1)).order_by('last_scan')
     for entry in highest_priority:
         to_trigger.append(entry)
         logger.info("{0}: {1} ({2})".format(c, entry,entry.project_status))
@@ -97,7 +97,7 @@ def launch_project_sizing():
             break
 
     if len(to_trigger)<trigger_limit:
-        next_priority = ProjectScanReceipt.objects.filter(project_status="New", last_scan__lt=datetime.now()-timedelta(days=1)).order_by('-last_scan')
+        next_priority = ProjectScanReceipt.objects.filter(project_status="New", last_scan__lt=datetime.now()-timedelta(days=1)).order_by('last_scan')
         for entry in next_priority:
             to_trigger.append(entry)
             logger.info("{0}: {1} ({2})".format(c, entry,entry.project_status))
@@ -106,7 +106,7 @@ def launch_project_sizing():
                 break
 
     if len(to_trigger)<trigger_limit:
-        everything_else = ProjectScanReceipt.objects.filter(~Q(project_status="New") & ~Q(project_status="In Production"),last_scan__lt=datetime.now()-timedelta(days=5))
+        everything_else = ProjectScanReceipt.objects.filter(~Q(project_status="New") & ~Q(project_status="In Production"),last_scan__lt=datetime.now()-timedelta(days=5)).order_by('last_scan')
         for entry in everything_else:
             to_trigger.append(entry)
             logger.info("{0}: {1} ({2})".format(c, entry,entry.project_status))

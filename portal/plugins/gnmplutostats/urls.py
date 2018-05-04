@@ -1,6 +1,6 @@
 from django.conf.urls.defaults import *
 from views import GetStatsView, GetLibraryStats, ProjectScanReceiptView, ProjectStatInfoList, TotalSpaceByStorage, StorageCapacityView
-from views import StorageDashMain, ProjectInfoGraphView,IndexView
+from views import StorageDashMain, ProjectInfoGraphView,IndexView, ProjectStatusHistory
 
 urlpatterns = patterns('portal.plugins.gnmplutostats.views',
     url(r'^$', IndexView.as_view(), name='index'),
@@ -13,5 +13,6 @@ urlpatterns = patterns('portal.plugins.gnmplutostats.views',
     url(r'^projectsize/storage/totals$', TotalSpaceByStorage.as_view(), name='projectsize_storage_totals'),
     url(r'^projectsize/project/(?P<project_id>\w{2}-\d+)$', ProjectStatInfoList.as_view(), name='projectsize_project'),
     url(r'^projectsize/project/graph$', ProjectInfoGraphView.as_view(), name='projectsize_graph'),
-    url(r'^system/storage/(?P<storage_id>\w{2}-\d+)$', StorageCapacityView.as_view(), name='system_storage_caps')
+    url(r'^project/(?P<project_id>\w{2}-\d+)/status_history$', ProjectStatusHistory.as_view(), name='projectstatus_history'),
+    url(r'^system/storage/(?P<storage_id>\w{2}-\d+)$', StorageCapacityView.as_view(), name='system_storage_caps'),
 )

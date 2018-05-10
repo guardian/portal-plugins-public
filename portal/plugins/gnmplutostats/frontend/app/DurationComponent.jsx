@@ -13,7 +13,7 @@ class DurationComponent extends React.Component {
 
         const hours = Math.floor(this.props.durationSeconds/3600);
         const mins = Math.floor((this.props.durationSeconds - (hours *3600))/60);
-        const seconds = this.props.durationSeconds - (mins*60);
+        const seconds = this.props.durationSeconds - (mins*60) - (hours *3600);
 
         if(hours>0){
             return <span className="duration">{hours} hours, {mins} minutes, {seconds} seconds</span>

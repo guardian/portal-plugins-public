@@ -158,7 +158,18 @@ class StorageUsageCharts extends React.Component {
                          position: "right"
                      },
                      tooltips: {
-                         mode: "label"
+                         mode: "label",
+                         callbacks: {
+                             label: (ttitem, data)=>{
+                                 let label = data.datasets[ttitem.datasetIndex].label || '';
+
+                                 if (label) {
+                                     label += ': ';
+                                 }
+                                 label += Math.round(ttitem.yLabel * 100) / 100;
+                                 return label;
+                             }
+                         }
                      },
                      barPercentage: 1.0,
                      categoryPercentage: 1.0,

@@ -1,6 +1,10 @@
+# -*- coding: utf-8 -*-
 import unittest2
 from django.core.management import execute_from_command_line
+from django.core.urlresolvers import reverse
 from django.conf import settings
+from mock import MagicMock, patch
+from rest_framework.test import APIClient
 import os
 
 
@@ -108,3 +112,81 @@ class TestProjectInfoGraphView(unittest2.TestCase):
 
         self.assertEqual(len(result),limit)
         self.assertTrue(self.allUnique(result))
+
+
+class TestProjectStatusHistoryView(unittest2.TestCase):
+    # @classmethod
+    # def setUpClass(cls):
+    #     if settings.DATABASES['default']['NAME']=="":
+    #         raise ValueError("tests misconfigured, need a local database path")
+    #     if os.path.exists(settings.DATABASES['default']['NAME']):
+    #         os.unlink(settings.DATABASES['default']['NAME'])
+    #
+    #     execute_from_command_line(['manage.py', 'syncdb', '--noinput'])
+    #     execute_from_command_line(['manage.py', 'migrate', '--noinput'])
+    #     execute_from_command_line(['manage.py', 'loaddata', 'sizedata1.yaml'])
+    #
+    # @classmethod
+    # def tearDownClass(cls):
+    #     pass
+
+    def test_normal(self):
+        """
+        ProjectStatusHistoryView should return a list of project statuses
+        :return:
+        """
+        from portal.plugins.gnmplutostats.project_history import ProjectHistory, ProjectHistoryChange
+        from django.contrib.auth.models import User
+        import datetime
+        import pytz
+
+        p = ProjectHistory("VX-123",load_now=False)
+        p.changes = [
+            ProjectHistoryChange("gnm_project_status","66BC6490-8FAA-445E-9D09-EA38708C1FA6","2018-01-01T00:00:00Z","fred","value1"),
+            ProjectHistoryChange("gnm_project_status","66BC6490-8FAA-445E-9D09-EA38708C1FA6","2018-01-01T01:00:00Z","fred","value2"),
+            ProjectHistoryChange("gnm_project_status","66BC6490-8FAA-445E-9D09-EA38708C1FA6","2018-01-01T02:00:00Z","fred","value3"),
+        ]
+        u = User(username="admin",is_superuser=True,is_staff=True)
+
+        with patch('portal.plugins.gnmplutostats.views.ProjectStatusHistory.ProjectHistory', return_value=p) as mock_projecthisory_constructor:
+            cli = APIClient()
+            cli.force_authenticate(u)
+            response = cli.get(reverse('projectstatus_history',kwargs={'project_id':"VX-123"}))
+            self.assertEqual(response.status_code,200)
+            mock_projecthisory_constructor.assert_called_once_with("VX-123")
+            print response.data
+            self.assertDictEqual(response.data[0],{'fieldname': u'gnm_project_status', 'uuid': u'66bc6490-8faa-445e-9d09-ea38708c1fa6', 'timestamp': datetime.datetime(2018, 1, 1, 0, 0, tzinfo=pytz.utc), 'user': u'fred', 'newvalue': u'value1'})
+            self.assertDictEqual(response.data[1],{'fieldname': u'gnm_project_status', 'uuid': u'66bc6490-8faa-445e-9d09-ea38708c1fa6', 'timestamp': datetime.datetime(2018, 1, 1, 1, 0, tzinfo=pytz.utc), 'user': u'fred', 'newvalue': u'value2'})
+            self.assertDictEqual(response.data[2],{'fieldname': u'gnm_project_status', 'uuid': u'66bc6490-8faa-445e-9d09-ea38708c1fa6', 'timestamp': datetime.datetime(2018, 1, 1, 2, 0, tzinfo=pytz.utc), 'user': u'fred', 'newvalue': u'value3'})
+            self.assertEqual(len(response.data),3)
+
+
+    def test_unicode(self):
+        """
+        ProjectStatusHistoryView should not choke on non-ascii chars
+        :return:
+        """
+        from portal.plugins.gnmplutostats.project_history import ProjectHistory, ProjectHistoryChange
+        from django.contrib.auth.models import User
+        import datetime
+        import pytz
+        p = ProjectHistory("VX-123",load_now=False)
+        p.changes = [
+            ProjectHistoryChange("gnm_project_status","66BC6490-8FAA-445E-9D09-EA38708C1FA6","2018-01-01T00:00:00Z","fred","välu€1"),
+            ProjectHistoryChange("gnm_project_status","66BC6490-8FAA-445E-9D09-EA38708C1FA6","2018-01-01T01:00:00Z","fred","value2"),
+            ProjectHistoryChange("gnm_project_status","66BC6490-8FAA-445E-9D09-EA38708C1FA6","2018-01-01T02:00:00Z","fred","value3"),
+        ]
+        u = User(username="admin",is_superuser=True,is_staff=True)
+
+        with patch('portal.plugins.gnmplutostats.views.ProjectStatusHistory.ProjectHistory', return_value=p) as mock_projecthisory_constructor:
+            cli = APIClient()
+            cli.force_authenticate(u)
+            response = cli.get(reverse('projectstatus_history',kwargs={'project_id':"VX-123"}))
+            self.assertEqual(response.status_code,200)
+            mock_projecthisory_constructor.assert_called_once_with("VX-123")
+            self.assertDictEqual(response.data[0],{'fieldname': u'gnm_project_status', 'uuid': u'66bc6490-8faa-445e-9d09-ea38708c1fa6', 'timestamp': datetime.datetime(2018, 1, 1, 0, 0, tzinfo=pytz.utc), 'user': u'fred', 'newvalue': u"välu€1"})
+            self.assertDictEqual(response.data[1],{'fieldname': u'gnm_project_status', 'uuid': u'66bc6490-8faa-445e-9d09-ea38708c1fa6', 'timestamp': datetime.datetime(2018, 1, 1, 1, 0, tzinfo=pytz.utc), 'user': u'fred', 'newvalue': u'value2'})
+            self.assertDictEqual(response.data[2],{'fieldname': u'gnm_project_status', 'uuid': u'66bc6490-8faa-445e-9d09-ea38708c1fa6', 'timestamp': datetime.datetime(2018, 1, 1, 2, 0, tzinfo=pytz.utc), 'user': u'fred', 'newvalue': u'value3'})
+            self.assertEqual(len(response.data),3)
+            print response.content
+            print response.data

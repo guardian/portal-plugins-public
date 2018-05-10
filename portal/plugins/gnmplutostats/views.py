@@ -496,12 +496,13 @@ class ProjectStatusHistory(APIView):
     from project_history import ProjectHistory
 
     def get(self, requests, project_id):
+        import traceback
         try:
             h = self.ProjectHistory(project_id)
             results = map(lambda change: self.ProjectHistoryChangeSerializer(change).data, h.changes_for_field("gnm_project_status"))
             return Response(results)
         except Exception as e:
-            return Response({"status":"error","detail":str(e)})
+            return Response({"status":"error","detail":str(e),"trace":traceback.format_exc()},status=500)
 
 
 class ProjectScanStats(APIView):

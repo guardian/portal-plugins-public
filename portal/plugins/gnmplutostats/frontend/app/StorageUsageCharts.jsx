@@ -87,7 +87,7 @@ class StorageUsageCharts extends React.Component {
                         label: proj.project_id,
                         backgroundColor: this.backgroundColourFor(idx, total_entry_count, false),
                         borderColor: 'rgba(255,99,132,1)',
-                        borderWidth: 1,
+                        borderWidth: 0,
                         hoverBackgroundColor: this.backgroundColourFor(idx, total_entry_count, true),
                         hoverBorderColor: 'rgba(255,99,132,1)',
                         data: proj.sizes
@@ -130,7 +130,7 @@ class StorageUsageCharts extends React.Component {
                 <input id="id-project-limit" style={{ width: "40px"}} type="number" value={this.state.projectLimit} onChange={evt=>this.setState({projectLimit: parseInt(evt.target.value)})}/>
                 <label style={{paddingRight: "1em"}} htmlFor="id-project-limit">Limit projects</label>
             </span>
-        <div className="chart-holder" style={{width: "480px", height: "700px"}}>
+        <div className="chart-holder" style={{height: "700px"}}>
             <Bar data={chartData}
                  options={{
                      scales: {

@@ -551,3 +551,19 @@ class ProjectScanHealth(APIView):
             return Response({"status":"ok","problem_projects":problem_projects})
         except Exception as e:
             return Response({"status": "error", "detail": str(e)}, status=500)
+
+
+class ProjectInfoView(RetrieveAPIView):
+    """
+    Returns information about the specific project
+    """
+    from models import ProjectScanReceipt
+    from serializers import ProjectScanReceiptSerializer
+
+    permission_classes = (IsAuthenticated, )
+    renderer_classes = (JSONRenderer, )
+    model = ProjectScanReceipt
+    serializer_class = ProjectScanReceiptSerializer
+
+    lookup_field = "project_id"
+    lookup_url_kwarg = "project_id"

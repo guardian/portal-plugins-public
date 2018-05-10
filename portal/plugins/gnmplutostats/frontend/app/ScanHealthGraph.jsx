@@ -65,6 +65,7 @@ class ScanHealthGraph extends React.Component {
                  options={{
                      scales: {
                          xAxes: [{
+                             position: top,
                              stacked: false,
                              gridLines: {
                                  display: false

@@ -15,14 +15,14 @@ class App extends React.Component {
 
     render(){
         return <div style={{width: "100%", height: "100%",overflow:"hidden"}}>
-                <div id="left-column" style={{float: "left", overflow: "hidden", width: "40%"}}>
-                    <div id="left-top-box">
-                        <ScanHealthGraph/>
-                    </div>
+                <div id="left-column" className="left-column">
                     <StorageUsageCharts onProjectSelected={(newProject,newStorage)=>this.setState({selectedProject: newProject, selectedStorage:newStorage})}/>
                 </div>
-            <div id="right-column" style={{float: "left", overflow: "hidden", width:"58%"}}>
+            <div id="right-column" className="right-column">
                 <ProjectSummaryArea projectId={this.state.selectedProject}/>
+            </div>
+            <div id="bottom-panel" className="full-width-bottom">
+                <ScanHealthGraph/>
             </div>
         </div>
     }

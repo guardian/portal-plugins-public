@@ -4,6 +4,7 @@ import TimestampComponent from './TimestampComponent.jsx';
 import ErrorViewComponent from './ErrorViewComponent.jsx';
 import DurationComponent from './DurationComponent.jsx';
 import StatusComponent from './StatusComponent.jsx';
+import ProjectStorageChart from './ProjectStorageChart.jsx';
 
 import axios from 'axios';
 
@@ -47,23 +48,23 @@ class ProjectSummaryArea extends React.Component {
             return <table className="project-summary-content">
                 <tbody>
                 <tr>
-                    <td>Title</td>
-                    <td>{this.state.projectInfo.project_title}</td>
+                    <td className="project-summary-header">Title</td>
+                    <td>{this.state.projectInfo.project_title} <a href={"/project/" + this.props.projectId} target="_blank" style={{marginLeft: "2em"}}>Open project >>></a></td>
                 </tr>
                 <tr>
-                    <td>Status</td>
+                    <td className="project-summary-header">Status</td>
                     <td><StatusComponent status={this.state.projectInfo.project_status} projectId={this.props.projectId}/></td>
                 </tr>
                 <tr>
-                    <td>Last scanned at</td>
+                    <td className="project-summary-header">Last scanned</td>
                     <td><TimestampComponent timestamp={this.state.projectInfo.last_scan} relative={true}/></td>
                 </tr>
                 <tr>
-                    <td>Scan took</td>
+                    <td className="project-summary-header">Scan took</td>
                     <td><DurationComponent durationSeconds={this.state.projectInfo.last_scan_duration}/></td>
                 </tr>
                 <tr>
-                    <td>Scan error?</td>
+                    <td className="project-summary-header">Scan error?</td>
                     <td><pre>{this.state.projectInfo.last_scan_error}</pre></td>
                 </tr>
                 </tbody>
@@ -75,6 +76,7 @@ class ProjectSummaryArea extends React.Component {
         return <div className="project-summary-area" style={{display: this.props.projectId ? "block" : "none"}}>
             <span className="project-summary-header">Project {this.props.projectId}</span>
             {this.mainContent()}
+            <div style={{height: "260px"}}><ProjectStorageChart projectId={this.props.projectId}/></div>
         </div>
     }
 }

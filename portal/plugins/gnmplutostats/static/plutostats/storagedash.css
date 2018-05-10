@@ -59,6 +59,10 @@ span.project-summary-header {
     margin-top: 0.5em;
 }
 
+.project-summary-header {
+    font-weight: bold;
+}
+
 .expander-link {
     margin-left: 1em;
     font-weight: lighter;

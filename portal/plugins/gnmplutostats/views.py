@@ -516,11 +516,11 @@ class ProjectScanStats(APIView):
         from queries import IN_PRODUCTION_NEED_SCAN, NEW_NEED_SCAN, OTHER_NEED_SCAN
         try:
             rtn = {
-                "total": ProjectScanReceipt.objects.count(),
                 "in_production_need_scan": IN_PRODUCTION_NEED_SCAN.count(),
                 "new_need_scan": NEW_NEED_SCAN.count(),
                 "other_need_scan": OTHER_NEED_SCAN.count()
             }
+            rtn['scanned'] = ProjectScanReceipt.objects.count() - rtn["in_production_need_scan"] - rtn["new_need_scan"] - rtn["other_need_scan"]
             return Response(rtn)
         except Exception as e:
             return Response({"status": "error", "detail": str(e)}, status=500)

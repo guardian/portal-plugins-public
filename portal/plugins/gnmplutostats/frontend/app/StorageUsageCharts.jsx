@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
-import StorageUsageBar from './StorageUsageBar.jsx';
 import {Bar, Doughnut, Pie} from 'react-chartjs-2';
 import {Chart} from 'chart.js';
 
@@ -76,6 +75,10 @@ class StorageUsageCharts extends React.Component {
         ];
 
         Promise.all(futures).then(responses=>{
+            if(responses[0].data.hasOwnProperty("status") && responses[0].data.status==="error"){
+                console.error(responses[0].data.detail);
+                return;
+            }
             this.setState({
                 known_storages: responses[0].data.storage_key,
                 visible_storages: responses[0].data.storage_key,
@@ -115,6 +118,7 @@ class StorageUsageCharts extends React.Component {
         };
 
         return <div>
+            <h3>Storage Capacity</h3>
             <span className="chart-controls">
                 <input id="id-show-absolute" type="checkbox" value={this.state.showAbsolute} onChange={evt=>this.setState({showAbsolute: !this.state.showAbsolute})}/>
                 <label style={{paddingRight: "1em"}} htmlFor="id-show-absolute">Absolute Values</label>
@@ -137,7 +141,7 @@ class StorageUsageCharts extends React.Component {
                              }
                          }],
                          yAxes: [{
-                             display: true, //this.state.showAbsolute,
+                             display: true,
                              stacked:true,
                              gridLines: {
                                  display: false

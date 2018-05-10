@@ -503,3 +503,51 @@ class ProjectStatusHistory(APIView):
         except Exception as e:
             return Response({"status":"error","detail":str(e)})
 
+
+class ProjectScanStats(APIView):
+    """
+    Returns the amount of projects currently needing scan
+    """
+    permission_classes = (IsAuthenticated, )
+    renderer_classes = (JSONRenderer, )
+
+    def get(self, request):
+        from models import ProjectScanReceipt
+        from queries import IN_PRODUCTION_NEED_SCAN, NEW_NEED_SCAN, OTHER_NEED_SCAN
+        try:
+            rtn = {
+                "total": ProjectScanReceipt.objects.count(),
+                "in_production_need_scan": IN_PRODUCTION_NEED_SCAN.count(),
+                "new_need_scan": NEW_NEED_SCAN.count(),
+                "other_need_scan": OTHER_NEED_SCAN.count()
+            }
+            return Response(rtn)
+        except Exception as e:
+            return Response({"status": "error", "detail": str(e)}, status=500)
+
+
+class ProjectScanHealth(APIView):
+    """
+    Returns any projects that should have been scanned but have no scan data
+    """
+    permission_classes = (IsAuthenticated, )
+    renderer_classes = (JSONRenderer, )
+
+    def get(self, request):
+        from models import ProjectScanReceipt, ProjectSizeInfoModel
+        from queries import IN_PRODUCTION_DID_SCAN, NEW_DID_SCAN, OTHER_DID_SCAN
+        problem_projects = []
+
+        try:
+            for entry in IN_PRODUCTION_DID_SCAN:
+                if ProjectSizeInfoModel.objects.filter(project_id=entry.project_id).count()==0:
+                    problem_projects.append(entry.project_id)
+            for entry in NEW_DID_SCAN:
+                if ProjectSizeInfoModel.objects.filter(project_id=entry.project_id).count()==0:
+                    problem_projects.append(entry.project_id)
+            for entry in OTHER_DID_SCAN:
+                if ProjectSizeInfoModel.objects.filter(project_id=entry.project_id).count()==0:
+                    problem_projects.append(entry.project_id)
+            return Response({"status":"ok","problem_projects":problem_projects})
+        except Exception as e:
+            return Response({"status": "error", "detail": str(e)}, status=500)

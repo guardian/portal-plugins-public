@@ -77,10 +77,14 @@ def launch_project_sizing():
     The calculate_project_size task is queued on the queue given by GNMPLUTOSTATS_PROJECT_SCAN_QUEUE (default 'celery')
     :return:
     """
-    from models import ProjectScanReceipt
+    from queries import IN_PRODUCTION_NEED_SCAN, NEW_NEED_SCAN, OTHER_NEED_SCAN
     if not getattr(settings,"GNMPLUTOSTATS_PROJECT_SCAN_ENABLED",False):
         logger.error("GNMPLUTOSTATS_PROJECT_SCAN_ENABLED is false, not going to trigger launching")
         return "GNMPLUTOSTATS_PROJECT_SCAN_ENABLED is false, not going to trigger launching"
+
+    prioritise_old = getattr(settings,"GNMPLUTOSTATS_PRIORITISE_OLD",False)
+    if prioritise_old:
+        logger.warning("GNMPLUTOSTATS_PRIORITISE_OLD is set, will only focus on old projects")
 
     trigger_limit = int(getattr(settings,"GNMPLUTOSTATS_PROJECT_SCAN_LIMIT",10))
     to_trigger = []
@@ -88,16 +92,17 @@ def launch_project_sizing():
 
     logger.info("Gathering projects to measure")
 
-    highest_priority = ProjectScanReceipt.objects.filter(project_status="In Production",last_scan__lt=datetime.now()-timedelta(days=1)).order_by('last_scan')
-    for entry in highest_priority:
-        to_trigger.append(entry)
-        logger.info("{0}: {1} ({2})".format(c, entry,entry.project_status))
-        c+=1
-        if c>=trigger_limit:
-            break
+    if not prioritise_old:
+        highest_priority = IN_PRODUCTION_NEED_SCAN.order_by('last_scan')
+        for entry in highest_priority:
+            to_trigger.append(entry)
+            logger.info("{0}: {1} ({2})".format(c, entry,entry.project_status))
+            c+=1
+            if c>=trigger_limit:
+                break
 
-    if len(to_trigger)<trigger_limit:
-        next_priority = ProjectScanReceipt.objects.filter(project_status="New", last_scan__lt=datetime.now()-timedelta(days=1)).order_by('last_scan')
+    if not prioritise_old and len(to_trigger)<trigger_limit:
+        next_priority = NEW_NEED_SCAN.order_by('last_scan')
         for entry in next_priority:
             to_trigger.append(entry)
             logger.info("{0}: {1} ({2})".format(c, entry,entry.project_status))
@@ -106,7 +111,7 @@ def launch_project_sizing():
                 break
 
     if len(to_trigger)<trigger_limit:
-        everything_else = ProjectScanReceipt.objects.filter(~Q(project_status="New") & ~Q(project_status="In Production"),last_scan__lt=datetime.now()-timedelta(days=5)).order_by('last_scan')
+        everything_else = OTHER_NEED_SCAN.order_by('last_scan')
         for entry in everything_else:
             to_trigger.append(entry)
             logger.info("{0}: {1} ({2})".format(c, entry,entry.project_status))
@@ -116,6 +121,8 @@ def launch_project_sizing():
 
     logger.info("Projects to scan: ".format(to_trigger))
     if len(to_trigger)==0:
+        if prioritise_old:
+            logger.error("No projects to scan and GNMPLUTOSTATS_PRIORITISE_OLD is set.  You should disable this now to pick up new projects")
         logger.info("No projects need to be scanned right now")
 
     n=0

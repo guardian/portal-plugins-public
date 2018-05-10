@@ -1,5 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import TimestampComponent from './TimestampComponent.jsx';
+import ErrorViewComponent from './ErrorViewComponent.jsx';
+import DurationComponent from './DurationComponent.jsx';
+import StatusComponent from './StatusComponent.jsx';
+
 import axios from 'axios';
 
 class ProjectSummaryArea extends React.Component {
@@ -35,7 +40,7 @@ class ProjectSummaryArea extends React.Component {
         if(this.state.loading){
             return <span>loading...</span>
         } else if(this.state.error) {
-            return <span>Something went wrong, consult the browser console</span>
+            return <ErrorViewComponent error={this.state.error}/>
         } else if(!this.state.projectInfo || this.state.projectInfo==={}){
             return <span/>
         } else {
@@ -47,19 +52,19 @@ class ProjectSummaryArea extends React.Component {
                 </tr>
                 <tr>
                     <td>Status</td>
-                    <td>{this.state.projectInfo.project_status}</td>
+                    <td><StatusComponent status={this.state.projectInfo.project_status} projectId={this.props.projectId}/></td>
                 </tr>
                 <tr>
                     <td>Last scanned at</td>
-                    <td>{this.state.projectInfo.last_scan}</td>
+                    <td><TimestampComponent timestamp={this.state.projectInfo.last_scan} relative={true}/></td>
                 </tr>
                 <tr>
                     <td>Scan took</td>
-                    <td>{this.state.projectInfo.last_scan_duration}</td>
+                    <td><DurationComponent durationSeconds={this.state.projectInfo.last_scan_duration}/></td>
                 </tr>
                 <tr>
                     <td>Scan error?</td>
-                    <td>{this.state.projectInfo.last_scan_error}</td>
+                    <td><pre>{this.state.projectInfo.last_scan_error}</pre></td>
                 </tr>
                 </tbody>
             </table>
@@ -67,7 +72,7 @@ class ProjectSummaryArea extends React.Component {
     }
 
     render(){
-        return <div className="project-summary-area">
+        return <div className="project-summary-area" style={{display: this.props.projectId ? "block" : "none"}}>
             <span className="project-summary-header">Project {this.props.projectId}</span>
             {this.mainContent()}
         </div>

@@ -18,7 +18,7 @@ describe("StorageUsageCharts", ()=>{
             const storageRequest = moxios.requests.at(1);
 
             try {
-                expect(graphRequest.url).toEqual("/gnmplutostats/projectsize/project/graph?limit=10");
+                expect(graphRequest.url).toEqual("/gnmplutostats/projectsize/project/graph?limit=30");
                 expect(storageRequest.url).toEqual("/gnmplutostats/projectsize/storage/totals");
             } catch(err){
                 done.fail(err);

@@ -41,3 +41,25 @@ span.project-summary-header {
     width: 100%;
     height: 240px;
 }
+
+.inline-icon {
+    margin-right: 0.2em;
+}
+
+.user-holder {
+    margin-left: 0.5em;
+    margin-right: 0.5em;
+}
+
+.project-history-list-entry {
+    margin-left: 1.5em;
+}
+
+.project-history-list {
+    margin-top: 0.5em;
+}
+
+.expander-link {
+    margin-left: 1em;
+    font-weight: lighter;
+}

@@ -31,12 +31,15 @@ class StorageUsageCharts extends React.Component {
             datasets: [],
             showAbsolute: false,
             showLegend: false,
-            projectLimit: 10,
+            projectLimit: 30,
             maximumStorageValue: 0
         }
     }
 
-    backgroundColourFor(idx,total,hover){
+    backgroundColourFor(idx,total,hover,name){
+        if(name==="Uncounted") return "rgb(200,200,200)";
+        if(name==="Other") return "rgb(100,100,100)";
+
         const hue = (360.0/total)*idx;
         const sat = hover ? "20%": "50%";
         const light = "50%";
@@ -48,10 +51,10 @@ class StorageUsageCharts extends React.Component {
         return {
             label: result.data.map(entry=>entry.project_id),
             stack: result.data[0].storage_id,
-            backgroundColor: this.backgroundColourFor(idx, total_entry_count, false),
+            backgroundColor: this.backgroundColourFor(idx, total_entry_count, false, entry.project_id),
             borderColor: 'rgba(255,99,132,1)',
             borderWidth: 1,
-            hoverBackgroundColor: this.backgroundColourFor(idx, total_entry_count, true),
+            hoverBackgroundColor: this.backgroundColourFor(idx, total_entry_count, true, entry.project_id),
             hoverBorderColor: 'rgba(255,99,132,1)',
             data: result.data.map((entry, idx) => entry.size_used_gb)
         }
@@ -85,10 +88,10 @@ class StorageUsageCharts extends React.Component {
                 datasets: responses[0].data.projects.map((proj,idx)=>{
                     return {
                         label: proj.project_id,
-                        backgroundColor: this.backgroundColourFor(idx, total_entry_count, false),
+                        backgroundColor: this.backgroundColourFor(idx, total_entry_count, false, proj.project_id),
                         borderColor: 'rgba(255,99,132,1)',
                         borderWidth: 0,
-                        hoverBackgroundColor: this.backgroundColourFor(idx, total_entry_count, true),
+                        hoverBackgroundColor: this.backgroundColourFor(idx, total_entry_count, proj.project_id),
                         hoverBorderColor: 'rgba(255,99,132,1)',
                         data: proj.sizes
                     }

@@ -46,8 +46,8 @@ class StatusComponent extends React.Component {
 
     expander(){
         return this.state.expanded ?
-            <a href="#" className="expander-link" onClick={()=>this.setState({expanded:false})}>hide history</a> :
-            <a href="#" className="expander-link" onClick={this.openExpander}>show history</a>
+            <a className="expander-link control-link" onClick={()=>this.setState({expanded:false})}>hide history</a> :
+            <a className="expander-link control-link" onClick={this.openExpander}>show history</a>
     }
 
     render(){

@@ -67,3 +67,7 @@ span.project-summary-header {
     margin-left: 1em;
     font-weight: lighter;
 }
+
+.control-link {
+    cursor: pointer;
+}

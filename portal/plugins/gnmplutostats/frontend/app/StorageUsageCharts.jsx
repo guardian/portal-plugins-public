@@ -31,6 +31,7 @@ class StorageUsageCharts extends React.Component {
             datasets: [],
             showAbsolute: false,
             showLegend: false,
+            zoomed: false,
             projectLimit: 30,
             maximumStorageValue: 0
         }
@@ -44,20 +45,6 @@ class StorageUsageCharts extends React.Component {
         const sat = hover ? "20%": "50%";
         const light = "50%";
         return "hsl("+hue+","+sat+","+light+")";
-    }
-
-    dataSetForResult(result,idx){
-        const total_entry_count = result.data.length;
-        return {
-            label: result.data.map(entry=>entry.project_id),
-            stack: result.data[0].storage_id,
-            backgroundColor: this.backgroundColourFor(idx, total_entry_count, false, entry.project_id),
-            borderColor: 'rgba(255,99,132,1)',
-            borderWidth: 1,
-            hoverBackgroundColor: this.backgroundColourFor(idx, total_entry_count, true, entry.project_id),
-            hoverBorderColor: 'rgba(255,99,132,1)',
-            data: result.data.map((entry, idx) => entry.size_used_gb)
-        }
     }
 
     componentWillMount() {
@@ -106,6 +93,23 @@ class StorageUsageCharts extends React.Component {
         })
     }
 
+    /**
+     * returns the total amount of storage that has been broken down for us.
+     */
+    total_labelled_absolute(){
+        return this.state.datasets
+            .filter(entry=>entry.label!=="Uncounted" && entry.label!=="Other")
+            .reduce((acc,entry)=>acc+Math.max(...entry.data), 0)
+    }
+
+    total_labelled_relative(){
+        return this.total_labelled_absolute()/this.state.maximumStorageValue;
+    }
+
+    zoomControl(){
+        return this.state.zoomed ? <a className="control-link" onClick={()=>this.setState({zoomed: false})}>zoom out</a> : <a className="control-link" onClick={()=>this.setState({zoomed: true})}>zoom in</a>
+    }
+
     render(){
         const chartData = {
             labels: this.state.known_storages,
@@ -114,10 +118,10 @@ class StorageUsageCharts extends React.Component {
 
         const tickConfig = this.state.showAbsolute ? {
             callback: (value, index, values)=>(value/1024).toString() + "Tb",
-            max: this.state.maximumStorageValue
+            max: this.state.zoomed ? this.total_labelled_absolute() : this.state.maximumStorageValue
         } : {
             callback: (value, index, values)=>(value *100).toString() + "%",
-            max: 1.0
+            max: this.state.zoomed ? this.total_labelled_absolute() : 1.0
         };
 
         return <div>
@@ -132,6 +136,7 @@ class StorageUsageCharts extends React.Component {
                 <label style={{paddingRight: "1em"}} htmlFor="id-show-legend">Show Legend</label>
                 <input id="id-project-limit" style={{ width: "40px"}} type="number" value={this.state.projectLimit} onChange={evt=>this.setState({projectLimit: parseInt(evt.target.value)})}/>
                 <label style={{paddingRight: "1em"}} htmlFor="id-project-limit">Limit projects</label>
+                {this.zoomControl()}
             </span>
         <div className="chart-holder" style={{height: "700px"}}>
             <Bar data={chartData}
@@ -169,7 +174,8 @@ class StorageUsageCharts extends React.Component {
                                  label += Math.round(ttitem.yLabel * 100) / 100;
                                  return label;
                              }
-                         }
+                         },
+                         enabled: false
                      },
                      barPercentage: 1.0,
                      categoryPercentage: 1.0,

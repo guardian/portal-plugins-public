@@ -1,5 +1,15 @@
 {% load i18n staticfiles %}
 <li>
-    <img src="{% static 'plutostats/stats_icon.png' %}" class="iicon">
-    <a href="{% url gnmplutostats:index %}">PLUTO Object Statistics</a>
+    <img src="{% static 'plutostats/stats_icon.png' %}" class="iicon" style="background: none">
+    PLUTO Object Statistics
+    <ul style="padding-left: 1.6em">
+        <li>
+            <img src="{% static 'plutostats/stats_icon.png' %}" class="iicon" style="background: none">
+            <a href="{% url gnmplutostats:index %}">Projects &amp; Commissions</a>
+        </li>
+        <li>
+            <img src="{% static 'plutostats/junk_icon.png' %}" class="iicon" style="background: none">
+            <a href="{% url gnmplutostats:plutostats_storage_dash %}">Storage Usage</a>
+        </li>
+    </ul>
 </li>

@@ -18,13 +18,18 @@ class ProjectSummaryArea extends React.Component {
 
         this.state = {
             loading: false,
+            refreshing: false,
             error: null,
             projectInfo: {}
-        }
+        };
+
+        this.refreshProject = this.refreshProject.bind(this);
     }
 
     componentDidUpdate(oldProps,oldState){
-        if(oldProps.projectId!==this.props.projectId) this.reloadData();
+        if(oldProps.projectId!==this.props.projectId) {
+            this.setState({timerId: null, refreshing: false}, ()=>this.reloadData());
+        }
     }
 
     reloadData(){
@@ -33,6 +38,28 @@ class ProjectSummaryArea extends React.Component {
                 this.setState({loading: false, projectInfo: response.data, error: null})
             }).catch(err=>{
                 this.setState({loading: false, error: err});
+            })
+        })
+    }
+
+    getCookie(name){
+        const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        if (match) return match[2]; //array contents - matched string, first group, second group
+    }
+
+    refreshProject(){
+        this.setState({refreshing: true}, ()=>{
+            axios.put("/gnmplutostats/project/" + this.props.projectId + "/update", {},{
+                headers: {'X-CSRFToken': this.getCookie('csrftoken')}
+            }).then(response=>{
+                this.setState({
+                    refreshing: false,
+                    error:null,
+                    timerId: window.setTimeout(()=>{this.reloadData()},10000)
+                }, ()=>this.reloadData())
+            }).catch(error=> {
+                console.error(error);
+                this.setState({refreshing: false, error:error})
             })
         })
     }
@@ -49,7 +76,13 @@ class ProjectSummaryArea extends React.Component {
                 <tbody>
                 <tr>
                     <td className="project-summary-header">Title</td>
-                    <td>{this.state.projectInfo.project_title} <a href={"/project/" + this.props.projectId} target="_blank" style={{marginLeft: "2em"}}>Open project >>></a></td>
+                    <td>{this.state.projectInfo.project_title} <a href={"/project/" + this.props.projectId} target="_blank" style={{marginLeft: "2em"}}>Open project >>></a>
+                        <button style={{float: "right"}}
+                                disabled={this.state.refreshing}
+                                onClick={this.refreshProject}
+                                className={this.state.refreshing ? "blue-button" : "blue-button disabled"}
+                        >Refresh</button>
+                    </td>
                 </tr>
                 <tr>
                     <td className="project-summary-header">Status</td>

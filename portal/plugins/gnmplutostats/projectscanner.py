@@ -48,11 +48,11 @@ class ProjectInfo(object):
         from models import ProjectScanReceipt
 
         (instance, created) = ProjectScanReceipt.objects.get_or_create(project_id=self.name)
+        instance.project_status = self.status
+        instance.project_title = self.title
         if created:
-            instance.project_status = self.status
-            instance.project_title = self.title
             instance.last_scan = initial_time
-            instance.save()
+        instance.save()
 
 
 class ProjectScanner(object):
@@ -67,19 +67,13 @@ class ProjectScanner(object):
         for node in xmldoc.findall("{0}collection".format(self.xmlns)):
             yield ProjectInfo(node)
 
-    def scan_next_page(self, start_at,limit):
+    def scan_next_page(self, start_at,limit, searchdoc):
         """
         scans the next page of results, yields ProjectInfo objects as a generator for each piece of data found
         :param start_at:
         :param limit:
         :return:
         """
-        searchdoc = """<ItemSearchDocument xmlns="http://xml.vidispine.com/schema/vidispine">
-            <field>
-                <name>gnm_type</name>
-                <value>project</value>
-            </field>
-        </ItemSearchDocument>"""
         logger.info("start_at: {0}, limit: {1}".format(start_at, limit))
         response = requests.put("{url}:{port}/API/collection;first={start};number={limit}?content=metadata&field=gnm_project_status".format(
             url=settings.VIDISPINE_URL,
@@ -102,12 +96,39 @@ class ProjectScanner(object):
         scans for all projects in the system, yields ProjectInfo objects as a generator
         :return:
         """
+        searchdoc = """<ItemSearchDocument xmlns="http://xml.vidispine.com/schema/vidispine">
+            <field>
+                <name>gnm_type</name>
+                <value>project</value>
+            </field>
+        </ItemSearchDocument>"""
         n=1
         while True:
             previous_total=n
-            for entry in self.scan_next_page(n, page_size):
+            for entry in self.scan_next_page(n, page_size, searchdoc):
                 n+=1
                 yield entry
-            logger.info("{0};{1}".format(n, previous_total))
             if n==previous_total:
                 break
+
+    def scan_specific(self, project_id):
+        """
+        update the specific project id provided, returns a single ProjectInfo object or None if it did not exist
+        :param project_id:
+        :return:
+        """
+        searchdoc = """<ItemSearchDocument xmlns="http://xml.vidispine.com/schema/vidispine">
+            <field>
+                <name>gnm_type</name>
+                <value>project</value>
+            </field>
+            <field>
+                <name>collectionId</name>
+                <value>{0}</value>
+            </field>
+        </ItemSearchDocument>""".format(project_id)
+
+        for entry in self.scan_next_page(1,10,searchdoc):
+            return entry
+
+        return None

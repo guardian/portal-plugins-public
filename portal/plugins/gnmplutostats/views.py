@@ -7,12 +7,6 @@ framework code refer to the Django developers documentation.
 
 """
 import logging
-
-import json
-import requests
-from requests.auth import HTTPBasicAuth
-from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from django.views.generic import TemplateView
 from rest_framework.views import APIView
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
@@ -24,6 +18,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from vsmixin import VSMixin, StorageCapacityMixin, HttpError
 from django.db.models import Count,Avg,Sum
+from datetime import datetime
 
 log = logging.getLogger(__name__)
 
@@ -568,3 +563,29 @@ class ProjectInfoView(RetrieveAPIView):
 
     lookup_field = "project_id"
     lookup_url_kwarg = "project_id"
+
+
+class ProjectUpdateReceiptView(APIView):
+    """
+    Tells us to refresh the state of a given project
+    """
+    permission_classes = (IsAuthenticated, )
+    renderer_classes = (JSONRenderer, )
+
+    def put(self, request, project_id):
+        from projectscanner import ProjectScanner
+        from tasks import calculate_project_size
+        from django.conf import settings
+        import traceback
+
+        s = ProjectScanner()
+        result = s.scan_specific(project_id)
+        if result is None:
+            return Response({"status": "error","detail": "Project not found","project_id": project_id}, status=404)
+
+        try:
+            result.save_receipt(datetime.now())
+            async_task = calculate_project_size.apply_async(kwargs={'project_id': project_id},queue=getattr(settings,"GNMPLUTOSTATS_PROJECT_SCAN_QUEUE","celery"))
+            return Response({"status":"ok","detail":"Receipt updated","project_id": project_id,"task_id": async_task.id}, status=200)
+        except Exception as e:
+            return Response({"status": "error","detail": str(e),"trace": traceback.format_exc()}, status=500)

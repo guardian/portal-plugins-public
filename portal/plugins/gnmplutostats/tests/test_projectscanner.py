@@ -58,11 +58,18 @@ class TestProjectScanner(unittest2.TestCase):
         with open(os.path.join(os.path.dirname(__file__), "data/sample_project_list.xml"),"r") as f:
             project_size_content = f.read()
 
+        searchdoc = """<ItemSearchDocument xmlns="http://xml.vidispine.com/schema/vidispine">
+            <field>
+                <name>gnm_type</name>
+                <value>project</value>
+            </field>
+        </ItemSearchDocument>"""
+
         with patch('requests.put', return_value=self.MockResponse(200,project_size_content)) as mock_put:
             from portal.plugins.gnmplutostats.projectscanner import ProjectScanner
 
             s = ProjectScanner()
-            results = map(lambda x: x, s.scan_next_page(1,3))
+            results = map(lambda x: x, s.scan_next_page(1,3,searchdoc))
             self.assertEqual(len(results),3)
 
             self.assertEqual(results[0].title,"Monbiot Meets (series circa 2008)")
@@ -86,10 +93,17 @@ class TestProjectScanner(unittest2.TestCase):
         scan_next_page should raise an HTTPException if it gets a non-200 response
         :return:
         """
+        searchdoc = """<ItemSearchDocument xmlns="http://xml.vidispine.com/schema/vidispine">
+            <field>
+                <name>gnm_type</name>
+                <value>project</value>
+            </field>
+        </ItemSearchDocument>"""
+
         with patch('requests.put', return_value=self.MockResponse(503,"")) as mock_put:
             from portal.plugins.gnmplutostats.projectscanner import ProjectScanner
 
             with self.assertRaises(ProjectScanner.HttpError) as raise_excep:
                 s = ProjectScanner()
-                results = map(lambda x: x, s.scan_next_page(1,3))
+                results = map(lambda x: x, s.scan_next_page(1,3,searchdoc))
             self.assertEqual(raise_excep.exception.status_code,503)

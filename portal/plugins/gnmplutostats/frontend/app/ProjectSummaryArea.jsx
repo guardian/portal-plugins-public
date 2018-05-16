@@ -101,7 +101,7 @@ class ProjectSummaryArea extends React.Component {
                     <td><pre>{this.state.projectInfo.last_scan_error}</pre></td>
                 </tr>
                 <tr>
-                    <td><a href={"/gnm_archiver/troubleshooter?project_id="+this.props.projectId} target="_blank">Open archive troubleshooter</a></td>
+                    <td><a href={"/gnm_archiver/troubleshooter?project="+this.props.projectId} target="_blank">Open archive troubleshooter</a></td>
                 </tr>
                 </tbody>
             </table>

@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<MetadataChangeSetDocument xmlns="http://xml.vidispine.com/schema/vidispine">
+    <changeSet>
+        <id>KP-10946787</id>
+        <metadata>
+            <revision></revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="4310419e-12e4-4e16-b153-278472d8eb28" user="system" timestamp="2016-08-09T14:49:36.698+01:00" change="KP-10946787">
+                    <name>title</name>
+                    <value uuid="855e1e83-fc48-4720-8f3f-033b2b63af4d" user="system" timestamp="2016-08-09T14:49:36.698+01:00" change="KP-10946787">On The Road</value>
+                </field>
+                <field uuid="9b159949-ab6c-4478-960d-7c89a9e3a53b" user="system" timestamp="2016-08-09T14:49:36.698+01:00" change="KP-10946787">
+                    <name>collectionId</name>
+                    <value uuid="159f409a-2584-48b0-8ca5-538e5a8e5b35" user="system" timestamp="2016-08-09T14:49:36.698+01:00" change="KP-10946787">KP-21048</value>
+                </field>
+                <field uuid="108525fe-f100-426d-9732-a6171a8dcc91" user="system" timestamp="2016-08-09T14:49:36.698+01:00" change="KP-10946787">
+                    <name>created</name>
+                    <value uuid="3edd7840-aea1-4344-a149-236ca3dd295c" user="system" timestamp="2016-08-09T14:49:36.698+01:00" change="KP-10946787">2016-08-09T13:49:36.523Z</value>
+                </field>
+                <field uuid="a0bfe2b5-66c4-4b93-ac7f-a06334c7af4e" user="system" timestamp="2016-08-09T14:49:36.698+01:00" change="KP-10946787">
+                    <name>user</name>
+                    <value uuid="27196e97-31ee-4548-95ff-92f30ee119b8" user="system" timestamp="2016-08-09T14:49:36.698+01:00" change="KP-10946787">charlie_phillips</value>
+                </field>
+            </timespan>
+        </metadata>
+    </changeSet>
+    <changeSet>
+        <id>KP-10946788</id>
+        <metadata>
+            <revision></revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="6ca8b342-52e1-4e2f-adcc-6e14e419ed97" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788">
+                    <name>gnm_project_standfirst</name>
+                    <value uuid="584b1bd1-a3cb-4990-9166-55fea2e5ef4f" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788"></value>
+                </field>
+                <field uuid="38f0d1c6-5965-4d07-96a7-5f39368dd9d0" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788">
+                    <name>gnm_type</name>
+                    <value uuid="11976149-51c4-4afa-85e6-f970192551ad" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788">Project</value>
+                </field>
+                <field uuid="e321dc5b-57b7-47d2-bb44-692d3b3f627c" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788">
+                    <name>gnm_storage_rule_deletable</name>
+                    <value uuid="d4911676-2cb6-4bda-b155-bc687446d5ba" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788"></value>
+                </field>
+                <field uuid="89a50ef8-8e82-4e7c-af2c-ddca66671fb4" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788">
+                    <name>gnm_project_trail</name>
+                    <value uuid="4b0f17f0-4980-48f6-844e-08e979142d05" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788">On The Road</value>
+                </field>
+                <field uuid="422abce7-f600-4be8-943f-63e5c491decd" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788">
+                    <name>gnm_project_type</name>
+                    <value uuid="0affa1f0-1ed7-4f1a-8f78-a89e0a8ac6f6" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788">330b4d84-ef24-41e2-b093-0d15829afa64</value>
+                </field>
+                <field uuid="1cf2c5d6-fbf5-42ff-8101-b02787b5c218" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788">
+                    <name>gnm_project_linktext</name>
+                    <value uuid="00546894-30e3-40d1-b2f8-1adad8320142" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788">On The Road</value>
+                </field>
+                <field uuid="0b5dd42a-807c-411e-9a3f-44447f30e740" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788">
+                    <name>gnm_project_status</name>
+                    <value uuid="e3a5b860-e39d-476c-87a6-f7ef46ea82c1" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788">New</value>
+                </field>
+                <field uuid="24b34fe2-99f0-4b62-8282-c9332bddfd5b" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788">
+                    <name>gnm_project_ukonly</name>
+                    <value uuid="2b075edf-444b-4f05-bf21-10e5bc252452" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788"></value>
+                </field>
+                <field uuid="cab774ad-0957-4336-be21-a1b999dbdd9c" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788">
+                    <name>gnm_storage_rule_deep_archive</name>
+                    <value uuid="0a6db464-cfb0-4f22-8d3c-efb531bac069" user="charlie_phillips" timestamp="2016-08-09T14:49:38.672+01:00" change="KP-10946788">storage_rule_deep_archive</value>
+                </field>
+            </timespan>
+        </metadata>
+    </changeSet>
+    <changeSet>
+        <id>KP-10946789</id>
+        <metadata>
+            <revision></revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="4dd75bab-a923-4220-87b6-c6756f7bd715" user="charlie_phillips" timestamp="2016-08-09T14:49:42.851+01:00" change="KP-10946789">
+                    <name>gnm_project_project_file_status</name>
+                    <value uuid="9edfe193-e091-4db2-90ac-5fe34204be4f" user="charlie_phillips" timestamp="2016-08-09T14:49:42.851+01:00" change="KP-10946789">Creation queued</value>
+                </field>
+            </timespan>
+        </metadata>
+    </changeSet>
+    <changeSet>
+        <id>KP-10946790</id>
+        <metadata>
+            <revision>KP-10946789</revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="4dd75bab-a923-4220-87b6-c6756f7bd715" user="charlie_phillips" timestamp="2016-08-09T14:49:44.574+01:00" change="KP-10946790">
+                    <name>gnm_project_project_file_status</name>
+                    <value uuid="1ea7be36-4928-41f1-84e3-e2e657c327e4" user="charlie_phillips" timestamp="2016-08-09T14:49:44.574+01:00" change="KP-10946790">Creating from template</value>
+                </field>
+            </timespan>
+        </metadata>
+    </changeSet>
+    <changeSet>
+        <id>KP-10946799</id>
+        <metadata>
+            <revision>KP-10946790</revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="4dd75bab-a923-4220-87b6-c6756f7bd715" user="charlie_phillips" timestamp="2016-08-09T14:50:09.280+01:00" change="KP-10946799">
+                    <name>gnm_project_project_file_status</name>
+                    <value uuid="d103b800-8f9d-4039-9422-bfc69ec274b1" user="charlie_phillips" timestamp="2016-08-09T14:50:09.280+01:00" change="KP-10946799">Importing to Vidispine</value>
+                </field>
+                <field uuid="86195c88-c0cb-4ba8-b9b5-9002af83719e" user="charlie_phillips" timestamp="2016-08-09T14:50:09.280+01:00" change="KP-10946799">
+                    <name>gnm_project_premiere_uuid</name>
+                    <value uuid="6de484d3-3b47-49ed-bbfa-a7d955e2add2" user="charlie_phillips" timestamp="2016-08-09T14:50:09.280+01:00" change="KP-10946799">9885ea23-8751-430c-9dca-d0130372847a</value>
+                </field>
+                <field uuid="8aa2bbf6-c6d6-417a-b5c5-3a92d1554b23" user="charlie_phillips" timestamp="2016-08-09T14:50:09.280+01:00" change="KP-10946799">
+                    <name>gnm_project_project_file_item</name>
+                    <value uuid="9299f606-d92a-4711-be7d-a184d638c1a5" user="charlie_phillips" timestamp="2016-08-09T14:50:09.280+01:00" change="KP-10946799">KP-2053076</value>
+                </field>
+                <field uuid="25881753-8be3-4df9-86d4-6a55cdd105a5" user="charlie_phillips" timestamp="2016-08-09T14:50:09.280+01:00" change="KP-10946799">
+                    <name>gnm_project_prelude_file_item</name>
+                    <value uuid="87aeacde-9de2-44d3-b399-8aff4ee4262c" user="charlie_phillips" timestamp="2016-08-09T14:50:09.280+01:00" change="KP-10946799">KP-2053077</value>
+                </field>
+            </timespan>
+        </metadata>
+    </changeSet>
+    <changeSet>
+        <id>KP-10946800</id>
+        <metadata>
+            <revision>KP-10946799</revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="4dd75bab-a923-4220-87b6-c6756f7bd715" user="admin" timestamp="2016-08-09T14:50:31.693+01:00" change="KP-10946800">
+                    <name>gnm_project_project_file_status</name>
+                    <value uuid="950ec087-8400-468c-9379-bcae3125abeb" user="admin" timestamp="2016-08-09T14:50:31.693+01:00" change="KP-10946800">Configuring Project</value>
+                </field>
+            </timespan>
+        </metadata>
+    </changeSet>
+    <changeSet>
+        <id>KP-10946801</id>
+        <metadata>
+            <revision>KP-10946800</revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="4dd75bab-a923-4220-87b6-c6756f7bd715" user="admin" timestamp="2016-08-09T14:50:35.658+01:00" change="KP-10946801">
+                    <name>gnm_project_project_file_status</name>
+                    <value uuid="2540c312-02d8-4032-99e9-21a5fcc5993d" user="admin" timestamp="2016-08-09T14:50:35.658+01:00" change="KP-10946801">Configuring Project</value>
+                </field>
+            </timespan>
+        </metadata>
+    </changeSet>
+    <changeSet>
+        <id>KP-10946802</id>
+        <metadata>
+            <revision>KP-10946801</revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="4dd75bab-a923-4220-87b6-c6756f7bd715" user="admin" timestamp="2016-08-09T14:50:39.151+01:00" change="KP-10946802">
+                    <name>gnm_project_project_file_status</name>
+                    <value uuid="3c2456b2-b311-4b25-a7fe-b3aba3be3e54" user="admin" timestamp="2016-08-09T14:50:39.151+01:00" change="KP-10946802">Creation Complete</value>
+                </field>
+            </timespan>
+        </metadata>
+    </changeSet>
+    <changeSet>
+        <id>KP-10946803</id>
+        <metadata>
+            <revision>KP-10946802</revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="4dd75bab-a923-4220-87b6-c6756f7bd715" user="admin" timestamp="2016-08-09T14:50:40.995+01:00" change="KP-10946803">
+                    <name>gnm_project_project_file_status</name>
+                    <value uuid="5da3589b-5a4f-40f6-a046-26f45129d093" user="admin" timestamp="2016-08-09T14:50:40.995+01:00" change="KP-10946803">Creation Complete</value>
+                </field>
+            </timespan>
+        </metadata>
+    </changeSet>
+    <changeSet>
+        <id>KP-10971474</id>
+        <metadata>
+            <revision>KP-10946788</revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="0b5dd42a-807c-411e-9a3f-44447f30e740" user="noah_paynefrank" timestamp="2016-08-15T15:14:17.982+01:00" change="KP-10971474">
+                    <name>gnm_project_status</name>
+                    <value uuid="4016381e-a0a8-4e70-849c-8f2160327c98" user="noah_paynefrank" timestamp="2016-08-15T15:14:17.982+01:00" change="KP-10971474">In Production</value>
+                </field>
+            </timespan>
+        </metadata>
+    </changeSet>
+    <changeSet>
+        <id>KP-15607154</id>
+        <metadata>
+            <revision>KP-10946788,KP-10971474</revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="c882fe5c-2c8e-4129-9f84-47bcfab60216" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154">
+                    <name>gnm_project_subtype</name>
+                    <value uuid="dba50f50-0905-4630-b68a-42a592dc4cad" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154"></value>
+                </field>
+                <field uuid="175c6c97-1e6c-4cc3-a40b-fcbecbc9f8b9" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154">
+                    <name>gnm_project_production_office</name>
+                    <value uuid="000593f8-8d36-409c-b08f-2d8151780115" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154">UK</value>
+                </field>
+                <field uuid="d491f411-a672-4e22-a944-74aae667f055" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154">
+                    <name>gnm_project_remove</name>
+                    <value uuid="f61b6b01-7d00-4247-9b5b-1335599994f1" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154"></value>
+                </field>
+                <field uuid="954789d2-8f17-4296-b915-4b55e862a72a" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154">
+                    <name>gnm_project_publish</name>
+                    <value uuid="62563ccf-60da-4369-ade6-87588ac591ab" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154"></value>
+                </field>
+                <field uuid="f448f9fb-d55d-4271-bfdc-1b3140bcff7d" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154">
+                    <name>gnm_project_byline</name>
+                    <value uuid="1edfc683-cb9f-4cc7-b611-c8fd2c085b9d" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154"></value>
+                </field>
+                <field uuid="b852ed85-36bb-4e8a-b236-7b3fa1fd0f95" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154">
+                    <name>gnm_project_tags</name>
+                    <value uuid="ce912ad3-a4b1-48c4-9b5a-2acf105ea239" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154"></value>
+                </field>
+                <field uuid="6f09aeb3-428f-479e-8a99-ffec51840254" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154">
+                    <name>gnm_storage_rule_sensitive</name>
+                </field>
+                <field uuid="24b34fe2-99f0-4b62-8282-c9332bddfd5b" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154">
+                    <name>gnm_project_ukonly</name>
+                </field>
+                <field uuid="e321dc5b-57b7-47d2-bb44-692d3b3f627c" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154">
+                    <name>gnm_storage_rule_deletable</name>
+                </field>
+                <field uuid="ea309330-1084-4d68-b087-0831bdd8d728" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154">
+                    <name>gnm_project_containsadultcontent</name>
+                </field>
+                <field uuid="cc5039c4-8bff-40fa-a504-976436d5f42e" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154">
+                    <name>gnm_project_intendeduploadplatforms</name>
+                </field>
+                <field uuid="b342dfaa-91bf-4c02-a1ce-b0eb93abf095" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154">
+                    <name>gnm_project_whollyowned</name>
+                </field>
+                <field uuid="0b5dd42a-807c-411e-9a3f-44447f30e740" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154">
+                    <name>gnm_project_status</name>
+                    <value uuid="1cb88620-f3ab-4ae2-8338-e6f02b030730" user="andy_gallagher" timestamp="2017-01-30T12:49:22.821Z" change="KP-15607154">Held</value>
+                </field>
+            </timespan>
+        </metadata>
+    </changeSet>
+    <changeSet>
+        <id>KP-20820289</id>
+        <metadata>
+            <revision>KP-15607154</revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="0b5dd42a-807c-411e-9a3f-44447f30e740" user="videoproducer1" timestamp="2017-08-07T10:12:05.085+01:00" change="KP-20820289">
+                    <name>gnm_project_status</name>
+                    <value uuid="fd508903-c629-418a-ad4d-7e11b17bbf8f" user="videoproducer1" timestamp="2017-08-07T10:12:05.085+01:00" change="KP-20820289">In Production</value>
+                </field>
+            </timespan>
+        </metadata>
+    </changeSet>
+    <changeSet>
+        <id>KP-21166732</id>
+        <metadata>
+            <revision>KP-20820289</revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="0b5dd42a-807c-411e-9a3f-44447f30e740" user="admin" timestamp="2017-09-06T21:54:16.908+01:00" change="KP-21166732">
+                    <name>gnm_project_status</name>
+                    <value uuid="05e123e1-4e8b-4a66-bc18-d2df7cc707d1" user="admin" timestamp="2017-09-06T21:54:16.908+01:00" change="KP-21166732">Completed</value>
+                </field>
+            </timespan>
+        </metadata>
+    </changeSet>
+    <changeSet>
+        <id>KP-21440015</id>
+        <metadata>
+            <revision>KP-21166732</revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="0b5dd42a-807c-411e-9a3f-44447f30e740" user="yusuf_parkar" timestamp="2017-09-12T14:08:32.646+01:00" change="KP-21440015">
+                    <name>gnm_project_status</name>
+                    <value uuid="fe76e596-f22c-4504-9471-e37014e3b370" user="yusuf_parkar" timestamp="2017-09-12T14:08:32.646+01:00" change="KP-21440015">In Production</value>
+                </field>
+            </timespan>
+        </metadata>
+    </changeSet>
+    <changeSet>
+        <id>KP-23710752</id>
+        <metadata>
+            <revision>KP-21440015</revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="0b5dd42a-807c-411e-9a3f-44447f30e740" user="admin" timestamp="2018-01-10T12:24:28.795Z" change="KP-23710752">
+                    <name>gnm_project_status</name>
+                    <value uuid="d5e7cf9a-bd06-47a9-a62a-3d7a1cff1a29" user="admin" timestamp="2018-01-10T12:24:28.795Z" change="KP-23710752">Completed</value>
+                </field>
+            </timespan>
+        </metadata>
+    </changeSet>
+    <changeSet>
+        <id>KP-24765239</id>
+        <metadata>
+            <revision>KP-23710752</revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="0b5dd42a-807c-411e-9a3f-44447f30e740" user="grace_shutti" timestamp="2018-02-14T16:56:06.616Z" change="KP-24765239">
+                    <name>gnm_project_status</name>
+                    <value uuid="ff29bf3f-8acc-4f44-82d2-a714d4d0950b" user="grace_shutti" timestamp="2018-02-14T16:56:06.616Z" change="KP-24765239">In Production</value>
+                </field>
+            </timespan>
+        </metadata>
+    </changeSet>
+</MetadataChangeSetDocument>

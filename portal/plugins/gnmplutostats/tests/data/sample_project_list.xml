@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<CollectionListDocument xmlns="http://xml.vidispine.com/schema/vidispine">
+    <hits>15279</hits>
+    <collection>
+        <id>KP-30946</id>
+        <name>Monbiot Meets (series circa 2008)</name>
+        <metadata>
+            <revision>KP-26079827,KP-26079760,KP-26079789,KP-26079770,KP-26079799</revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="37d5489e-f0b9-467d-97a0-745aa61095c4" user="david_allison" timestamp="2018-04-30T15:27:40.159+01:00" change="KP-26079760">
+                    <name>gnm_project_status</name>
+                    <value uuid="a4b95647-4410-4334-8ee8-6797564ddd1d" user="david_allison" timestamp="2018-04-30T15:27:40.159+01:00" change="KP-26079760">New</value>
+                </field>
+            </timespan>
+        </metadata>
+    </collection>
+    <collection>
+        <id>KP-30945</id>
+        <name>Cholera Outbreak Zimbabwe</name>
+        <metadata>
+            <revision>KP-26079664,KP-26079645,KP-26079659,KP-26079642,KP-26079686</revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="d805a51d-ca8d-4abe-bef2-c4d5b3423d91" user="david_allison" timestamp="2018-04-30T15:24:43.816+01:00" change="KP-26079645">
+                    <name>gnm_project_status</name>
+                    <value uuid="6fb934de-2518-4329-93bd-c06f2fc6e9b0" user="david_allison" timestamp="2018-04-30T15:24:43.816+01:00" change="KP-26079645">New</value>
+                </field>
+            </timespan>
+        </metadata>
+    </collection>
+    <collection>
+        <id>KP-30944</id>
+        <name>The True Cost of Pineapples</name>
+        <metadata>
+            <revision>KP-26079503,KP-26079470,KP-26079452,KP-26079449,KP-26079476</revision>
+            <timespan start="-INF" end="+INF">
+                <field uuid="39b43f4c-08f2-46b7-addc-d9984c485f0d" user="david_allison" timestamp="2018-04-30T15:22:02.291+01:00" change="KP-26079449">
+                    <name>gnm_project_status</name>
+                    <value uuid="f67db6b0-7388-4624-87c8-44e9191b3bad" user="david_allison" timestamp="2018-04-30T15:22:02.291+01:00" change="KP-26079449">New</value>
+                </field>
+            </timespan>
+        </metadata>
+    </collection>
+</CollectionListDocument>

@@ -1,0 +1,18 @@
+{% themeextends "admin/base_admin.html" %}
+{% load i18n datetimeformatting compress staticfiles  %}
+{% block title %}{% trans 'PLUTO Object Statistics' %}{% endblock %}
+{% block heading %}{% trans 'PLUTO Object Statistics' %}{% endblock %}
+
+{% block head %}
+    <link rel="stylesheet" href="{% static "plutostats/storagedash.css" %}">
+    <link rel="stylesheet" href="{% static "font-awesome-4.7.0/css/font-awesome.min.css" %}">
+{% endblock %}
+
+{% block extra_script %}
+
+{% endblock %}
+
+{% block content %}
+<div id="app" style="width: 100%; height: 100%"></div>
+    <script src="{% static 'plutostats/frontend.js' %}"></script>
+{% endblock %}

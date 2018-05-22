@@ -6,3 +6,7 @@ class HttpError(StandardError):
 
     def __str__(self):
         return "server responded {status} {body}".format(status=self.status_code,body=self.body)
+
+
+class InvalidMetadata(StandardError):
+    pass

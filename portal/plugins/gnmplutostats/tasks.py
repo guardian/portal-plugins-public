@@ -35,7 +35,7 @@ def calculate_project_size(project_id=None):
     try:
         result = update_project_size(project_id)
         logger.info("{0}: Project size information: {1}".format(project_id, result.storage_sum))
-        result.save(project_id)
+        result.save(project_id=project_id)
     except Exception as e:
         last_error = traceback.format_exc()
         logger.error(last_error)
@@ -130,3 +130,38 @@ def launch_project_sizing():
         n+=1
         calculate_project_size.apply_async(kwargs={'project_id': entry.project_id},queue=getattr(settings,"GNMPLUTOSTATS_PROJECT_SCAN_QUEUE","celery"))
     return "Triggered {0} projects to scan".format(n)
+
+
+@shared_task
+def scan_category(category_name):
+    """
+    scans the given category and aggregate by attached/unattached (to a collection)
+    :param category_name: category name to scan
+    :return:
+    """
+    import traceback
+    from categoryscanner import update_category_size
+    try:
+        logger.info("Starting scan of category {0}".format(category_name))
+        result = update_category_size(category_name)
+        logger.info("Completed scan of category {0}".format(category_name))
+        result['attached'].save(category_name=category_name, is_attached=True)
+        result['unattached'].save(category_name=category_name, is_attached=False)
+
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        raise #re-raise to see error in Celery Flower
+
+@periodic_task(run_every=timedelta(minutes=60))
+def trigger_category_sizing():
+    """
+    scans the entire catalogue and aggregates by attached/unattached (to a collection)
+    """
+    from categoryscanner import find_categories
+    n=0
+    logger.info("triggering category sizing for entire catalogue")
+    for catname in find_categories():
+        n+=1
+        logger.info("Rescanning size of category {0}".format(catname))
+
+    logger.info("{0} categories triggered".format(n))

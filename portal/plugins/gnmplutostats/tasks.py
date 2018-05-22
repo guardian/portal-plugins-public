@@ -133,7 +133,7 @@ def launch_project_sizing():
 
 
 @shared_task
-def scan_category(category_name):
+def scan_category(category_name=category_name):
     """
     scans the given category and aggregate by attached/unattached (to a collection)
     :param category_name: category name to scan
@@ -152,6 +152,7 @@ def scan_category(category_name):
         logger.error(traceback.format_exc())
         raise #re-raise to see error in Celery Flower
 
+
 @periodic_task(run_every=timedelta(minutes=60))
 def trigger_category_sizing():
     """
@@ -163,5 +164,6 @@ def trigger_category_sizing():
     for catname in find_categories():
         n+=1
         logger.info("Rescanning size of category {0}".format(catname))
+        scan_category.apply_async(kwargs={'category_name': catname},queue=getattr(settings,"GNMPLUTOSTATS_PROJECT_SCAN_QUEUE","celery"))
 
     logger.info("{0} categories triggered".format(n))

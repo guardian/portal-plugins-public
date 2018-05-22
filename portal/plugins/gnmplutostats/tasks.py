@@ -133,7 +133,7 @@ def launch_project_sizing():
 
 
 @shared_task
-def scan_category(category_name=category_name):
+def scan_category(category_name=""):
     """
     scans the given category and aggregate by attached/unattached (to a collection)
     :param category_name: category name to scan

@@ -153,7 +153,7 @@ def scan_category(category_name=""):
         raise #re-raise to see error in Celery Flower
 
 
-@periodic_task(run_every=timedelta(minutes=60))
+@periodic_task(run_every=timedelta(hours=12))
 def trigger_category_sizing():
     """
     scans the entire catalogue and aggregates by attached/unattached (to a collection)

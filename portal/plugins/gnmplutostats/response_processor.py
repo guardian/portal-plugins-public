@@ -13,7 +13,7 @@ class ResponseProcessor(object):
                 self._doc = ET.fromstring(textcontent.encode('ascii','xmlcharrefreplace'))
             except UnicodeDecodeError as e:
                 logger.warning(e)
-                self._doc = ET.fromstring(textcontent.decode('utf-8').encode('ascii','xmlcharrefreplace'))
+                self._doc = ET.fromstring(textcontent.decode('utf-8','xmlcharrefreplace').encode('ascii','xmlcharrefreplace'))
 
     @property
     def total_hits(self):
@@ -69,6 +69,7 @@ class ResponseProcessor(object):
         :param shape_tag: shape tag to get
         :return:
         """
+        item_id = item_entry.attrib['id']
         n=0
         for shape_entry in item_entry.findall("{0}shape".format(self.xmlns)):
             entry_shape_tag = self._get_xml_entry(shape_entry, "{0}tag".format(self.xmlns))
@@ -97,7 +98,7 @@ class ResponseProcessor(object):
                                        self._get_xml_entry(shape_entry,"{1}/{0}file/{0}path".format(self.xmlns, component_name)))
                                )
         if n==0:
-            logger.warning("No shape entries could be found")
+            logger.warning("Item {0}: No shape entries could be found".format(item_id))
 
     def page_size(self, process_result,shape_tag="original"):
         """

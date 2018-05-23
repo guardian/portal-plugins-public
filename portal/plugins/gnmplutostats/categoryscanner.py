@@ -71,12 +71,14 @@ def process_next_page(category_name, process_result_dict, start_at, limit):
     :param limit: page size
     :return: tuple of (process_result, more_pages)
     """
+    from xml.sax.saxutils import escape
+
     searchdoc = """<ItemSearchDocument xmlns="http://xml.vidispine.com/schema/vidispine">
     <field>
         <name>gnm_asset_category</name>
         <value>{0}</value>
     </field>
-</ItemSearchDocument>""".format(category_name)
+</ItemSearchDocument>""".format(escape(category_name))
 
     process_result_attached = process_result_dict['attached']
     process_result_unattached = process_result_dict['unattached']

@@ -129,9 +129,6 @@ def update_category_size(category_name):
             if retry_count>=retry_limit:
                 logger.error("Retried {0} times already, aborting".format(retry_count))
                 raise
-            if e.status_code>=400 and e.status_code<=500:
-                logger.error("Not retrying")
-                raise
             logger.info("Retrying after 10s delay")
             sleep(10)
     logger.info("{0}: Completed".format(category_name))

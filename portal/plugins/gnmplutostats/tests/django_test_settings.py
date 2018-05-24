@@ -7,7 +7,9 @@ ROOT_URLCONF = 'portal.plugins.gnmplutostats.urls'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'gnmplutostats-test.sqlite3'),
+        'TEST_CHARSET': 'UTF-8',
+        'NAME': ":memory:",
+        'TEST_NAME': ":memory:"
     }
 }
 

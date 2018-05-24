@@ -140,18 +140,57 @@ def scan_category(category_name=""):
     :return:
     """
     import traceback
-    from categoryscanner import update_category_size
+    from categoryscanner import update_category_size_parallel
     try:
-        logger.info("Starting scan of category {0}".format(category_name))
-        result = update_category_size(category_name)
-        logger.info("Completed scan of category {0}".format(category_name))
-        result['attached'].save(category_name=category_name, is_attached=True)
-        result['unattached'].save(category_name=category_name, is_attached=False)
-
+        logger.info("Starting parallel scan of category {0}".format(category_name))
+        result = update_category_size_parallel(category_name)
+        logger.info("Parallel scan initiated for {0}, now await results".format(category_name))
     except Exception as e:
         logger.error(traceback.format_exc())
         raise #re-raise to see error in Celery Flower
 
+
+@shared_task
+def scan_category_page_parallel(step_id=0):
+    """
+    scans a page of category results, as given by a ParallelScanStep model
+    :param step_id: primary key of ParallelScanStep
+    :return: Descriptive string
+    """
+    from models import ParallelScanStep
+    import traceback
+    from categoryscanner import process_next_page, ProcessResultCategory
+    start_time = time()
+    s = ParallelScanStep.objects.get(pk=step_id)
+    s.status = "RUNNING"
+    s.save()
+
+    try:
+        result = {
+            'attached': ProcessResultCategory(),
+            'unattached': ProcessResultCategory()
+        }
+        #grab the page of results
+        s.retry_count = s.retry_count + 1
+        result = process_next_page(s.search_param,result,s.start_at,s.end_at)
+
+        s.result = "[" + result['attached'].to_json(category_name=s.search_param,is_attached=True) + "," + result['unattached'].to_json(category_name=s.search_param,is_attached=False) + "]"
+        s.status = "COMPLETED"
+        s.took = time() - start_time
+        s.last_error = None
+        s.save()
+        return "Completed page scan in {0} seconds".format(s.took)
+    except Exception as e:
+        logger.error(traceback.format_exc())
+        s.status="FAILED"
+        s.took = time() - start_time
+        s.last_error = traceback.format_exc()
+        s.result = None
+        scan_category_page_parallel.apply_async(kwargs={"step_id": step_id},
+                                                queue=getattr(settings,"GNMPLUTOSTATS_PROJECT_SCAN_QUEUE","celery"),
+                                                countdown=min(3600, 2**s.retry_count))  #exponential backoff, maximum of 1 hour between runs
+        s.save()
+        raise
 
 @periodic_task(run_every=timedelta(hours=12))
 def trigger_category_sizing():

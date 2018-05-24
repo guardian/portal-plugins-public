@@ -21,3 +21,11 @@ class ProcessResult(object):
         :return: the number of rows saved
         """
         pass
+
+    def to_json(self,**kwargs):
+        """
+        returns a json representation of the data
+        :return:
+        """
+        import json
+        return json.dumps(self.storage_sum)

@@ -1,0 +1,24 @@
+- model: gnmplutostats.parallelscanjob
+  pk: 1
+  fields:
+    job_desc: Test job
+    status: RUNNING
+    items_to_scan: 12345
+    pages: 309
+
+- model: gnmplutostats.parallelscanstep
+  pk: 1
+  fields:
+    master_job: 1
+    status: WAITING
+    search_param: Test
+    start_at: 1
+    end_at: 40
+- model: gnmplutostats.parallelscanstep
+  pk: 2
+  fields:
+    master_job: 1
+    status: WAITING
+    search_param: Test
+    start_at: 41
+    end_at: 80

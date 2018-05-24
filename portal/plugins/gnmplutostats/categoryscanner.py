@@ -36,6 +36,21 @@ class ProcessResultCategory(ProcessResult):
             n+=1
         return n
 
+    def to_json(self,**kwargs):
+        """
+        returns a json representation of the data
+        :return:
+        """
+        import json
+        category_name=kwargs['category_name']
+        is_attached=kwargs['is_attached']
+
+        return json.dumps({
+            'category_label': category_name,
+            'attached': is_attached,
+            'storage_data': map(lambda (storage_id,total_size): {"size_used_gb": total_size, "storage_id": storage_id}, self.storage_sum.items())
+        })
+
 
 def find_categories():
     """
@@ -58,6 +73,38 @@ def find_categories():
     if response.status_code==200:
         doc = ET.fromstring(response.text)
         return map(lambda countnode: countnode.attrib['fieldValue'], doc.findall('{0}facet/{0}count'.format(xmlns)))
+    else:
+        raise HttpError(response)
+
+
+def get_total_hits(category_name):
+    """
+    grabs another page of search results and processes them
+    :param category_name: category name to scan
+    :param process_result_dict: dict of ProcessResult objects representing attached and unattached items to update
+    :param start_at: item number to start at (first item is 1)
+    :param limit: page size
+    :return: tuple of (process_result, more_pages)
+    """
+    from xml.sax.saxutils import escape
+
+    searchdoc = """<ItemSearchDocument xmlns="http://xml.vidispine.com/schema/vidispine">
+    <field>
+        <name>gnm_asset_category</name>
+        <value>{0}</value>
+    </field>
+</ItemSearchDocument>""".format(escape(category_name))
+
+    response = requests.put("{url}:{port}/API/item;number=0".format(
+        url=settings.VIDISPINE_URL,
+        port=settings.VIDISPINE_PORT),
+        auth=HTTPBasicAuth(settings.VIDISPINE_USERNAME,settings.VIDISPINE_PASSWORD),
+        data=searchdoc,headers={'Content-Type': 'application/xml', 'Accept': 'application/xml'})
+
+    if response.status_code==200:
+        xmldoc = ResponseProcessor(response.text)
+        logger.info("{0}: Got total hits {1}".format(category_name, xmldoc.total_hits))
+        return xmldoc.total_hits
     else:
         raise HttpError(response)
 
@@ -135,3 +182,50 @@ def update_category_size(category_name):
             sleep(10)
     logger.info("{0}: Completed".format(category_name))
     return result
+
+
+def update_category_size_parallel(category_name):
+    """
+    triggers parallel jobs to scan each page of category results
+    :param category_name: name of categories to scan
+    :return: ParallelScanJob instance
+    """
+    from models import ParallelScanJob, ParallelScanStep
+    from math import ceil
+    from tasks import scan_category_page_parallel
+    page_size = 40
+    retry_limit=5
+    retry_count=0
+
+    while True:
+        try:
+            retry_count+=1
+            total_hits = get_total_hits(category_name)
+            break
+        except HttpError as e:
+            logger.warning(str(e))
+            sleep(5)
+            if retry_count>retry_limit:
+                raise
+
+    j = ParallelScanJob(
+        job_desc="CategorySizeParallel",
+        status="WAITING",
+        items_to_scan=total_hits,
+        pages=ceil(float(total_hits)/float(page_size))
+    )
+    j.save()
+
+    for page_start in range(1,total_hits,page_size):
+        s = ParallelScanStep(
+            master_job=j,
+            status="WAITING",
+            search_param=category_name,
+            start_at=page_start,
+            end_at=page_start+page_size-1   #-1 required because we start from item 1. So 1st page is 1->(1+40-1) = 1->40
+        )
+        s.save()
+        task_data = scan_category_page_parallel.apply_async(kwargs={"step_id": s.pk},
+                                                            queue=getattr(settings,"GNMPLUTOSTATS_PROJECT_SCAN_QUEUE","celery"))
+        s.task_id = task_data.task_id
+        s.save()

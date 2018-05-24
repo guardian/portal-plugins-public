@@ -1,4 +1,4 @@
-from django.db.models import Model, IntegerField, CharField, DateTimeField, BooleanField
+from django.db.models import Model, IntegerField, CharField, DateTimeField, BooleanField, ForeignKey
 from datetime import datetime
 
 
@@ -39,3 +39,44 @@ class CategoryScanInfo(Model):
 
     def __str__(self):
         return "{0}Gb for {1} on {2} at {3}".format(self.size_used_gb, self.category_label, self.storage_id, self.last_updated)
+
+
+class ParallelScanJob(Model):
+    """
+    this model represents the "master entry" for parallel scan jobs
+    """
+    job_desc = CharField(max_length=32, db_index=True)
+    status = CharField(max_length=32, choices=[
+        ('WAITING','Waiting'),
+        ('RUNNING', 'Running'),
+        ('COMPLETED', 'Completed'),
+        ('FAILED', 'Failed')
+    ],db_index=True)
+    result = CharField(max_length=32768,null=True)
+    last_error = CharField(max_length=32768,null=True)
+    items_to_scan = IntegerField()
+    pages = IntegerField()
+
+
+class ParallelScanStep(Model):
+    """
+    this model represents the results of a single step for a parallel scan job.
+    It's created by the master task and updated by the worker
+    """
+    master_job = ForeignKey(to=ParallelScanJob)
+    status = CharField(max_length=32, choices=[
+        ('WAITING','Waiting'),
+        ('RUNNING', 'Running'),
+        ('COMPLETED', 'Completed'),
+        ('FAILED', 'Failed')
+    ], db_index=True)
+    took = IntegerField(null=True)
+    search_param = CharField(max_length=512)
+    result = CharField(max_length=32768,null=True)
+    last_error = CharField(max_length=32768,null=True)
+    retry_count = IntegerField(default=0)
+    #celery task uuid, set by master task. Must be nullable as this record is saved before the task is created
+    task_id = CharField(max_length=128, null=True)
+    #page to get, set by master task
+    start_at = IntegerField()
+    end_at = IntegerField()

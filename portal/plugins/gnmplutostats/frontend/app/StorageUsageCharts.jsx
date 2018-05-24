@@ -24,6 +24,8 @@ class StorageUsageCharts extends React.Component {
     constructor(props){
         super(props);
 
+        this.data_url = '/unknown';
+
         this.state = {
             known_storages: [],
             visible_storages: [],
@@ -60,7 +62,7 @@ class StorageUsageCharts extends React.Component {
         const total_entry_count=this.state.projectLimit;
 
         const futures = [
-            axios.get('/gnmplutostats/projectsize/project/graph?limit='+total_entry_count+args),
+            axios.get(this.data_url + '?limit='+total_entry_count+args),
             axios.get('/gnmplutostats/projectsize/storage/totals')
         ];
 
@@ -190,7 +192,6 @@ class StorageUsageCharts extends React.Component {
 
         const clickedName = (elemData["_view"]["datasetLabel"]);
         const clickedStorage = (elemData["_view"]['label']);
-        console.log("You clicked " + clickedName);
         reactobj.props.onProjectSelected(clickedName, clickedStorage);
     }
 }

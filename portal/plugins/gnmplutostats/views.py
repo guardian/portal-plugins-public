@@ -302,9 +302,9 @@ class ProjectStatInfoList(ListAPIView):
             return self.model.objects.all().order_by('-size_used_gb', 'project_id','storage_id')[start:start+limit]
 
 
-class ProjectInfoGraphView(APIView, StorageCapacityMixin):
-    from serializers import ProjectSizeInfoSerializer
-    from models import ProjectSizeInfoModel
+class GeneralInfoGraphView(APIView, StorageCapacityMixin):
+    from serializers import ProjectSizeInfoSerializer, CategoryScanInfoSerializer
+    from models import ProjectSizeInfoModel, CategoryScanInfo
 
     permission_classes = (IsAuthenticated, )
     authentication_classes = (SessionAuthentication, )
@@ -441,6 +441,72 @@ class ProjectInfoGraphView(APIView, StorageCapacityMixin):
         except HttpError as e:
             log.error(str(e))
             return Response({"status":"error","error":"Unable to communicate with Vidispine","detail": str(e), "server_response":e.content})
+
+
+class ProjectInfoGraphView(GeneralInfoGraphView):
+    def entry_for_record(self,proj_id,storage_id):
+        try:
+            return self.ProjectSizeInfoModel.objects.get(project_id=proj_id, storage_id=storage_id).size_used_gb
+        except self.ProjectSizeInfoModel.DoesNotExist:
+            return 0
+
+
+class CategoryInfoGraphView(GeneralInfoGraphView):
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (SessionAuthentication, )
+    renderer_classes = (JSONRenderer, )
+
+    def entry_for_record(self,cat_id,storage_id,attached=True):
+        try:
+            return self.CategoryScanInfo.objects.filter(category_label=cat_id, attached=attached, storage_id=storage_id).order_by('-last_updated')[0].size_used_gb
+        except self.CategoryScanInfo.DoesNotExist:
+            return 0
+        except IndexError:
+            print "category_label={0},attached={1},storage_id={2}".format(cat_id, attached, storage_id)
+            print "{0}".format(self.CategoryScanInfo.objects \
+                               .filter(category_label=cat_id, attached=attached, storage_id=storage_id) \
+                               .order_by('-last_updated'))
+            return 0
+
+    def make_values_relative(self, absolute_values, all_storages, storage_capacities):
+        relative_values = []
+        for n in range(0,len(all_storages)):
+            #this relies on storage_capacities
+            storage_name = all_storages[n]
+            try:
+                used_capacity = float(storage_capacities[storage_name]['capacity']/1024**3) - float(storage_capacities[storage_name]['freeCapacity']/1024**3)
+                #we store capacity in Gb, Vidispine stores it in bytes
+                relative_values.append(float(absolute_values[n]) / used_capacity)
+            except TypeError:
+                log.error("could not convert {0} or {1}".format(absolute_values[n], storage_capacities[storage_name]['capacity']))
+                relative_values.append(0)
+        return relative_values
+
+    def entries_for_category(self, category_label, all_storages, storage_capacities, attached=False, relative=False):
+        absolute_values = map(lambda storage_id: self.entry_for_record(category_label,storage_id,attached=attached), all_storages)
+
+        if not relative:
+            return absolute_values
+
+        return self.make_values_relative(absolute_values, all_storages, storage_capacities)
+
+    def get(self, request):
+        from categoryscanner import find_categories
+
+        relative=True
+        if 'absolute' in self.request.GET:
+            relative=False
+
+        all_storages = sorted(map(lambda x: x.items()[0][1], self.ProjectSizeInfoModel.objects.values('storage_id').distinct()))
+        storage_capacities = dict(map(lambda storage_id: (storage_id, self.get_storage_capacity(storage_id)), all_storages))
+
+        category_entries = map(lambda category_label: {'category_label': category_label, 'attached': False, 'sizes': self.entries_for_category(category_label, all_storages, storage_capacities, attached=False, relative=relative)},find_categories())
+        category_entries.append(map(lambda category_label: {'category_label': category_label, 'attached': True, 'sizes': self.entries_for_category(category_label, all_storages, storage_capacities, attached=True, relative=relative)},find_categories()))
+
+        return Response({"status":"ok",
+                         "storage_key": all_storages,
+                         "categories": category_entries
+                         })
 
 
 class TotalSpaceByStorage(APIView,StorageCapacityMixin):

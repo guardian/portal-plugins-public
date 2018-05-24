@@ -9,7 +9,11 @@
         </li>
         <li>
             <img src="{% static 'plutostats/junk_icon.png' %}" class="iicon" style="background: none">
-            <a href="{% url gnmplutostats:plutostats_storage_dash %}">Storage Usage</a>
+            <a href="{% url gnmplutostats:plutostats_storage_dash %}by-project">Storage Usage by Project</a>
+        </li>
+        <li>
+            <img src="{% static 'plutostats/junk_icon.png' %}" class="iicon" style="background: none">
+            <a href="{% url gnmplutostats:plutostats_storage_dash %}by-category">Storage Usage by Category</a>
         </li>
     </ul>
 </li>

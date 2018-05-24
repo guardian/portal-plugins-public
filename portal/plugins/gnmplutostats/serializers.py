@@ -15,6 +15,13 @@ class ProjectScanReceiptSerializer(ModelSerializer):
         fields = ('project_id','last_scan','project_status', 'project_title', 'last_scan_duration', 'last_scan_error', )
 
 
+class CategoryScanInfoSerializer(ModelSerializer):
+    class Meta:
+        from models import CategoryScanInfo
+        model = CategoryScanInfo
+        fields = ('category_label', 'storage_id', 'last_updated', 'attached', 'size_used_gb',)
+
+
 class ProjectHistoryChangeSerializer(Serializer):
     fieldname = CharField(max_length=512)
     uuid = CharField(max_length=64)

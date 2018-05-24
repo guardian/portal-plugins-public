@@ -1,31 +1,22 @@
 import React from 'react';
 import {render} from 'react-dom';
-import StorageUsageCharts from './StorageUsageCharts.jsx';
-import ProjectSummaryArea from './ProjectSummaryArea.jsx';
-import ScanHealthGraph from './ScanHealthGraph.jsx';
+import {
+    BrowserRouter as Router,
+    Route,
+    Link,
+    Switch
+} from 'react-router-dom';
+import ViewByProject from './ViewByProject.jsx';
+import ViewByCategory from './ViewByCategory.jsx';
 
 class App extends React.Component {
-    constructor(props){
-        super(props);
-        this.state = {
-            selectedProject: null,
-            selectedStorage: null
-        }
-    }
-
     render(){
-        return <div style={{width: "100%", height: "100%",overflow:"hidden"}}>
-                <div id="left-column" className="left-column">
-                    <StorageUsageCharts onProjectSelected={(newProject,newStorage)=>this.setState({selectedProject: newProject, selectedStorage:newStorage})}/>
-                </div>
-            <div id="right-column" className="right-column">
-                <ProjectSummaryArea projectId={this.state.selectedProject}/>
-            </div>
-            <div id="bottom-panel" className="full-width-bottom">
-                <ScanHealthGraph/>
-            </div>
-        </div>
+        return <Switch>
+            <Route path="/by-project" component={ViewByProject}/>
+            <Route path="/by-category" component={ViewByCategory}/>
+        </Switch>
     }
 }
 
-render(<App/>, document.getElementById('app'));
+
+render(<Router basename="/gnmplutostats/storagedash"><App/></Router>, document.getElementById('app'));

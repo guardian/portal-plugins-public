@@ -28,7 +28,7 @@ class ProjectScanReceipt(Model):
 
 
 class CategoryScanInfo(Model):
-    category_label = CharField(max_length=32, db_index=True)
+    category_label = CharField(max_length=128, db_index=True)
     storage_id = CharField(max_length=32, db_index=True)
     last_updated = DateTimeField(default=datetime.now)
     attached = BooleanField()

@@ -38,20 +38,21 @@ class TestScanCategoryPageParallel(django.test.TestCase):
         fake_data['unattached'].storage_sum = {'VX-1': 234.34,'VX-2': 543.2,'VX-4': 734575.21}
 
         with patch('portal.plugins.gnmplutostats.categoryscanner.process_next_page', return_value=fake_data) as mock_process_next_page:
-            from portal.plugins.gnmplutostats.tasks import scan_category_page_parallel
+            with patch('portal.plugins.gnmplutostats.tasks.scan_category_page_parallel.apply_async') as mock_apply:
+                from portal.plugins.gnmplutostats.tasks import scan_category_page_parallel
 
-            scan_category_page_parallel(step_id=1)
-            mock_process_next_page.assert_called_once()
-            self.assertEqual(mock_process_next_page.call_args[0][0],"Test")
-            self.assertEqual(mock_process_next_page.call_args[0][2],1)
-            self.assertEqual(mock_process_next_page.call_args[0][3],40)
+                scan_category_page_parallel(step_id=1)
+                mock_process_next_page.assert_called_once()
+                self.assertEqual(mock_process_next_page.call_args[0][0],"Test")
+                self.assertEqual(mock_process_next_page.call_args[0][2],1)
+                self.assertEqual(mock_process_next_page.call_args[0][3],40)
 
-            saved_record = ParallelScanStep.objects.get(pk=1)
-            self.assertEqual(saved_record.status,"COMPLETED")
-            self.assertEqual(saved_record.last_error,None)
-            self.assertEqual(saved_record.retry_count, 1)
-            self.assertEqual(json.loads(saved_record.result),[{u'category_label': u'Test', u'storage_data': [{u'size_used_gb': 923824.21, u'storage_id': u'VX-4'}, {u'size_used_gb': 34634.34, u'storage_id': u'VX-1'}, {u'size_used_gb': 785.2, u'storage_id': u'VX-2'}], u'attached': True}, {u'category_label': u'Test', u'storage_data': [{u'size_used_gb': 734575.21, u'storage_id': u'VX-4'}, {u'size_used_gb': 234.34, u'storage_id': u'VX-1'}, {u'size_used_gb': 543.2, u'storage_id': u'VX-2'}], u'attached': False}])
-
+                saved_record = ParallelScanStep.objects.get(pk=1)
+                self.assertEqual(saved_record.status,"COMPLETED")
+                self.assertEqual(saved_record.last_error,None)
+                self.assertEqual(saved_record.retry_count, 1)
+                self.assertEqual(json.loads(saved_record.result),[{u'storage_data': [{u'size_used_gb': 923824.21, u'storage_id': u'VX-4'}, {u'size_used_gb': 34634.34, u'storage_id': u'VX-1'}, {u'size_used_gb': 785.2, u'storage_id': u'VX-2'}], u'is_attached': True, u'category_name': u'Test'}, {u'storage_data': [{u'size_used_gb': 734575.21, u'storage_id': u'VX-4'}, {u'size_used_gb': 234.34, u'storage_id': u'VX-1'}, {u'size_used_gb': 543.2, u'storage_id': u'VX-2'}], u'is_attached': False, u'category_name': u'Test'}])
+                mock_apply.assert_not_called()
     class FakeResponse(object):
         def __init__(self,status_code,text,headers):
             self.status_code=status_code

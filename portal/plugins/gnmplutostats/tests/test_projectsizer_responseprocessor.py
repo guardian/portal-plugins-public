@@ -24,7 +24,6 @@ class TestResponseProcessor(unittest2.TestCase):
         :return:
         """
         from portal.plugins.gnmplutostats.projectsizer import ResponseProcessor, ProcessResult
-        from pprint import pprint
 
         with open(os.path.join(os.path.dirname(__file__), "data/sample_response_1.xml"), "r") as f:
             p = ResponseProcessor(f.read())

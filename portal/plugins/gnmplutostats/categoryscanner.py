@@ -54,6 +54,7 @@ class ProcessResultCategory(ProcessResult):
         result.storage_sum = dict(map(lambda entry: (entry['storage_id'], entry['size_used_gb'], ),data['storage_data']))
 
         for k,v in data.items():
+            if k=='storage_data': continue
             result.extra_data[k] = v
         return result
 
@@ -63,12 +64,12 @@ class ProcessResultCategory(ProcessResult):
         :return:
         """
         import json
-        category_name=kwargs['category_name']
-        is_attached=kwargs['is_attached']
+        category_name=kwargs['category_name'] if 'category_name' in kwargs else self.extra_data['category_name']
+        is_attached=kwargs['is_attached'] if 'is_attached' in kwargs else self.extra_data['is_attached']
 
         return json.dumps({
-            'category_label': category_name,
-            'attached': is_attached,
+            'category_name': category_name,
+            'is_attached': is_attached,
             'storage_data': map(lambda (storage_id,total_size): {"size_used_gb": total_size, "storage_id": storage_id}, self.storage_sum.items())
         })
 
@@ -258,6 +259,26 @@ def sum_steps(step_records):
     :param step_records: iterable of job steps to sum
     :return: dictionary of aggregated results
     """
-    first_record = ProcessResultCategory.from_json(step_records[0].result)
+    process_results = map(lambda rec: ProcessResultCategory.from_json(rec.result), step_records)
+    process_results_attached = filter(lambda result: result.is_attached, process_results)
+    process_results_unattached = filter(lambda result: not result.is_attached, process_results)
 
-    return reduce(lambda acc,record: acc.combine(ProcessResultCategory.from_json(record.result)), step_records[1:], first_record)
+    if len(process_results_attached)==0:
+        attached_sum = 0
+    elif len(process_results_attached)>1:
+        attached_sum = reduce(lambda acc,record: acc.combine(record), process_results_attached[1:], process_results_attached[0])
+    else:
+        attached_sum = process_results_attached[0]
+
+    if len(process_results_unattached)==0:
+        unattached_sum = 0
+    elif len(process_results_unattached)>1:
+        unattached_sum = reduce(lambda acc,record: acc.combine(record), process_results_unattached[1:], process_results_unattached[0])
+    else:
+        unattached_sum = process_results_unattached[0]
+
+
+    return {
+        'attached': attached_sum,
+        'unattached': unattached_sum
+    }

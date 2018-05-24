@@ -43,9 +43,8 @@ class TestProcessResultCategory(unittest2.TestCase):
         }
 
         result = cat.to_json(category_name="test category", is_attached=True)
-        expected_result = {"category_label": "test category", "storage_data": [{"storage_id": "VX-4", "size_used_gb": 923824.21}, {"storage_id": "VX-1", "size_used_gb": 34634.34}, {"storage_id": "VX-2", "size_used_gb": 785.2}], "attached": True}
+        expected_result = {u"category_name": u"test category", "storage_data": [{"storage_id": "VX-4", "size_used_gb": 923824.21}, {"storage_id": "VX-1", "size_used_gb": 34634.34}, {"storage_id": "VX-2", "size_used_gb": 785.2}], "is_attached": True}
 
-        print json.loads(result)
         self.assertDictEqual(expected_result,json.loads(result))
 
 
@@ -119,23 +118,30 @@ class TestSumSteps(unittest2.TestCase):
         """
         from portal.plugins.gnmplutostats.categoryscanner import ProcessResultCategory, sum_steps
         from portal.plugins.gnmplutostats.models import ParallelScanStep
+
         results = [
-            ProcessResultCategory(initial_data={'VX-1': 1, 'VX-2': 2, 'VX-3': 3}),
-            ProcessResultCategory(initial_data={'VX-1': 4, 'VX-2': 5, 'VX-3': 6}),
-            ProcessResultCategory(initial_data={'VX-1': 7, 'VX-2': 8, 'VX-3': 9}),
+            ProcessResultCategory(initial_data={'VX-1': 1, 'VX-2': 2, 'VX-3': 3},metadata={'category_name': "Test", 'is_attached': True}),
+            ProcessResultCategory(initial_data={'VX-1': 4, 'VX-2': 5, 'VX-3': 6},metadata={'category_name': "Test", 'is_attached': True}),
+            ProcessResultCategory(initial_data={'VX-1': 7, 'VX-2': 8, 'VX-3': 9},metadata={'category_name': "Test", 'is_attached': False}),
         ]
+
         steps = map(lambda result:
                     ParallelScanStep(master_job_id=1,
                                      status="COMPLETED",
                                      search_param="Test",
                                      start_at=1,
                                      end_at=20,
-                                     result=result.to_json(category_name="test",is_attached=True)
+                                     result=result.to_json()    #use the values we already set
                                      ), results)
 
         final_result = sum_steps(steps)
-        self.assertDictEqual(final_result.storage_sum,{
-            'VX-1': 12,
-            'VX-2': 15,
-            'VX-3': 18
+        self.assertDictEqual(final_result['attached'].storage_sum,{
+            'VX-1': 5,
+            'VX-2': 7,
+            'VX-3': 9
+        })
+        self.assertDictEqual(final_result['unattached'].storage_sum,{
+            'VX-1': 7,
+            'VX-2': 8,
+            'VX-3': 9
         })

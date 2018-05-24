@@ -3,8 +3,8 @@
   fields:
     job_desc: Test job
     status: RUNNING
-    items_to_scan: 12345
-    pages: 309
+    items_to_scan: 68
+    pages: 2
 
 - model: gnmplutostats.parallelscanstep
   pk: 1

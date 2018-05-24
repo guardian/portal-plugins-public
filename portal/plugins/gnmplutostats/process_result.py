@@ -6,9 +6,9 @@ class ProcessResult(object):
     base class for summing and processing a result document.
     the save() method is a stub which is overridden by a specific subclass to provide the ORM query for the actual save
     """
-    def __init__(self, initial_data={}):
+    def __init__(self, initial_data={}, metadata={}):
         self.storage_sum = copy.deepcopy(initial_data)
-        self.extra_data = {}
+        self.extra_data = copy.deepcopy(metadata)
 
     def add_entry(self, storage_id, size_in_bytes):
         if not storage_id in self.storage_sum:

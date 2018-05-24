@@ -179,7 +179,7 @@ def scan_category_page_parallel(step_id=0):
         s.took = time() - start_time
         s.last_error = None
         s.save()
-        check_parallel_scan_completed(s.master_job)
+        check_parallel_scan_completed(s.master_job.pk)
         return "Completed page scan in {0} seconds".format(s.took)
     except Exception as e:
         logger.error(traceback.format_exc())

@@ -154,7 +154,6 @@ class TestProjectStatusHistoryView(unittest2.TestCase):
             response = cli.get(reverse('projectstatus_history',kwargs={'project_id':"VX-123"}))
             self.assertEqual(response.status_code,200)
             mock_projecthisory_constructor.assert_called_once_with("VX-123")
-            print response.data
             self.assertDictEqual(response.data[0],{'fieldname': u'gnm_project_status', 'uuid': u'66bc6490-8faa-445e-9d09-ea38708c1fa6', 'timestamp': datetime.datetime(2018, 1, 1, 0, 0, tzinfo=pytz.utc), 'user': u'fred', 'newvalue': u'value1'})
             self.assertDictEqual(response.data[1],{'fieldname': u'gnm_project_status', 'uuid': u'66bc6490-8faa-445e-9d09-ea38708c1fa6', 'timestamp': datetime.datetime(2018, 1, 1, 1, 0, tzinfo=pytz.utc), 'user': u'fred', 'newvalue': u'value2'})
             self.assertDictEqual(response.data[2],{'fieldname': u'gnm_project_status', 'uuid': u'66bc6490-8faa-445e-9d09-ea38708c1fa6', 'timestamp': datetime.datetime(2018, 1, 1, 2, 0, tzinfo=pytz.utc), 'user': u'fred', 'newvalue': u'value3'})
@@ -188,5 +187,3 @@ class TestProjectStatusHistoryView(unittest2.TestCase):
             self.assertDictEqual(response.data[1],{'fieldname': u'gnm_project_status', 'uuid': u'66bc6490-8faa-445e-9d09-ea38708c1fa6', 'timestamp': datetime.datetime(2018, 1, 1, 1, 0, tzinfo=pytz.utc), 'user': u'fred', 'newvalue': u'value2'})
             self.assertDictEqual(response.data[2],{'fieldname': u'gnm_project_status', 'uuid': u'66bc6490-8faa-445e-9d09-ea38708c1fa6', 'timestamp': datetime.datetime(2018, 1, 1, 2, 0, tzinfo=pytz.utc), 'user': u'fred', 'newvalue': u'value3'})
             self.assertEqual(len(response.data),3)
-            print response.content
-            print response.data

@@ -21,8 +21,9 @@ class ProcessResultCategory(ProcessResult):
         :return: the number of rows saved
         """
         from models import CategoryScanInfo
-        category_name=kwargs['category_name']
-        is_attached=kwargs['is_attached']
+        category_name=kwargs['category_name'] if 'category_name' in kwargs else self.extra_data['category_label']
+        is_attached=kwargs['is_attached'] if 'is_attached' in kwargs else self.extra_data['is_attached']
+
         n=0
         for storage_id,total_size in self.storage_sum.items():
             if total_size is None:
@@ -35,6 +36,26 @@ class ProcessResultCategory(ProcessResult):
             record.save()
             n+=1
         return n
+
+    @property
+    def category_label(self):
+        return self.extra_data['category_label']
+
+    @property
+    def is_attached(self):
+        return self.extra_data['is_attached']
+
+    @staticmethod
+    def from_json(jsonstring):
+        import json
+        data = json.loads(jsonstring)
+
+        result = ProcessResultCategory()
+        result.storage_sum = dict(map(lambda entry: (entry['storage_id'], entry['size_used_gb'], ),data['storage_data']))
+
+        for k,v in data.items():
+            result.extra_data[k] = v
+        return result
 
     def to_json(self,**kwargs):
         """
@@ -229,3 +250,14 @@ def update_category_size_parallel(category_name):
                                                             queue=getattr(settings,"GNMPLUTOSTATS_PROJECT_SCAN_QUEUE","celery"))
         s.task_id = task_data.task_id
         s.save()
+
+
+def sum_steps(step_records):
+    """
+    aggregate the total results from all job steps
+    :param step_records: iterable of job steps to sum
+    :return: dictionary of aggregated results
+    """
+    first_record = ProcessResultCategory.from_json(step_records[0].result)
+
+    return reduce(lambda acc,record: acc.combine(ProcessResultCategory.from_json(record.result)), step_records[1:], first_record)

@@ -179,6 +179,7 @@ def scan_category_page_parallel(step_id=0):
         s.took = time() - start_time
         s.last_error = None
         s.save()
+        check_parallel_scan_completed(s.master_job)
         return "Completed page scan in {0} seconds".format(s.took)
     except Exception as e:
         logger.error(traceback.format_exc())
@@ -191,6 +192,52 @@ def scan_category_page_parallel(step_id=0):
                                                 countdown=min(3600, 2**s.retry_count))  #exponential backoff, maximum of 1 hour between runs
         s.save()
         raise
+
+
+@shared_task
+def check_parallel_scan_completed(scan_id=0):
+    """
+    checks whether all steps of a parallel scan job have completed, and updates the record if so
+    :param scan_id:
+    :return:
+    """
+    from models import ParallelScanJob, ParallelScanStep
+    from categoryscanner import sum_steps
+    j = ParallelScanJob.objects.get(pk=scan_id)
+    if j.status!='RUNNING' and j.status!='WAITING':
+        return False
+
+    steps_total = ParallelScanStep.objects.filter(master_job=j).count()
+    if steps_total==0:
+        logger.error("ParallelScanJob {0} has no steps found!".format(scan_id))
+        j.status = "FAILED"
+        j.last_error = "ParallelScanJob {0} has no steps found!".format(scan_id)
+        j.save()
+        return False
+    elif steps_total!=j.pages:
+        logger.error("ParallelScanJob {0} has an incorrect number of steps (found {1}, expected {2})!".format(scan_id,steps_total,j.pages))
+        j.status = "FAILED"
+        j.last_error = "ParallelScanJob {0} has an incorrect number of steps (found {1}, expected {2})!".format(scan_id,steps_total,j.pages)
+        j.save()
+        return False
+
+    steps_completed = ParallelScanStep.objects.filter(master_job=j,status='COMPLETED').count()
+    steps_failed = ParallelScanStep.objects.filter(master_job=j,status='FAILED').count()
+    if steps_completed==steps_total:
+        logger.info("ParallelScanJob {0} completed successfully".format(scan_id))
+        final_result = sum_steps(ParallelScanStep.objects.filter(master_job=j,status='COMPLETED'))
+        logger.info("ParallelScanJob {0}: final result {1}".format(scan_id, final_result))
+        final_result.save()
+        j.status="COMPLETED"
+        j.result = final_result.to_json()
+        j.save()
+        return True
+    elif steps_completed+steps_failed==steps_total:
+        logger.warning("ParallelScanJob {0}: {1} steps have failed and are retrying".format(scan_id, steps_failed))
+        return False
+    else:
+        logger.info("ParallelScanJob {0} has not completed yet".format(scan_id))
+        return False
 
 @periodic_task(run_every=timedelta(hours=12))
 def trigger_category_sizing():
@@ -206,3 +253,4 @@ def trigger_category_sizing():
         scan_category.apply_async(kwargs={'category_name': catname},queue=getattr(settings,"GNMPLUTOSTATS_PROJECT_SCAN_QUEUE","celery"))
 
     logger.info("{0} categories triggered".format(n))
+

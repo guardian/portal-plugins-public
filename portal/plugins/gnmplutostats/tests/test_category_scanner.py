@@ -110,3 +110,32 @@ class TestUpdateCategorySizeParallel(unittest2.TestCase):
                 self.assertEqual(steps[3].start_at,121)
                 self.assertEqual(steps[3].end_at,160)
 
+
+class TestSumSteps(unittest2.TestCase):
+    def test_sum_steps(self):
+        """
+        sum_steps should add together the total amounts for storages across a group of job steps
+        :return:
+        """
+        from portal.plugins.gnmplutostats.categoryscanner import ProcessResultCategory, sum_steps
+        from portal.plugins.gnmplutostats.models import ParallelScanStep
+        results = [
+            ProcessResultCategory(initial_data={'VX-1': 1, 'VX-2': 2, 'VX-3': 3}),
+            ProcessResultCategory(initial_data={'VX-1': 4, 'VX-2': 5, 'VX-3': 6}),
+            ProcessResultCategory(initial_data={'VX-1': 7, 'VX-2': 8, 'VX-3': 9}),
+        ]
+        steps = map(lambda result:
+                    ParallelScanStep(master_job_id=1,
+                                     status="COMPLETED",
+                                     search_param="Test",
+                                     start_at=1,
+                                     end_at=20,
+                                     result=result.to_json(category_name="test",is_attached=True)
+                                     ), results)
+
+        final_result = sum_steps(steps)
+        self.assertDictEqual(final_result.storage_sum,{
+            'VX-1': 12,
+            'VX-2': 15,
+            'VX-3': 18
+        })

@@ -45,7 +45,7 @@ class TestScanCategoryPageParallel(django.test.TestCase):
                 mock_process_next_page.assert_called_once()
                 self.assertEqual(mock_process_next_page.call_args[0][0],"Test")
                 self.assertEqual(mock_process_next_page.call_args[0][2],1)
-                self.assertEqual(mock_process_next_page.call_args[0][3],40)
+                self.assertEqual(mock_process_next_page.call_args[0][3],39)
 
                 saved_record = ParallelScanStep.objects.get(pk=1)
                 self.assertEqual(saved_record.status,"COMPLETED")
@@ -86,7 +86,7 @@ class TestScanCategoryPageParallel(django.test.TestCase):
                 mock_process_next_page.assert_called_once()
                 self.assertEqual(mock_process_next_page.call_args[0][0],"Test")
                 self.assertEqual(mock_process_next_page.call_args[0][2],41)
-                self.assertEqual(mock_process_next_page.call_args[0][3],80)
+                self.assertEqual(mock_process_next_page.call_args[0][3],39)
 
                 saved_record = ParallelScanStep.objects.get(pk=2)
                 self.assertEqual(saved_record.status,"FAILED")

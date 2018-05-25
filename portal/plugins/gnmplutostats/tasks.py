@@ -172,7 +172,7 @@ def scan_category_page_parallel(step_id=0):
         }
         #grab the page of results
         s.retry_count = s.retry_count + 1
-        result = process_next_page(s.search_param,result,s.start_at,s.end_at)
+        result = process_next_page(s.search_param,result,s.start_at,s.end_at-s.start_at)
 
         s.result = "[" + result['attached'].to_json(category_name=s.search_param,is_attached=True) + "," + result['unattached'].to_json(category_name=s.search_param,is_attached=False) + "]"
         s.status = "COMPLETED"

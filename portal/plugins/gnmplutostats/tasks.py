@@ -132,22 +132,22 @@ def launch_project_sizing():
     return "Triggered {0} projects to scan".format(n)
 
 
-@shared_task
-def scan_category(category_name=""):
-    """
-    scans the given category and aggregate by attached/unattached (to a collection)
-    :param category_name: category name to scan
-    :return:
-    """
-    import traceback
-    from categoryscanner import update_category_size_parallel
-    try:
-        logger.info("Starting parallel scan of category {0}".format(category_name))
-        result = update_category_size_parallel(category_name)
-        logger.info("Parallel scan initiated for {0}, now await results".format(category_name))
-    except Exception as e:
-        logger.error(traceback.format_exc())
-        raise #re-raise to see error in Celery Flower
+# @shared_task
+# def scan_category(category_name=""):
+#     """
+#     scans the given category and aggregate by attached/unattached (to a collection)
+#     :param category_name: category name to scan
+#     :return:
+#     """
+#     import traceback
+#     from categoryscanner import update_category_size_parallel
+#     try:
+#         logger.info("Starting parallel scan of category {0}".format(category_name))
+#         result = update_category_size_parallel(category_name)
+#         logger.info("Parallel scan initiated for {0}, now await results".format(category_name))
+#     except Exception as e:
+#         logger.error(traceback.format_exc())
+#         raise #re-raise to see error in Celery Flower
 
 
 @shared_task

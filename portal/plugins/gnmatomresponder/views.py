@@ -1,8 +1,9 @@
 from rest_framework.views import APIView
 from rest_framework.renderers import JSONRenderer
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from django.views.generic.list import ListView
+from django.http import HttpResponse
 import logging
 
 logger = logging.getLogger(__name__)
@@ -62,3 +63,25 @@ class ImportJobListView(ListView):
         else:
             rtn['in_test'] = False
         return rtn
+
+
+class ResyncToAtomApi(APIView):
+    renderer_classes = (JSONRenderer, )
+    authentication_classes = (IsAuthenticated, )
+
+    def get(self, request, item_id=None):
+        from portal.plugins.gnm_masters.models import VSMaster
+        import portal.plugins.gnm_vidispine_utils.constants as const
+        import requests
+        from django.conf import settings
+
+        master = VSMaster(item_id)
+        atom_id = master.get(const.GNM_MASTERS_MEDIAATOM_ATOMID, "")
+
+        url = settings.GNM_ATOM_RESPONDER_LAUNCHDETECTOR_URL + "/update/" + atom_id
+        logger.info("Update URL for {0} is {1}".format(item_id, url))
+        response = requests.put(url)
+
+        logger.info("Updating {0}: Launch detector said {1} {2}".format(item_id, response.status_code, response.content))
+        #simply echo the Launch Detector's response back to the client
+        return Response(response.json(), status=response.status_code)

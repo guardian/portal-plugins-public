@@ -1,0 +1,41 @@
+{% load static %}
+
+<div>
+    <p id="debuginfo">{{ master.get_status }}</p>
+    <span id="rescan-throbber" style="display: none;"><img src="{% static 'img/icon-ajax-loader.gif' %}">Resyncing...</span>
+    <button id="resync-button" type="button" onClick="startResync();">Resync to published data</button>
+    <span id="rescan-complete-message" style="display: none">Rescan has completed, this may take a few minutes to show</span>
+    <span id="rescan-failed-messsage" class="error" style="display: none">Rescan request was rejected, try again later and contact multimediatech@theguardian.com</span>
+</div>
+
+<script>
+    function startResync(){
+        $('#resync-button').hide();
+        $('#rescan-throbber').show();
+        $.ajax("{% url gnmatomresponder:resync_to_atom item_id=master.id %}")
+            .done(function(data, textStatus, jqXHR){
+                console.log(data);
+                $('#rescan-throbber').hide();
+                $('#resync-complete-message').show();
+            })
+            .fail(function(jqXHR, textStatus, errorThrown){
+                $('#rescan-throbber').hide();
+                try {
+                    var jsonData = JSON.parse(jqXHR.responseText);
+                    console.error(jsonData);
+                    var errorMsg;
+                    if(jsonData.hasOwnProperty("detail")){
+                        errorMsg = jsonData.detail;
+                    } else if (jsonData.hasOwnProperty("error")){
+                        errorMsg = jsonData.error;
+                    } else {
+                        errorMsg = jqXHR.responseText;
+                    }
+                    $('#rescan-failed-messsage').text("Rescan request was rejected: " + errorMsg).show();
+                } catch(e) {
+                    console.error("Could not parse server response", e);
+                    $('#rescan-failed-messsage').show();
+                }
+            });
+    }
+</script>

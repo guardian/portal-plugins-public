@@ -19,7 +19,7 @@ class Migration(SchemaMigration):
             ('page_launch_guess_interval', self.gf('django.db.models.fields.FloatField')(default=0.0, blank=True)),
             ('completed_time', self.gf('django.db.models.fields.DateTimeField')(blank=True)),
         ))
-        db.send_create_signal('portal.plugins.gnmuploadprofiler', ['OutputTimings'])
+        db.send_create_signal('gnmuploadprofiler', ['OutputTimings'])
 
 
     def backwards(self, orm):
@@ -28,7 +28,7 @@ class Migration(SchemaMigration):
 
 
     models = {
-        'portal.plugins.gnmuploadprofiler.outputtimings': {
+        'gnmuploadprofiler.outputtimings': {
             'Meta': {'object_name': 'OutputTimings'},
             'completed_time': ('django.db.models.fields.DateTimeField', [], {'blank': 'True'}),
             'created_time': ('django.db.models.fields.DateTimeField', [], {}),
@@ -41,4 +41,4 @@ class Migration(SchemaMigration):
         }
     }
 
-    complete_apps = ['portal.plugins.gnmuploadprofiler']
+    complete_apps = ['gnmuploadprofiler']

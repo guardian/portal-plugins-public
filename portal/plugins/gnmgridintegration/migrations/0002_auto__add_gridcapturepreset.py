@@ -15,7 +15,7 @@ class Migration(SchemaMigration):
             ('field_value_regex', self.gf('django.db.models.fields.CharField')(max_length=2048)),
             ('active', self.gf('django.db.models.fields.BooleanField')(default=True)),
         ))
-        db.send_create_signal('portal.plugins.gnmgridintegration', ['GridCapturePreset'])
+        db.send_create_signal('gnmgridintegration', ['GridCapturePreset'])
 
 
     def backwards(self, orm):
@@ -24,14 +24,14 @@ class Migration(SchemaMigration):
 
 
     models = {
-        'portal.plugins.gnmgridintegration.gridcapturepreset': {
+        'gnmgridintegration.gridcapturepreset': {
             'Meta': {'ordering': "['vs_field', 'field_value_regex']", 'object_name': 'GridCapturePreset'},
             'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'field_value_regex': ('django.db.models.fields.CharField', [], {'max_length': '2048'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'vs_field': ('django.db.models.fields.CharField', [], {'max_length': '256'})
         },
-        'portal.plugins.gnmgridintegration.gridmetadatafields': {
+        'gnmgridintegration.gridmetadatafields': {
             'Meta': {'ordering': "['type', 'grid_field_name']", 'object_name': 'GridMetadataFields'},
             'format_string': ('django.db.models.fields.CharField', [], {'max_length': '4096'}),
             'grid_field_name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
@@ -41,4 +41,4 @@ class Migration(SchemaMigration):
         }
     }
 
-    complete_apps = ['portal.plugins.gnmgridintegration']
+    complete_apps = ['gnmgridintegration']

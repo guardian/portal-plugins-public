@@ -18,7 +18,7 @@ class Migration(SchemaMigration):
         db.alter_column('gnmzeitgeist_datasource', 'value_mapping_id', self.gf('django.db.models.fields.CharField')(default='', max_length=32768))
 
     models = {
-        'portal.plugins.gnmzeitgeist.datasource': {
+        'gnmzeitgeist.datasource': {
             'Meta': {'ordering': "['name']", 'object_name': 'datasource'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
@@ -27,4 +27,4 @@ class Migration(SchemaMigration):
         }
     }
 
-    complete_apps = ['portal.plugins.gnmzeitgeist']
+    complete_apps = ['gnmzeitgeist']

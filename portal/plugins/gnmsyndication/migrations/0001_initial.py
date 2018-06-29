@@ -20,7 +20,7 @@ class Migration(SchemaMigration):
             ('disable_icon_url', self.gf('django.db.models.fields.CharField')(max_length=512, null=True, blank=True)),
             ('display_icon_url', self.gf('django.db.models.fields.CharField')(max_length=512, null=True, blank=True)),
         ))
-        db.send_create_signal('portal.plugins.gnmsyndication', ['platform'])
+        db.send_create_signal('gnmsyndication', ['platform'])
 
 
     def backwards(self, orm):
@@ -29,7 +29,7 @@ class Migration(SchemaMigration):
 
 
     models = {
-        'portal.plugins.gnmsyndication.platform': {
+        'gnmsyndication.platform': {
             'Meta': {'ordering': "['name']", 'object_name': 'platform'},
             'disable_icon_url': ('django.db.models.fields.CharField', [], {'max_length': '512', 'null': 'True', 'blank': 'True'}),
             'display_icon_url': ('django.db.models.fields.CharField', [], {'max_length': '512', 'null': 'True', 'blank': 'True'}),
@@ -43,4 +43,4 @@ class Migration(SchemaMigration):
         }
     }
 
-    complete_apps = ['portal.plugins.gnmsyndication']
+    complete_apps = ['gnmsyndication']

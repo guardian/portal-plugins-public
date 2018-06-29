@@ -14,7 +14,7 @@ class Migration(SchemaMigration):
             ('key', self.gf('django.db.models.fields.CharField')(unique=True, max_length=255, db_index=True)),
             ('value', self.gf('django.db.models.fields.CharField')(max_length=32768)),
         ))
-        db.send_create_signal('portal.plugins.gnmyoutube', ['settings'])
+        db.send_create_signal('gnmyoutube', ['settings'])
 
 
     def backwards(self, orm):
@@ -23,7 +23,7 @@ class Migration(SchemaMigration):
 
 
     models = {
-        'portal.plugins.gnmyoutube.settings': {
+        'gnmyoutube.settings': {
             'Meta': {'object_name': 'settings'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'key': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255', 'db_index': 'True'}),
@@ -31,4 +31,4 @@ class Migration(SchemaMigration):
         }
     }
 
-    complete_apps = ['portal.plugins.gnmyoutube']
+    complete_apps = ['gnmyoutube']

@@ -20,7 +20,7 @@ class Migration(SchemaMigration):
 
 
     models = {
-        'portal.plugins.kinesisresponder.kinesistracker': {
+        'kinesisresponder.kinesistracker': {
             'Meta': {'object_name': 'KinesisTracker'},
             'created': ('django.db.models.fields.DateTimeField', [], {}),
             'exception_trace': ('django.db.models.fields.CharField', [], {'max_length': '32768', 'null': 'True'}),
@@ -36,4 +36,4 @@ class Migration(SchemaMigration):
         }
     }
 
-    complete_apps = ['portal.plugins.kinesisresponder']
+    complete_apps = ['kinesisresponder']

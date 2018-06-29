@@ -18,7 +18,7 @@ class Migration(SchemaMigration):
 
 
     models = {
-        'portal.plugins.gnmuploadprofiler.outputtimings': {
+        'gnmuploadprofiler.outputtimings': {
             'Meta': {'ordering': "['-completed_time', '-created_time']", 'object_name': 'OutputTimings'},
             'completed_time': ('django.db.models.fields.DateTimeField', [], {'blank': 'True'}),
             'created_time': ('django.db.models.fields.DateTimeField', [], {}),
@@ -33,4 +33,4 @@ class Migration(SchemaMigration):
         }
     }
 
-    complete_apps = ['portal.plugins.gnmuploadprofiler']
+    complete_apps = ['gnmuploadprofiler']

@@ -15,7 +15,7 @@ class Migration(SchemaMigration):
             ('vs_field', self.gf('django.db.models.fields.CharField')(max_length=255)),
             ('value_mapping_id', self.gf('django.db.models.fields.CharField')(max_length=32768)),
         ))
-        db.send_create_signal('portal.plugins.gnmzeitgeist', ['datasource'])
+        db.send_create_signal('gnmzeitgeist', ['datasource'])
 
 
     def backwards(self, orm):
@@ -24,7 +24,7 @@ class Migration(SchemaMigration):
 
 
     models = {
-        'portal.plugins.gnmzeitgeist.datasource': {
+        'gnmzeitgeist.datasource': {
             'Meta': {'ordering': "['name']", 'object_name': 'datasource'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
@@ -33,4 +33,4 @@ class Migration(SchemaMigration):
         }
     }
 
-    complete_apps = ['portal.plugins.gnmzeitgeist']
+    complete_apps = ['gnmzeitgeist']

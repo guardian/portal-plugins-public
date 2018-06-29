@@ -28,7 +28,7 @@ class Migration(SchemaMigration):
 
 
     models = {
-        'portal.plugins.gnmuploadprofiler.outputtimings': {
+        'gnmuploadprofiler.outputtimings': {
             'Meta': {'ordering': "['-completed_time', '-created_time']", 'object_name': 'OutputTimings'},
             'capi_page_created_interval': ('django.db.models.fields.FloatField', [], {'default': '0.0', 'blank': 'True'}),
             'commission': ('django.db.models.fields.CharField', [], {'db_index': 'True', 'max_length': '255', 'blank': 'True'}),
@@ -50,4 +50,4 @@ class Migration(SchemaMigration):
         }
     }
 
-    complete_apps = ['portal.plugins.gnmuploadprofiler']
+    complete_apps = ['gnmuploadprofiler']

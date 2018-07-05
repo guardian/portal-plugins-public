@@ -23,3 +23,4 @@ ATOM_RESPONDER_ROLE_NAME="Fred"
 
 ATOM_TOOL_HOST='https://atomtool'
 ATOM_TOOL_SECRET='sauce'
+GNM_ATOM_RESPONDER_LAUNCHDETECTOR_URL = "https://launchdetector"

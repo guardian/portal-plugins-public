@@ -1,11 +1,10 @@
 {% load static %}
 
-<div>
-    <p id="debuginfo">{{ master.get_status }}</p>
+<div id="atom-resync-widget" style="display:none;">
     <span id="rescan-throbber" style="display: none;"><img src="{% static 'img/icon-ajax-loader.gif' %}">Resyncing...</span>
     <button id="resync-button" type="button" onClick="startResync();">Resync to published data</button>
-    <span id="rescan-complete-message" style="display: none">Rescan has completed, this may take a few minutes to show</span>
-    <span id="rescan-failed-messsage" class="error" style="display: none">Rescan request was rejected, try again later and contact multimediatech@theguardian.com</span>
+    <span id="rescan-complete-message" style="display: none">Resync has completed, this may take a few minutes to show</span>
+    <span id="rescan-failed-messsage" class="error" style="display: none">Resync request was rejected, try again later and contact multimediatech@theguardian.com</span>
 </div>
 
 <script>
@@ -31,11 +30,15 @@
                     } else {
                         errorMsg = jqXHR.responseText;
                     }
-                    $('#rescan-failed-messsage').text("Rescan request was rejected: " + errorMsg).show();
+                    $('#rescan-failed-messsage').text("Resync request was rejected: " + errorMsg).show();
                 } catch(e) {
                     console.error("Could not parse server response", e);
                     $('#rescan-failed-messsage').show();
                 }
             });
     }
+    $(document).ready(function(){
+        //only show the atom resync button if it's going to work
+        if($('#id_gnm_master_mediaatom_atomid').val()!=="") $('#atom-resync-widget').show();
+    })
 </script>

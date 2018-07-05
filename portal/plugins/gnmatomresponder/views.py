@@ -75,13 +75,23 @@ class ResyncToAtomApi(APIView):
         import requests
         from django.conf import settings
 
-        master = VSMaster(item_id)
-        atom_id = master.get(const.GNM_MASTERS_MEDIAATOM_ATOMID, "")
+        try:
+            master = VSMaster(item_id, request.user)
+            atom_id = master.get(const.GNM_MASTERS_MEDIAATOM_ATOMID, "")
 
-        url = settings.GNM_ATOM_RESPONDER_LAUNCHDETECTOR_URL + "/update/" + atom_id
-        logger.info("Update URL for {0} is {1}".format(item_id, url))
-        response = requests.put(url)
+            if atom_id is None:
+                return Response({"status": "error","error": "This master has no atom ID yet"}, status=400)
 
-        logger.info("Updating {0}: Launch detector said {1} {2}".format(item_id, response.status_code, response.content))
-        #simply echo the Launch Detector's response back to the client
-        return Response(response.json(), status=response.status_code)
+            url = settings.GNM_ATOM_RESPONDER_LAUNCHDETECTOR_URL + "/update/" + atom_id
+            logger.info("Update URL for {0} is {1}".format(item_id, url))
+            response = requests.put(url)
+
+            logger.info("Updating {0}: Launch detector said {1} {2}".format(item_id, response.status_code, response.content))
+            #simply echo the Launch Detector's response back to the client
+            return Response(response.json(), status=response.status_code)
+        except requests.ConnectTimeout:
+            return Response({"status": "error", "error": "Timeout connecting to LaunchDetector, please try again and notify multimediatech@theguardian.com"},status=500)
+        except requests.ConnectionError:
+            return Response({"status": "error", "error": "Unable to connect to LaunchDetector, please notify multimediatech@theguardian.com"},status=500)
+        except Exception as e:
+            return Response({"status": "error", "error": str(e)},status=500)

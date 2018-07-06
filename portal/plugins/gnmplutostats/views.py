@@ -246,6 +246,8 @@ class GetStatsView(BaseStatsView):
         (headers, content) = self._make_vidispine_request(httplib2.Http(),"PUT","/API/search;number=0",searchDoc,
                                                {'Accept': 'application/json'})
 
+        data = json.loads(content)
+
         return Response({'status': 'ok', 'data': self.process_facets(data)})
 
 

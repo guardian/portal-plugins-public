@@ -16,7 +16,7 @@ class Migration(SchemaMigration):
             ('vs_field', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
             ('type', self.gf('django.db.models.fields.IntegerField')()),
         ))
-        db.send_create_signal('portal.plugins.gnmgridintegration', ['GridMetadataFields'])
+        db.send_create_signal('gnmgridintegration', ['GridMetadataFields'])
 
 
     def backwards(self, orm):
@@ -25,7 +25,7 @@ class Migration(SchemaMigration):
 
 
     models = {
-        'portal.plugins.gnmgridintegration.gridmetadatafields': {
+        'gnmgridintegration.gridmetadatafields': {
             'Meta': {'ordering': "['grid_field_name']", 'object_name': 'GridMetadataFields'},
             'format_string': ('django.db.models.fields.CharField', [], {'max_length': '4096'}),
             'grid_field_name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
@@ -35,4 +35,4 @@ class Migration(SchemaMigration):
         }
     }
 
-    complete_apps = ['portal.plugins.gnmgridintegration']
+    complete_apps = ['gnmgridintegration']

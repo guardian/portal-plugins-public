@@ -44,7 +44,10 @@ class ConfigurationForm(Form):
                 pass
             initial['auto_refresh'] = lib.autoRefresh
             initial['update_mode'] = lib.updateMode
-            initial['search_definition'] = ET.tostring(lib.query,encoding="UTF-8") #minidom.parseString(ET.tostring(lib.query,encoding="UTF-8")).toprettyxml()
+            if lib.query is None:
+                initial['search_definition'] = "No search definition! This is a problem!"
+            else:
+                initial['search_definition'] = ET.tostring(lib.query,encoding="UTF-8") #minidom.parseString(ET.tostring(lib.query,encoding="UTF-8")).toprettyxml()
             initial['storage_rule_definition'] = None
             try:
                 initial['storage_rule_definition'] = minidom.parseString(ET.tostring(lib.storagerule,encoding="UTF-8")).toprettyxml()

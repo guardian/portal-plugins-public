@@ -66,7 +66,7 @@ function build_rpm {
 if [ -x `which shasum` ]; then
     SHASUM=`which shasum`" -a 256"
 else
-    SHASUM=`which sha256sum`
+    SHASUM="/usr/bin/sha256sum"
 fi
 
 if [ ! -d "${HOME}/rpmbuild" ]; then

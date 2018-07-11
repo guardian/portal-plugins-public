@@ -11,7 +11,7 @@ defaults: &defaults
     JEST_JUNIT_OUTPUT: /tmp/circleci-test-results/jesttests.xml
   docker:
   #Dockerfile for this is in portal-plugins-private
-    - image: 855023211239.dkr.ecr.eu-west-1.amazonaws.com/guardianmultimedia/pluginsbuild:2
+    - image: 855023211239.dkr.ecr.eu-west-1.amazonaws.com/guardianmultimedia/pluginsbuild:3
 
 version: 2
 jobs:

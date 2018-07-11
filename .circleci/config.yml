@@ -19,7 +19,7 @@ jobs:
     <<: *defaults
     steps:
     - checkout
-    - run: pip install virtualenv nose pep8
+    - run: yum -y install which; pip install virtualenv nose pep8
     - run: mkdir -p ~/virtualenvs/portal-plugins-public
     - restore_cache:
         keys:
@@ -86,7 +86,26 @@ jobs:
 
     ### deployment
     - run: for dir in `find . -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do echo Trying to run "${PWD}/$dir/pre_deploy.sh"; if [ -x "${PWD}/$dir/pre_deploy.sh" ]; then ${PWD}/$dir/pre_deploy.sh; fi; done
+    - run: rm -f portal/__init__.py; rm -f portal/plugins/__init__.py
+    - run: mkdir -p /opt/cantemo/portal/portal/plugins
+    - run: rm -rf portal/plugins/gnmdownloadablelink/node_modules
+    - run: cd portal/plugins/gnmplutostats/frontend; nvm use 8.1 && npm run build
+    - run: rm -rf portal/plugins/gnmplutostats/frontend
     - run: bash ./buildrpms.sh
+
+    ### common packages
+    - run: rpmbuild -bb portal-codemirror.spec
+    - run: ./upload_with_hash.sh ${HOME}/rpmbuild/RPMS/noarch/portal-codemirror-5.26.0-2.noarch.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins/static/portal-codemirror-5.26.0-2.noarch.rpm
+    - run: mkdir -p ${HOME}/rpmbuild/BUILD/static
+    - run: cp -a static/chartjs ${HOME}/rpmbuild/BUILD/static
+    - run: rpmbuild -bb portal-chartjs.spec
+    - run: ./upload_with_hash.sh ${HOME}/rpmbuild/RPMS/noarch/portal-chartjs-1.0-1.noarch.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins/static/portal-chartjs-1.0-1.noarch.rpm
+    - run: cp -a static/jquery.cookie.js ${HOME}/rpmbuild/BUILD/static
+    - run: rpmbuild -bb portal-jquery-cookie.spec
+    - run: ./upload_with_hash.sh ${HOME}/rpmbuild/RPMS/noarch/portal-jquery-cookie-1.4.1-1.noarch.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins/static/portal-jquery-cookie-1.4.1-1.noarch.rpm
+    - run: cp -a static/knockout-3.3.0.js ${HOME}/rpmbuild/BUILD/static
+    - run: rpmbuild -bb portal-knockout.spec
+    - run: ./upload_with_hash.sh ${HOME}/rpmbuild/RPMS/noarch/portal-knockout-3.3.0-1.noarch.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins/static/portal-knockout-3.3.0-1.noarch.rpm
 
 workflows:
   version: 2

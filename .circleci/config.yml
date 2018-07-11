@@ -73,7 +73,7 @@ jobs:
 
     ### gnmplutostats
     - run: DJANGO_SETTINGS_MODULE=portal.plugins.gnmplutostats.tests.django_test_settings nosetests -v portal/plugins/gnmplutostats/tests --xunit-file=${CIRCLE_TEST_REPORTS}/gnmplutostats.xml
-    - run: cd portal/plugins/gnmplutostats/frontend; npm run test
+    - run: cd portal/plugins/gnmplutostats/frontend; nvm use 8.1 && npm run test
 
     # Save test results
     - store_test_results:

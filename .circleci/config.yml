@@ -93,7 +93,11 @@ jobs:
     - run: rm -rf portal/plugins/gnmplutostats/frontend
     - run: bash ./buildrpms.sh
 
+  common_packages:
+    <<: *defaults
+    steps:
     ### common packages
+    - checkout
     - run: rpmbuild -bb portal-codemirror.spec
     - run: ./upload_with_hash.sh ${HOME}/rpmbuild/RPMS/noarch/portal-codemirror-5.26.0-2.noarch.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins/static/portal-codemirror-5.26.0-2.noarch.rpm
     - run: mkdir -p ${HOME}/rpmbuild/BUILD/static
@@ -112,3 +116,4 @@ workflows:
   build_and_test:
     jobs:
       - build_and_test
+      - common_packages

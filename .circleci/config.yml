@@ -1,0 +1,95 @@
+defaults: &defaults
+  working_directory: ~/guardian/portal-plugins-public
+  parallelism: 1
+  shell: /bin/bash --login
+  environment:
+    CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
+    CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
+    PYTHONPATH: /root/virtualenvs/portal-plugins-public/lib/python2.7/site-packages
+    NOSE_XUNIT_FILE: /tmp/circleci-test-results/nosetests.xml
+    NOSE_WITH_XUNIT: true
+    JEST_JUNIT_OUTPUT: /tmp/circleci-test-results/jesttests.xml
+  docker:
+  #Dockerfile for this is in portal-plugins-private
+    - image: 855023211239.dkr.ecr.eu-west-1.amazonaws.com/guardianmultimedia/pluginsbuild:2
+
+version: 2
+jobs:
+  build_and_test:
+    <<: *defaults
+    steps:
+    - checkout
+    - run: pip install virtualenv nose pep8
+    - run: mkdir -p ~/virtualenvs/portal-plugins-public
+    - restore_cache:
+        keys:
+        # This branch if available
+        - v1-dep-{{ .Branch }}-
+        # Default branch if not
+        - v1-dep-master-
+        # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
+        - v1-dep-
+    - run: yarn install
+    - run: virtualenv ~/virtualenvs/portal-plugins-public
+    - run: source ~/virtualenvs/portal-plugins-public/bin/activate && pip install -r test-requirements.txt
+    - run: mkdir -p ~/fredex42/gnmvidispine
+    - run: git clone https://github.com/fredex42/gnmvidispine  ~/fredex42/gnmvidispine
+    - run: cd  ~/fredex42/gnmvidispine; source ~/virtualenvs/portal-plugins-public/bin/activate && python setup.py install
+    - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
+
+    ### set up symlinks and per-plugin build setup
+    - run: touch portal/__init__.py; touch portal/plugins/__init__.py
+    - run: mkdir -p /opt/cantemo/portal/portal/plugins
+    - run: for dir in `find . -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do echo Symlinking ${dir} to build locations; ln -s ${PWD}/$dir /opt/cantemo/portal/portal/plugins;done
+    - run: for dir in `find . -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do echo Trying to run "${PWD}/$dir/testsetup.sh"; if [ -x "${PWD}/$dir/testsetup.sh" ]; then ${PWD}/$dir/testsetup.sh; fi; done
+    - save_cache:
+        key: v1-dep-{{ .Branch }}-{{ epoch }}
+        paths:
+        - ~/virtualenvs
+        - node_modules
+        - portal-plugins-public/gnmdownloadablelink/node_modules
+        - portal-plugins-private/gnmplutostats/frontend/node_modules
+
+    ### all plugins
+    - run: npm run test
+    - run: npm run lint
+    - run: npm run testcss
+
+    ### gnmpagerduty
+    - run: nosetests -v portal/plugins/gnmpagerduty/tests --xunit-file=${CIRCLE_TEST_REPORTS}/gnmpagerduty.xml
+
+    ### gnmlibrarytool
+    - run: DJANGO_SETTINGS_MODULE=portal.plugins.gnmlibrarytool.tests.django_test_settings nosetests -v portal/plugins/gnmlibrarytool/tests --xunit-file=${CIRCLE_TEST_REPORTS}/gnmlibrarytool.xml
+
+    ### gnmatomresponder
+    - run: DJANGO_SETTINGS_MODULE=portal.plugins.gnmatomresponder.tests.django_test_settings nosetests -v portal/plugins/gnmatomresponder/tests --xunit-file=${CIRCLE_TEST_REPORTS}/gnmatomresponder.xml
+
+    ### gnmdownloadablelink
+    - run: DJANGO_SETTINGS_MODULE=portal.plugins.gnmdownloadablelink.tests.django_test_settings nosetests -v portal/plugins/gnmdownloadablelink/tests --xunit-file=${CIRCLE_TEST_REPORTS}/gnmdownloadablelink.xml
+    - run: cd portal/plugins/gnmdownloadablelink; npm run test
+
+    ### gnmoptin
+    - run: DJANGO_SETTINGS_MODULE=portal.plugins.gnmoptin.tests.django_test_settings nosetests -v portal/plugins/gnmoptin/tests --xunit-file=${CIRCLE_TEST_REPORTS}/gnmoptin.xml
+
+    ### gnmplutostats
+    - run: DJANGO_SETTINGS_MODULE=portal.plugins.gnmplutostats.tests.django_test_settings nosetests -v portal/plugins/gnmplutostats/tests --xunit-file=${CIRCLE_TEST_REPORTS}/gnmplutostats.xml
+    - run: cd portal/plugins/gnmplutostats/frontend; npm run test
+
+    # Save test results
+    - store_test_results:
+        path: /tmp/circleci-test-results
+    # Save artifacts
+    - store_artifacts:
+        path: /tmp/circleci-artifacts
+    - store_artifacts:
+        path: /tmp/circleci-test-results
+
+    ### deployment
+    - run: for dir in `find . -maxdepth 1 -mindepth 1 -type d | awk -F '/' '{ print $2 }' | grep -v -E '^\.'`; do echo Trying to run "${PWD}/$dir/pre_deploy.sh"; if [ -x "${PWD}/$dir/pre_deploy.sh" ]; then ${PWD}/$dir/pre_deploy.sh; fi; done
+    - run: bash ./buildrpms.sh
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build_and_test

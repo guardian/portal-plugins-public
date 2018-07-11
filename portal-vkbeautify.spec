@@ -8,7 +8,7 @@ Name: %{name}
 Version: %{version}
 Release: %{release}
 License: MIT
-Source0: codemirror.zip
+Source0: vkbeautify.zip
 Group: Applications/Productivity
 BuildRoot: %{_tmppath}/portal-codemirror
 Prefix: %{_prefix}

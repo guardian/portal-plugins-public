@@ -63,11 +63,7 @@ function build_rpm {
     done
 }
 
-if [ -x `which shasum` ]; then
-    SHASUM=`which shasum`" -a 256"
-else
-    SHASUM=`which sha256sum`
-fi
+SHASUM="/usr/bin/sha256sum"
 
 if [ ! -d "${HOME}/rpmbuild" ]; then
     mkdir -p ${HOME}/rpmbuild/SOURCES

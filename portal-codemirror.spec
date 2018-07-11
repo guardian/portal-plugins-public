@@ -17,7 +17,7 @@ Vendor: https://codemirror.net/
 Requires: Portal
 
 %description
-The Codemirror javascript widget,
+The Codemirror javascript widget, packaged for Cantemo Portal
 
 %prep
 

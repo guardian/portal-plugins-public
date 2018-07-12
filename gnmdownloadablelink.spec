@@ -14,7 +14,7 @@ BuildRoot: %{_tmppath}/gnmdownloadablelink
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: Andy Gallagher <andy.gallagher@theguardian.com>
-Requires: Portal >= 3.0.0 pluto >= 3.0-697 gnmvidispine-portal >= 1.9-83
+Requires: Portal >= 3.0.0 pluto >= 3.0-697 gnmvidispine-portal >= 1.9-83 portal-fontawesome >= 4.7.0-1
 
 %description
 Simple sharing of media by creating a publically available link

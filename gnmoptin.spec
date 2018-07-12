@@ -15,7 +15,7 @@ BuildRoot: %{_tmppath}/gnmoptin
 Prefix: %{_prefix}
 BuildArch: noarch
 Vendor: David Allison <david.allison@theguardian.com> and Andy Gallagher <andy.gallagher@theguardian.com>
-Requires: Portal
+Requires: Portal portal-fontawesome >= 4.7.0-1
 
 %description
 Allows users to opt in and out of optional features

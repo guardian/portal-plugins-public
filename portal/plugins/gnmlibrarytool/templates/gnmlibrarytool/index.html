@@ -22,8 +22,9 @@
 <script type="text/javascript" src="{% static "js/chartjs/Lib/js/globalize.min.js" %}"></script>
 <script type="text/javascript" src="{% static "js/chartjs/Lib/js/dx.chartjs.js" %}"></script>
 <script type="text/javascript" src='{% static "js/jquery.cookie.js" %}'></script>
-<script src='{% static "gnmlibrarytool/js/codemirror/lib/codemirror.js" %}'></script>
-<script src='{% static "gnmlibrarytool/js/codemirror/mode/xml/xml.js" %}'></script>
+<script src='{% static "js/codemirror/lib/codemirror.js" %}'></script>
+<script src='{% static "js/codemirror/mode/xml/xml.js" %}'></script>
+<script src='{% static "js/vkbeautify.min.js" %}'></script>
 
 <script language="JavaScript">
 var selector_page_size=15;
@@ -251,8 +252,8 @@ function save_storage_rule()
     var csrftoken = $.cookie('csrftoken');
 
     //ensure that the form gets the current value from Codemirror
-    $('#id_storage_rule_definition').val(storage_rule_editor.getValue());
-
+    $('#id_storage_rule_definition').val(vkbeautify.xmlmin(storage_rule_editor.getValue()));
+    $('#id_search_definition').val(vkbeautify.xmlmin(search_def_editor.getValue()));
     console.log(form.serialize());
     $.ajax('/gnmlibrarytool/endpoint/savestorage',{
         headers: {
@@ -282,7 +283,7 @@ function delete_storage_rule()
     var csrftoken = $.cookie('csrftoken');
 
     //ensure that the form gets the current value from Codemirror
-    $('#id_storage_rule_definition').val(storage_rule_editor.getValue());
+    $('#id_storage_rule_definition').val(vkbeautify.xmlmin(storage_rule_editor.getValue()));
 
     console.log(form.serialize());
     $.ajax('/gnmlibrarytool/endpoint/deletestorage',{
@@ -311,14 +312,16 @@ $(document).ready(function() {
     populate_library_selector();
     var id_search_definition = document.getElementById('id_search_definition');
     if(id_search_definition){
-        var search_def_editor = CodeMirror.fromTextArea(id_search_definition, {
+        id_search_definition.value = vkbeautify.xml(id_search_definition.value);
+        search_def_editor = CodeMirror.fromTextArea(id_search_definition, {
             lineNumbers: true,
             lineWrapping: true
         });
     }
     var id_storage_rule_definition = document.getElementById('id_storage_rule_definition');
     if(id_storage_rule_definition){
-         var storage_rule_editor = CodeMirror.fromTextArea(id_storage_rule_definition, {
+        id_storage_rule_definition.value = vkbeautify.xml(id_storage_rule_definition.value);
+        storage_rule_editor = CodeMirror.fromTextArea(id_storage_rule_definition, {
             lineNumbers: true,
             lineWrapping: true
         });

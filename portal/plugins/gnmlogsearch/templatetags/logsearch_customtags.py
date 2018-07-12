@@ -72,7 +72,7 @@ def jobStatusFormatter(value):
 def jobTypeFormatter(value):
     import re
 
-    iconpath = '/sitemedia/img/logsearch/'
+    iconpath = '/sitemedia/gnmlogsearch/'
     icon = ""
 
     if re.match(r'^DELETE',value):

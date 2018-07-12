@@ -82,9 +82,6 @@ class ConfigAlertsView(ListView):
                 record = StorageData.objects.get(storage_id=val['name'])
                 ctx['map'][n]['triggerSize'] = int(record.trigger_size)
             except ObjectDoesNotExist as e:
-                log.error(traceback.format_exc())
-                if raven_client is not None:
-                    raven_client.captureException()
                 ctx['map'][n]['triggerSize'] = 0
             except StandardError as e:
                 log.error(traceback.format_exc())

@@ -218,6 +218,9 @@ def check_storage(celery_app=None):
                     log.warning("Received {0} error trying to contact pagerduty. Trying again after {1} seconds...".format(e.code,delay_time))
                     sleep(delay_time)
                     delay_time*=2
+                else:
+                    log.error(unicode(e))
+                    raise
 
     if len(storages_below_thresold)==0:
         return "No storages are under their thresholds."

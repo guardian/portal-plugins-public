@@ -112,6 +112,8 @@ jobs:
     - run: ./upload_with_hash.sh ${HOME}/rpmbuild/RPMS/noarch/portal-knockout-3.3.0-1.noarch.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins/static/portal-knockout-3.3.0-1.noarch.rpm
     - run: rpmbuild -bb portal-vkbeautify.spec
     - run: ./upload_with_hash.sh ${HOME}/rpmbuild/RPMS/noarch/portal-vkbeautify-0.99.0-1.noarch.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins/static/portal-vkbeautify-0.99.0-1.noarch.rpm
+    - run: rpmbuild -bb portal-fontawesome.spec
+    - run: ./upload_with_hash.sh ${HOME}/rpmbuild/RPMS/noarch/portal-fontawesome-4.7.0-1.noarch.rpm s3://gnm-multimedia-deployables/gnm_portal_plugins/static/portal-fontawesome-4.7.0-1.noarch.rpm
 
 workflows:
   version: 2

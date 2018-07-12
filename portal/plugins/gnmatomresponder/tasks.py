@@ -62,27 +62,27 @@ def delete_from_s3(conn, record):
         return False
 
 
-@periodic_task(run_every=crontab(minute=31))
-def cleanup_s3_files():
-    """
-    Scheduled task to delete the original media for successfully imported jobs
-    :return:
-    """
-    from models import ImportJob
-    from master_importer import S3Mixin
-    s3_connector = S3Mixin(settings.ATOM_RESPONDER_ROLE_NAME, "AutoDeleteSession")
-
-    qs = ImportJob.objects\
-        .filter(Q(status='FINISHED') | Q(status='FINISHED_WARNING'))\
-        .filter(completed_at__lte=datetime.now()-timedelta(days=1))
-
-    conn = s3_connector.get_s3_connection()
-    logger.info("Removing {0} job files from s3 bucket".format(qs.count()))
-    results = map(lambda record: delete_from_s3(conn, record), qs)
-
-    succeeded = len(filter(lambda result: result, results))
-    failed = len(filter(lambda result: not result, results))
-    logger.info("Cleanup completed, removed {0} files, {1} failed".format(succeeded, failed))
+# @periodic_task(run_every=crontab(minute=31))
+# def cleanup_s3_files():
+#     """
+#     Scheduled task to delete the original media for successfully imported jobs
+#     :return:
+#     """
+#     from models import ImportJob
+#     from master_importer import S3Mixin
+#     s3_connector = S3Mixin(settings.ATOM_RESPONDER_ROLE_NAME, "AutoDeleteSession")
+#
+#     qs = ImportJob.objects\
+#         .filter(Q(status='FINISHED') | Q(status='FINISHED_WARNING'))\
+#         .filter(completed_at__lte=datetime.now()-timedelta(days=1))
+#
+#     conn = s3_connector.get_s3_connection()
+#     logger.info("Removing {0} job files from s3 bucket".format(qs.count()))
+#     results = map(lambda record: delete_from_s3(conn, record), qs)
+#
+#     succeeded = len(filter(lambda result: result, results))
+#     failed = len(filter(lambda result: not result, results))
+#     logger.info("Cleanup completed, removed {0} files, {1} failed".format(succeeded, failed))
 
 
 @periodic_task(run_every=crontab(minute=45))

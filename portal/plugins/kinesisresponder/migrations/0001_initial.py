@@ -21,7 +21,7 @@ class Migration(SchemaMigration):
             ('created', self.gf('django.db.models.fields.DateTimeField')()),
             ('updated', self.gf('django.db.models.fields.DateTimeField')()),
         ))
-        db.send_create_signal('portal.plugins.kinesisresponder', ['KinesisTracker'])
+        db.send_create_signal('kinesisresponder', ['KinesisTracker'])
 
 
     def backwards(self, orm):
@@ -45,4 +45,4 @@ class Migration(SchemaMigration):
         }
     }
 
-    complete_apps = ['portal.plugins.kinesisresponder']
+    complete_apps = ['kinesisresponder']

@@ -30,7 +30,8 @@ try:
     raven_client = raven.Client(settings.RAVEN_CONFIG['dsn'])
 except ImportError:
     logger.error("Raven client not installed - can't log errors to Sentry")
-except KeyError:
+except Exception as e:
+    logger.error(str(e))
     logger.error("Raven is installed but RAVEN_CONFIG is not set up properly. Can't log errors to Sentry.")
     
     

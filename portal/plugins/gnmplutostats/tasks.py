@@ -24,6 +24,11 @@ def calculate_project_size(project_id=None):
     if project_id is not None and not id_validator.match(project_id):
         raise ValueError("{0} is not a valid vidispine id".format(project_id))
 
+    #check if we have been disabled and if so just abort
+    if not getattr(settings,"GNMPLUTOSTATS_PROJECT_SCAN_ENABLED",False):
+        logger.warning("Scan project {0}: Project scanning has been disabled, exiting".format(project_id))
+        return
+
     from projectsizer import update_project_size
     if project_id is not None:
         receipt = ProjectScanReceipt.objects.get(project_id=project_id)

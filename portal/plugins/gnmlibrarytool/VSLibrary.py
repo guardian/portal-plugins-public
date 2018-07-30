@@ -164,6 +164,7 @@ class VSLibrary(VSApi):
         self._document = None
         self._settings = None
         self._storagerule = None
+        self._access = None
 
     def get_hits(self, vsid):
         """
@@ -240,6 +241,7 @@ class VSLibrary(VSApi):
             self._document = self._cache.get("portal.plugins.gnmlibrarytool:{0}:document".format(vsid))
             self._settings = self._cache.get("portal.plugins.gnmlibrarytool:{0}:settings".format(vsid))
             self._storagerule = self._cache.get("portal.plugins.gnmlibrarytool:{0}:storagerule".format(vsid))
+            self._access = self._cache.get("portal.plugins.gnmlibrarytool:{0}:access".format(vsid))
 
         if self._document is None:
             self._document = self.request("library/{0}".format(vsid))
@@ -247,6 +249,9 @@ class VSLibrary(VSApi):
         if self._settings is None:
             self._settings = self.request("library/{0}/settings".format(vsid))
             if self._cache is not None: self._cache.set("portal.plugins.gnmlibrarytool:{0}:settings".format(vsid),self._settings,self.cache_timeout)
+        if self._access is None:
+            self._access = self.request("library/{0}/access".format(vsid))
+            if self._access is not None: self._cache.set("portal.plugins.gnmlibrarytool:{0}:access".format(vsid), self._access, self.cache_timeout)
         try:
             if self._storagerule is None:
                 self._storagerule = self.request("library/{0}/storage-rule".format(vsid))
@@ -447,3 +452,11 @@ class VSLibrary(VSApi):
         
         self._storagerule = self._stripwhitespace(to_set)
         self.cache_invalidate()
+
+    @property
+    def access(self):
+        """
+        Returns the string of the ACL definition
+        :return:
+        """
+        return self._access

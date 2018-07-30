@@ -19,6 +19,7 @@ class ConfigurationForm(Form):
     ])
     search_definition = CharField(max_length=65536,widget=Textarea())
     storage_rule_definition = CharField(max_length=65536, widget=Textarea())
+    access_rule_definition = CharField(max_length=65536, widget=Textarea())
 
     def __init__(self, lib, *args, **kwargs):
         from .VSLibrary import VSLibrary
@@ -50,7 +51,14 @@ class ConfigurationForm(Form):
                 initial['search_definition'] = ET.tostring(lib.query,encoding="UTF-8") #minidom.parseString(ET.tostring(lib.query,encoding="UTF-8")).toprettyxml()
             initial['storage_rule_definition'] = None
             try:
-                initial['storage_rule_definition'] = minidom.parseString(ET.tostring(lib.storagerule,encoding="UTF-8")).toprettyxml()
+                #we are now reformatting client-side
+                initial['storage_rule_definition'] = ET.tostring(lib.storagerule,encoding="UTF-8") #minidom.parseString(ET.tostring(lib.storagerule,encoding="UTF-8")).toprettyxml()
+            except StandardError as e:
+                logging.warning(e)
+
+            initial['access_rule_definition'] = None
+            try:
+                initial['access_rule_definition'] = ET.tostring(lib.access, encoding="UTF-8")
             except StandardError as e:
                 logging.warning(e)
 

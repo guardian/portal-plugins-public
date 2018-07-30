@@ -54,3 +54,24 @@ class GnmAtomResponderAdminPlugin(Plugin):
         return {'guid': self.plugin_guid, 'template': 'gnmatomresponder/navigation.html'}
 
 adminplug = GnmAtomResponderAdminPlugin()
+
+
+class GnmAtomResponderMasterPagePlugin(Plugin):
+    """ Adds a 'resync to atom' option to the Master page """
+    implements(IPluginBlock)
+
+    def __init__(self):
+        self.name = "pluto_guardian_master_extras_right"
+        self.plugin_guid = '22950FA4-45FB-4973-8993-9C3451E9CBB5'
+
+    def return_string(self, tagname, *args):
+        context=args[1]
+        master_id = context['master'].id
+        return {'guid': self.plugin_guid,
+                'template': 'gnmatomresponder/resync_widget.html',
+                'context': {
+
+                }
+                }
+
+insert = GnmAtomResponderMasterPagePlugin()

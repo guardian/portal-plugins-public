@@ -5,10 +5,34 @@ from django.core.management import execute_from_command_line
 from django.core.urlresolvers import reverse, reverse_lazy
 import os
 import django.test
+import json
+
+import portal.plugins.gnmatomresponder.tests.django_test_settings as django_test_settings
+
+os.environ["DJANGO_SETTINGS_MODULE"] = "portal.plugins.gnm_projects.tests.django_test_settings"
+if(os.path.exists(django_test_settings.DATABASES['default']['NAME'])):
+    os.unlink(django_test_settings.DATABASES['default']['NAME'])
 
 execute_from_command_line(['manage.py', 'syncdb', '--noinput'])
 execute_from_command_line(['manage.py', 'migrate', '--noinput'])
 execute_from_command_line(['manage.py', 'loaddata', 'fixtures/ImportJobs.yaml'])
+
+
+# Store original __import__
+orig_import = __import__
+
+### Patch up imports for  stuff that is not in this project
+models_mock = MagicMock()
+constants_mock = MagicMock()
+constants_mock.GNM_MASTERS_MEDIAATOM_ATOMID = "fake_media_atom_id"
+
+
+def import_mock(name, *args, **kwargs):
+    if name == 'portal.plugins.gnm_masters.models' or name=='gnm_masters.models':
+        return models_mock
+    elif name == 'portal.plugins.gnm_vidispine_utils.constants':
+        return constants_mock
+    return orig_import(name, *args, **kwargs)
 
 
 class TestAPIViews(APITestCase):
@@ -79,4 +103,33 @@ class TestAPIViews(APITestCase):
     #out how to mock it at the moment.
 
 
+class TestResyncToAtomApiView(APITestCase):
+    class MockResponse(object):
+        def __init__(self, status_code, json_dict):
+            self.status_code = status_code
+            self.json_dict = json_dict
+
+        def json(self):
+            return self.json_dict
+
+        def content(self):
+            return str(self.json_dict)
+
+    def test_resync_normal(self):
+        """
+        a request should trigger a resync
+        :return:
+        """
+        client = APIClient()
+
+        mock_master = MagicMock()
+        mock_master.get = MagicMock(return_value="09239f72-e0a5-4299-ba5e-ec18c27117b4")
+        with patch('__builtin__.__import__', side_effect=import_mock):
+            with patch('requests.put', return_value=self.MockResponse(200,{"some": "data","here":"now"})) as mock_put:
+                #with patch("portal.plugins.gnm_masters.models.VSMaster", return_value=mock_master):
+                models_mock.VSMaster = MagicMock(return_value=mock_master)
+                response = client.get(reverse_lazy("resync_to_atom", kwargs={"item_id":"VX-123"}))
+                self.assertEqual(response.status_code,200)
+                self.assertDictEqual(json.loads(response.content),{"some": "data","here":"now"})
+                mock_put.assert_called_once_with("https://launchdetector/update/09239f72-e0a5-4299-ba5e-ec18c27117b4")
 

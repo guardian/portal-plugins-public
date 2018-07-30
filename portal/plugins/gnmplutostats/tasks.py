@@ -146,6 +146,12 @@ def scan_category(category_name=""):
     """
     import traceback
     from categoryscanner import update_category_size
+
+    #check if we have been disabled and if so just abort
+    if not getattr(settings,"GNMPLUTOSTATS_CATEGORY_SCAN_ENABLED",True):
+        logger.warning("Scan category {0}: Category scanning has been disabled, exiting".format(category_name))
+        return
+
     try:
         logger.info("Starting scan of category {0}".format(category_name))
         result = update_category_size(category_name)

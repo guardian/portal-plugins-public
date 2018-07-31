@@ -1,9 +1,10 @@
 from django.views.generic import View, TemplateView
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, XMLRenderer
+from rest_framework.parsers import JSONParser
 from vsmixin import HttpError, VSMixin
 from models import LibraryNickname, LibraryNicknameSerializer, LibraryStorageRule
 import logging
@@ -623,3 +624,53 @@ def delete_rule(request, rule=None):
     lsrm.delete()
 
     return redirect('rules-list')
+
+
+class UpdateAccessView(APIView):
+    renderer_classes = (JSONRenderer, )
+    authentication_classes = (IsAdminUser, )
+    parser_classes = (JSONParser, )
+
+    def post(self, request, library_id):
+        import requests
+        from django.conf import settings
+
+        url = "{u}:{p}/API/library/{lib}/access".format(u=settings.VIDISPINE_URL,p=settings.VIDISPINE_PORT,lib=library_id)
+
+        if not 'newAccessRule' in request.DATA:
+            return Response({'status': 'invalid data', 'message': "Incorrect request sent"}, status=400)
+
+        try:
+            response = requests.put(url,
+                                    headers={'runas': request.user.username},
+                                    auth=(settings.VIDISPINE_USERNAME, settings.VIDISPINE_PASSWORD),
+                                    data=request.DATA['newAccessRule'])
+
+            if response.status_code==200:
+                return Response({'status': 'ok', 'message': "ACL saved", 'updatedAcl': response.text})
+            else:
+                return Response({'status': 'error', 'vidispine_status': response.status_code,
+                                 'message': "Vidispine said {0}".format(response.status_code),
+                                 'vidispine_response': format(response.text)}, status=500)
+        except Exception as e:
+            return Response({'status': 'error', 'message': str(e)}, status=500)
+
+    def delete(self, request, library_id):
+        import requests
+        from django.conf import settings
+
+        url = "{u}:{p}/API/library/{lib}/access".format(u=settings.VIDISPINE_URL,p=settings.VIDISPINE_PORT,lib=library_id)
+
+        try:
+            response = requests.delete(url,
+                                    headers={'runas': request.user.username},
+                                    auth=(settings.VIDISPINE_USERNAME, settings.VIDISPINE_PASSWORD))
+
+            if response.status_code==201 or response.status_code==200:
+                return Response({'status': 'ok', 'message': "ACL deleted"})
+            else:
+                return Response({'status': 'error', 'vidispine_status': response.status_code,
+                                 'message': "Vidispine said {0}".format(response.status_code),
+                                 'vidispine_response': format(response.text)}, status=500)
+        except Exception as e:
+            return Response({'status': 'error', 'message': str(e)}, status=500)

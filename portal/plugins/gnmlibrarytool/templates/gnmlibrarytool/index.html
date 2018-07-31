@@ -206,16 +206,14 @@ function create_new_library()
     .success(function(data){
         $('#newlibrary_button').show();
         $('#newlibrary_throbber').hide();
-        $('#newlibrary_result').html('Created new library <a href="/gnmlibrarytool/' + data['vsid'] + '">'+data['vsid']+'</a>');
-        $('#newlibrary_result').show();
+        $('#newlibrary_result').html('Created new library <a href="/gnmlibrarytool/' + data['vsid'] + '">'+data['vsid']+'</a>').show();
         console.log(data)
         //window.location.href="/gnmlibrarytool/" + data['vsid'];
     })
     .fail(function(jqXHR, textStatus, errorThrown){
         $('#newlibrary_button').show();
         $('#newlibrary_throbber').hide();
-        $('#newlibrary_result').html(textStatus + ': ' + errorThrown);
-        $('#newlibrary_result').show();
+        $('#newlibrary_result').html(textStatus + ': ' + errorThrown).show();
     });
 }
 
@@ -238,12 +236,82 @@ function delete_library()
     .fail(function(jqXHR, textStatus, errorThrown){
         $('#delete_button').show();
         if(jqXHR.responseJSON){
-            $('#configuration_form_error').html(jqXHR.responseJSON['message']);
+            $('#configuration_form_error').html(jqXHR.responseJSON['message']).show();
         } else {
-            $('#configuration_form_error').html(textStatus + ': ' + errorThrown);
+            $('#configuration_form_error').html(textStatus + ': ' + errorThrown).show();
         }
-        $('#configuration_form_error').show();
     });
+}
+
+/**
+ * Asks the server to update the ACL to the new value
+ */
+function save_access_rule()
+{
+    var csrftoken = $.cookie('csrftoken');
+    var dataToSend = JSON.stringify({
+        newAccessRule: vkbeautify.xmlmin(access_rule_editor.getValue())
+    });
+    console.log(dataToSend);
+
+    $.ajax('/gnmlibrarytool/endpoint/'+ $('#id_library_id').val() + '/saveaccess',{
+        headers: {
+            'X-CSRFToken': csrftoken
+        },
+        contentType: 'application/json',
+        data: dataToSend,
+        method: "POST"
+    }).success(function(updatedData){
+        access_rule_editor.setValue(vkbeautify.xml(updatedData.updatedAcl));
+        $('#configuration_form_error').html("Successfully saved access rules").show();
+    }).fail(function(jqXHR, textStatus, errorThrown){
+        if(jqXHR.responseJSON){
+            $('#configuration_form_error').html(jqXHR.responseJSON['message']).show();
+        } else {
+            $('#configuration_form_error').html(textStatus + ': ' + errorThrown).show();
+        }
+    })
+}
+
+/**
+ * loads current value of the ACL from server and updates the `access_rule_editor`
+ */
+function update_access_rule_display() {
+    $.ajax('/gnmlibrarytool/endpoint/' + $('#id_library_id').val() + '/access')
+        .success(function(updatedData){
+            access_rule_editor.setValue(vkbeautify.xml(updatedData));
+        })
+        .fail(function(jqXHR, textStatus, errorThrown){
+            if(jqXHR.responseJSON){
+                $('#configuration_form_error').html(jqXHR.responseJSON['message']).show();
+            } else {
+                $('#configuration_form_error').html(textStatus + ': ' + errorThrown).show();
+            }
+        })
+}
+
+/**
+ * asks the server to delete the current ACL
+ */
+function delete_access_rule()
+{
+    var csrftoken = $.cookie('csrftoken');
+
+    $.ajax('/gnmlibrarytool/endpoint/'+ $('#id_library_id').val() + '/saveaccess',{
+        headers: {
+            'X-CSRFToken': csrftoken
+        },
+        method: "DELETE"
+    }).success(function(data){
+        update_access_rule_display();
+        $('#configuration_form_error').html("Successfully deleted access rules").show();
+    }).fail(function(jqXHR, textStatus, errorThrown){
+        if(jqXHR.responseJSON){
+            $('#configuration_form_error').html(jqXHR.responseJSON['message']).show();
+        } else {
+            $('#configuration_form_error').html(textStatus + ': ' + errorThrown).show();
+        }
+    })
 }
 
 function save_storage_rule()
@@ -263,17 +331,15 @@ function save_storage_rule()
         method: "POST"
     })
     .success(function(data){
-        $('#configuration_form_error').html("Successfully saved storage rules");
-        $('#configuration_form_error').show();
+        $('#configuration_form_error').html("Successfully saved storage rules").show();
     })
     .fail(function(jqXHR, textStatus, errorThrown){
         $('#delete_button').show();
         if(jqXHR.responseJSON){
-            $('#configuration_form_error').html(jqXHR.responseJSON['message']);
+            $('#configuration_form_error').html(jqXHR.responseJSON['message']).show();
         } else {
-            $('#configuration_form_error').html(textStatus + ': ' + errorThrown);
+            $('#configuration_form_error').html(textStatus + ': ' + errorThrown).show();
         }
-        $('#configuration_form_error').show();
     });
 }
 
@@ -322,6 +388,14 @@ $(document).ready(function() {
     if(id_storage_rule_definition){
         id_storage_rule_definition.value = vkbeautify.xml(id_storage_rule_definition.value);
         storage_rule_editor = CodeMirror.fromTextArea(id_storage_rule_definition, {
+            lineNumbers: true,
+            lineWrapping: true
+        });
+    }
+    var id_access_rule_definition = document.getElementById('id_access_rule_definition');
+    if(id_access_rule_definition){
+        id_access_rule_definition.value = vkbeautify.xml(id_access_rule_definition.value);
+        access_rule_editor = CodeMirror.fromTextArea(id_access_rule_definition, {
             lineNumbers: true,
             lineWrapping: true
         });
@@ -439,7 +513,12 @@ $(document).ready(function() {
                     </td><td>
                     {{ configuration_form.storage_rule_definition }}
                 </td></tr>
-                <
+                <tr><td>
+                    {{  configuration_form.access_rule_definition.errors }}
+                    <label for="id_access_rule_definition">Access rules definition</label>
+                </td><td>
+                    {{ configuration_form.access_rule_definition }}
+                </td></tr>
                 </table>
             </form>
             {% endif %}

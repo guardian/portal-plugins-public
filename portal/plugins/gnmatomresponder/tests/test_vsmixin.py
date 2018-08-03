@@ -21,27 +21,53 @@ class TestVsMixin(django.test.TestCase):
 
     def test_get_item_for_atomid(self):
         """
-        get_item_for_atomid should make a search for the provided atom id
+        get_item_for_atomid should look up  atom id as an external ID
         :return:
         """
         from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
 
         mock_item = MagicMock(target=VSItem)
-        mock_search = MagicMock(target=VSItemSearch)
-        mock_search.addCriterion = MagicMock()
-        mock_search.execute = MagicMock(return_value=self.MockSearchResult([mock_item]))
+
         with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
-            with patch('portal.plugins.gnmatomresponder.vs_mixin.VSItemSearch', return_value = mock_search):
+            with patch('portal.plugins.gnmatomresponder.vs_mixin.VSItem', return_value = mock_item):
 
                 r = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
                 mock_refresh_creds.assert_called_once()
 
                 result = r.get_item_for_atomid("f6ba9036-3f53-4850-9c75-fe3bcfbae4b2")
-                mock_search.addCriterion.assert_called_once_with(
-                    {'gnm_master_mediaatom_atomid': "f6ba9036-3f53-4850-9c75-fe3bcfbae4b2",
-                     'gnm_type': 'Master'}
-                )
+                mock_item.populate.assert_called_once_with("f6ba9036-3f53-4850-9c75-fe3bcfbae4b2")
 
+                self.assertEqual(result, mock_item)
+
+    def test_get_item_for_atomid_idnotfound(self):
+        """
+        get_item_for_atomid should make a search for the provided atom id if it is not found as an external ID
+        :return:
+        """
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+        from gnmvidispine.vidispine_api import VSNotFound
+        from mock import call
+
+        mock_item = MagicMock(target=VSItem)
+        mock_item.populate = MagicMock(side_effect=[VSNotFound,None])
+        mock_search = MagicMock(target=VSItemSearch)
+        mock_search.addCriterion = MagicMock()
+        mock_search.execute = MagicMock(return_value=self.MockSearchResult([mock_item]))
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
+            with patch('portal.plugins.gnmatomresponder.vs_mixin.VSItemSearch', return_value = mock_search):
+                with patch('portal.plugins.gnmatomresponder.vs_mixin.VSItem', return_value = mock_item):
+                    r = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+                    mock_refresh_creds.assert_called_once()
+
+                    result = r.get_item_for_atomid("f6ba9036-3f53-4850-9c75-fe3bcfbae4b2")
+                    mock_search.addCriterion.assert_called_once_with(
+                        {'gnm_master_mediaatom_atomid': "f6ba9036-3f53-4850-9c75-fe3bcfbae4b2",
+                         'gnm_type': 'Master'}
+                    )
+
+                    mock_item.populate.assert_has_calls([
+                        call("f6ba9036-3f53-4850-9c75-fe3bcfbae4b2"),
+                    ])
                 self.assertEqual(result, mock_item)
 
     def test_get_item_for_atomid_notfound(self):
@@ -50,20 +76,25 @@ class TestVsMixin(django.test.TestCase):
         :return:
         """
         from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+        from gnmvidispine.vidispine_api import VSNotFound
+
+        mock_item = MagicMock(target=VSItem)
+        mock_item.populate = MagicMock(side_effect=VSNotFound)
 
         mock_search = MagicMock(target=VSItemSearch)
         mock_search.addCriterion = MagicMock()
         mock_search.execute = MagicMock(return_value=self.MockSearchResult([]))
         with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
             with patch('portal.plugins.gnmatomresponder.vs_mixin.VSItemSearch', return_value = mock_search):
-                r = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
-                mock_refresh_creds.assert_called_once()
+                with patch('portal.plugins.gnmatomresponder.vs_mixin.VSItem', return_value = mock_item):
+                    r = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+                    mock_refresh_creds.assert_called_once()
 
-                result = r.get_item_for_atomid("f6ba9036-3f53-4850-9c75-fe3bcfbae4b2")
-                mock_search.addCriterion.assert_called_once_with(
-                    {'gnm_master_mediaatom_atomid': "f6ba9036-3f53-4850-9c75-fe3bcfbae4b2",
-                     'gnm_type': 'Master'}
-                )
+                    result = r.get_item_for_atomid("f6ba9036-3f53-4850-9c75-fe3bcfbae4b2")
+                    mock_search.addCriterion.assert_called_once_with(
+                        {'gnm_master_mediaatom_atomid': "f6ba9036-3f53-4850-9c75-fe3bcfbae4b2",
+                         'gnm_type': 'Master'}
+                    )
 
                 self.assertEqual(result, None)
 
@@ -73,24 +104,28 @@ class TestVsMixin(django.test.TestCase):
         :return:
         """
         from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+        from gnmvidispine.vidispine_api import VSNotFound
 
         mock_item = MagicMock(target=VSItem)
+        #populate is also called when we have found the item via vs search - hence second one succeeds
+        #test is only relevant if the initial lookup fails, as VS ensures that external IDs are unique
+        mock_item.populate = MagicMock(side_effect=[VSNotFound,None])
         mock_search = MagicMock(target=VSItemSearch)
         mock_search.addCriterion = MagicMock()
         mock_search.execute = MagicMock(return_value=self.MockSearchResult([mock_item, MagicMock(target=VSItem), MagicMock(target=VSItem)]))
         with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
             with patch('portal.plugins.gnmatomresponder.vs_mixin.VSItemSearch', return_value = mock_search):
+                with patch('portal.plugins.gnmatomresponder.vs_mixin.VSItem', return_value = mock_item):
+                    r = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+                    mock_refresh_creds.assert_called_once()
 
-                r = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
-                mock_refresh_creds.assert_called_once()
+                    result = r.get_item_for_atomid("f6ba9036-3f53-4850-9c75-fe3bcfbae4b2")
+                    mock_search.addCriterion.assert_called_once_with(
+                        {'gnm_master_mediaatom_atomid': "f6ba9036-3f53-4850-9c75-fe3bcfbae4b2",
+                         'gnm_type': 'Master'}
+                    )
 
-                result = r.get_item_for_atomid("f6ba9036-3f53-4850-9c75-fe3bcfbae4b2")
-                mock_search.addCriterion.assert_called_once_with(
-                    {'gnm_master_mediaatom_atomid': "f6ba9036-3f53-4850-9c75-fe3bcfbae4b2",
-                     'gnm_type': 'Master'}
-                )
-
-                self.assertEqual(result, mock_item)
+                    self.assertEqual(result, mock_item)
 
     def test_set_project_fields_for_master(self):
         """
@@ -169,6 +204,7 @@ class TestVsMixin(django.test.TestCase):
                      'gnm_master_mediaatom_uploaded_by': 'joe.bloggs@mydomain.com'
                      }, group='Asset'
                 )
+                mock_item.add_external_id.assert_called_once_with("f6ba9036-3f53-4850-9c75-fe3bcfbae4b2")
 
     def test_get_collection_for_projectid(self):
         from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder

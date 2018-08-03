@@ -79,6 +79,7 @@ class VSMixin(object):
             })
 
         item.createPlaceholder(metadata, group='Asset')
+        item.add_external_id(atomid)
         return item
 
     @staticmethod

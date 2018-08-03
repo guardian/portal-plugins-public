@@ -15,6 +15,12 @@ class Command(KinesisResponderBaseCommand):
 
     def handle(self, *args, **options):
         from portal.plugins.gnmatomresponder.notification import find_notification, create_notification
+        from portal.plugins.kinesisresponder.sentry import inform_sentry_exception
+        import traceback
+        import xml.etree.cElementTree as ET
+        from gnmvidispine.vs_external_id import ExternalIdNamespace
+        from gnmvidispine.vidispine_api import VSNotFound
+
         notification_uri = find_notification()
         if notification_uri is None:
             logger.info("Callback notification not present in Vidispine. Installing...")
@@ -23,6 +29,21 @@ class Command(KinesisResponderBaseCommand):
             if notification_uri is None:
                 raise RuntimeError("Unable to install notification into Vidispine")
         logger.info("Notification URI is at {0}".format(notification_uri))
+
+        #ensure that the namespace for our external IDs is present. If not, create it.
+        #this is to make it simple for LaunchDetector to look up items by atom ID
+        extid_namespace = ExternalIdNamespace(url=settings.VIDISPINE_URL,port=settings.VIDISPINE_PORT,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+        try:
+            extid_namespace.populate("atom_uuid")
+            logger.info("Found external id namespace atom_uuid")
+        except VSNotFound:
+            try:
+                extid_namespace.create("atom_uuid","[A-Fa-f0-9]{8}\-[A-Fa-f0-9]{4}\-[A-Fa-f0-9]{4}\-[A-Fa-f0-9]{4}\-[A-Fa-f0-9]{12}")
+                logger.info("Created new external id namespace atom_uuid")
+            except Exception as e:
+                logger.error(traceback.format_exc())
+                inform_sentry_exception(extra_ctx={'namespace_source': ET.tostring(extid_namespace._xmldoc, encoding="UTF-8")})
+                raise
 
         newoptions = options.copy()
         newoptions.update({

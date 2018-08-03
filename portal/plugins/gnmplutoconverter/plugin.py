@@ -67,7 +67,7 @@ class PlutoConverterGenericGearboxPlugin(Plugin):
             print u"{0}: {1}".format(e.__class__.__name__,e.message)
             print format_exc()
 
-        print "PlutoConverterGearboxPlugin: tagname {0}".format(tagname)
+        #print "PlutoConverterGearboxPlugin: tagname {0}".format(tagname)
         return {
             'guid': self.plugin_guid,
             'template': 'gnmplutoconverter/navigation.html',

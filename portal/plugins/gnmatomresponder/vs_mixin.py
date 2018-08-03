@@ -1,5 +1,6 @@
 from gnmvidispine.vs_collection import VSCollection
 from gnmvidispine.vs_search import VSItemSearch
+from gnmvidispine.vs_item import VSItem, VSNotFound
 from django.conf import settings
 import logging
 import constants as const
@@ -19,19 +20,24 @@ class VSMixin(object):
         :param atomid:
         :return:
         """
-        s = VSItemSearch(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
-        s.addCriterion({const.GNM_MASTERS_MEDIAATOM_ATOMID: atomid, const.GNM_TYPE: 'Master'})
-        result = s.execute()
-        if result.totalItems==0:
-            return None
-        elif result.totalItems==1:
-            return result.results(shouldPopulate=True).next()
-        else:
-            resultList = map(lambda item: item, result.results(shouldPopulate=False))
-            potential_master_ids = map(lambda item: item.name, resultList)
-            logger.warning("Multiple masters returned for atom ID {0}: {1}. Using the first.".format(atomid, potential_master_ids))
-            resultList[0].populate(resultList[0].name)
-            return resultList[0]
+        try:
+            item = VSItem(url=settings.VIDISPINE_URL, user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+            item.populate(atomid)   #this will work if the item has an external id set to the atom id. this is done in `set_project_fields_for_master`
+            return item
+        except VSNotFound:
+            s = VSItemSearch(url=settings.VIDISPINE_URL,user=settings.VIDISPINE_USERNAME,passwd=settings.VIDISPINE_PASSWORD)
+            s.addCriterion({const.GNM_MASTERS_MEDIAATOM_ATOMID: atomid, const.GNM_TYPE: 'Master'})
+            result = s.execute()
+            if result.totalItems==0:
+                return None
+            elif result.totalItems==1:
+                return result.results(shouldPopulate=True).next()
+            else:
+                resultList = map(lambda item: item, result.results(shouldPopulate=False))
+                potential_master_ids = map(lambda item: item.name, resultList)
+                logger.warning("Multiple masters returned for atom ID {0}: {1}. Using the first.".format(atomid, potential_master_ids))
+                resultList[0].populate(resultList[0].name)
+                return resultList[0]
 
     @staticmethod
     def get_userid_for_email(email_address):

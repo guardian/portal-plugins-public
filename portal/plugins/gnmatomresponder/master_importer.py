@@ -62,12 +62,12 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         return project_collection
 
-    def update_pluto_record(self, item_id):
+    def update_pluto_record(self, item_id, project_id):
         import traceback
         try:
             from portal.plugins.gnm_masters.signals import master_external_update
 
-            master_external_update.send(sender=self.__class__, item_id=item_id)
+            master_external_update.send(sender=self.__class__, item_id=item_id, project_id=project_id)
         except ImportError as e:
             logger.error("Unable to signal master update: {0}".format(e))
         except Exception as e:
@@ -205,7 +205,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         master_item.set_metadata({const.GNM_ASSET_FILENAME: downloaded_path})
 
-        self.update_pluto_record(vs_item_id)
+        self.update_pluto_record(vs_item_id, parent.name)
         #make a note of the record. This is to link it up with Vidispine's response message.
         record = ImportJob(item_id=vs_item_id,
                            job_id=job_result.name,

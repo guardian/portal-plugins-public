@@ -281,4 +281,4 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         logger.info("Setting up project fields for {0}".format(master_item.name))
         self.set_project_fields_for_master(master_item,parent_project=new_project_ref)
         logger.info("Telling gnm_masters about updates for {0}".format(master_item.name))
-        self.update_pluto_record(master_item.name)
+        self.update_pluto_record(master_item.name, projectId)

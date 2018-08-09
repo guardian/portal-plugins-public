@@ -205,6 +205,13 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         master_item.set_metadata({const.GNM_ASSET_FILENAME: downloaded_path})
 
+        if parent is not None:
+            logger.info(u"{0}: Adding to collection {1}".format(vs_item_id, parent.name))
+            parent.addToCollection(master_item)
+            logger.info(u"{0}: Done".format(vs_item_id))
+        else:
+            logger.error(u"{0}: No parent collection specified for item!".format(vs_item_id))
+
         self.update_pluto_record(vs_item_id, parent.name)
         #make a note of the record. This is to link it up with Vidispine's response message.
         record = ImportJob(item_id=vs_item_id,
@@ -229,13 +236,6 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
             proc.link_to_item(pac_entry, master_item)
         except PacFormXml.DoesNotExist:
             logger.info(u"{n}: No PAC form information has yet arrived".format(n=vs_item_id))
-
-        if parent is not None:
-            logger.info(u"{0}: Adding to collection {1}".format(vs_item_id, parent.name))
-            parent.addToCollection(master_item)
-            logger.info(u"{0}: Done".format(vs_item_id))
-        else:
-            logger.error(u"{0}: No parent collection specified for item!".format(vs_item_id))
         
     def ingest_pac_xml(self, pac_xml_record):
         """

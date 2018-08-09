@@ -207,6 +207,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         if parent is not None:
             logger.info(u"{0}: Adding to collection {1}".format(vs_item_id, parent.name))
+            master_item.name = vs_item_id
             parent.addToCollection(master_item)
             logger.info(u"{0}: Done".format(vs_item_id))
         else:

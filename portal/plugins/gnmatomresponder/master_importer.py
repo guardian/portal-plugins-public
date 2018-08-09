@@ -194,19 +194,20 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         except UnicodeDecodeError:
             pass
 
+        vs_item_id = master_item.get("itemId")
         job_result = master_item.import_to_shape(uri=download_url,
                                                  essence=True,
                                                  shape_tag=getattr(settings,"ATOM_RESPONDER_SHAPE_TAG","lowres"),
                                                  priority=getattr(settings,"ATOM_RESPONDER_IMPORT_PRIORITY","HIGH"),
                                                  jobMetadata={'gnm_source': 'media_atom'},
                                                  )
-        logger.info(u"{0} Import job is at ID {1}".format(master_item.name, job_result.name))
+        logger.info(u"{0} Import job is at ID {1}".format(vs_item_id, job_result.name))
 
         master_item.set_metadata({const.GNM_ASSET_FILENAME: downloaded_path})
 
-        self.update_pluto_record(master_item.name)
+        self.update_pluto_record(vs_item_id)
         #make a note of the record. This is to link it up with Vidispine's response message.
-        record = ImportJob(item_id=master_item.name,
+        record = ImportJob(item_id=vs_item_id,
                            job_id=job_result.name,
                            status='STARTED',
                            started_at=datetime.now(),
@@ -217,24 +218,24 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         previous_attempt = record.previous_attempt()
         if previous_attempt:
             record.retry_number = previous_attempt.retry_number+1
-            logger.info(u"{0} Import job is retry number {1}".format(master_item.name, record.retry_number))
+            logger.info(u"{0} Import job is retry number {1}".format(vs_item_id, record.retry_number))
         record.save()
 
         try:
-            logger.info(u"{n}: Looking for PAC info that has been already registered".format(n=master_item.name))
+            logger.info(u"{n}: Looking for PAC info that has been already registered".format(n=vs_item_id))
             pac_entry = PacFormXml.objects.get(atom_id=content['atomId'])
-            logger.info(u"{n}: Found PAC form information at {0}".format(pac_entry.pacdata_url,n=master_item.name))
+            logger.info(u"{n}: Found PAC form information at {0}".format(pac_entry.pacdata_url,n=vs_item_id))
             proc = PacXmlProcessor(self.role_name, self.session_name)
             proc.link_to_item(pac_entry, master_item)
         except PacFormXml.DoesNotExist:
-            logger.info(u"{n}: No PAC form information has yet arrived".format(n=master_item.name))
+            logger.info(u"{n}: No PAC form information has yet arrived".format(n=vs_item_id))
 
         if parent is not None:
-            logger.info(u"{0}: Adding to collection {1}".format(master_item.name, parent.name))
+            logger.info(u"{0}: Adding to collection {1}".format(vs_item_id, parent.name))
             parent.addToCollection(master_item)
-            logger.info(u"{0}: Done".format(master_item.name))
+            logger.info(u"{0}: Done".format(vs_item_id))
         else:
-            logger.error(u"{0}: No parent collection specified for item!".format(master_item.name))
+            logger.error(u"{0}: No parent collection specified for item!".format(vs_item_id))
         
     def ingest_pac_xml(self, pac_xml_record):
         """

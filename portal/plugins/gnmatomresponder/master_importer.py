@@ -140,8 +140,8 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                 try:
                     request_atom_resend(content['atomId'], settings.ATOM_TOOL_HOST, settings.ATOM_TOOL_SECRET)
                 except HttpError as e:
-                    if e.code==404:
-                        if attempt>=10:
+                    if e.code == 404:
+                        if attempt >= 10:
                             logger.error("{0}: still nothing after 10 attempts. Giving up.".format(content['atomId']))
                             raise
                         logger.warning("{0}: Media atom tool responded with a 404 on attempt {1}: {2}. Retrying in 60s.".format(content['atomId'], attempt, e.content))

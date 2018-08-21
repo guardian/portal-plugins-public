@@ -289,6 +289,34 @@ class TestMasterImporter(django.test.TestCase):
             mock_collection.addToCollection.assert_called_once_with(mock_item)
             m.set_project_fields_for_master.assert_called_once_with(mock_item, parent_project=mock_collection)
 
+    def test_process_outofsync_project(self):
+        """
+        if a "project-assigned" message arrives and no media is available we should request a re-send from the atom tool.
+        :return:
+        """
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+        import portal.plugins.gnmatomresponder.constants as const
+        from portal.plugins.gnmatomresponder.media_atom import HttpError
+        import json
+        from django.conf import settings
+        from gnmvidispine.vs_item import VSItem
+
+        fake_message = json.dumps({
+            "type": const.MESSAGE_TYPE_PROJECT_ASSIGNED,
+            "atomId": "603CBB6C-A32D-4BD6-8053-CDEA99DC5406"
+        })
+
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials'):
+            with patch('portal.plugins.gnmatomresponder.media_atom.request_atom_resend') as mock_request_resend:
+                with patch('portal.plugins.gnmatomresponder.tasks.timed_request_resend') as mock_retry_task:
+                    m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+                    m.get_item_for_atomid = MagicMock(return_value=None)
+
+                    m.process(fake_message, 0)
+
+                    mock_request_resend.assert_called_once_with("603CBB6C-A32D-4BD6-8053-CDEA99DC5406", settings.ATOM_TOOL_HOST, settings.ATOM_TOOL_SECRET)
+                    mock_retry_task.apply_async.assert_not_called()
+
     def test_process_outofsync_project_nomedia(self):
         """
         if a "project-assigned" message arrives and no media is available we should request a re-send from the atom tool.
@@ -322,3 +350,38 @@ class TestMasterImporter(django.test.TestCase):
 
                     mock_request_resend.assert_called_once_with("603CBB6C-A32D-4BD6-8053-CDEA99DC5406", settings.ATOM_TOOL_HOST, settings.ATOM_TOOL_SECRET)
                     mock_retry_task.apply_async.assert_called_once_with(args=('{"atomId": "603CBB6C-A32D-4BD6-8053-CDEA99DC5406", "type": "project-assigned"}', 0), countdown=60, kwargs={'attempt': 1})
+
+    def test_process_outofsync_project_nomedia_giveup(self):
+        """
+        if a "project-assigned" message arrives and no media is available we should request a re-send from the atom tool.
+        if we have tried 10 times already just give up
+        :return:
+        """
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+        import portal.plugins.gnmatomresponder.constants as const
+        from portal.plugins.gnmatomresponder.media_atom import HttpError
+        import json
+        from django.conf import settings
+        from gnmvidispine.vs_item import VSItem
+
+        fake_message = json.dumps({
+            "type": const.MESSAGE_TYPE_PROJECT_ASSIGNED,
+            "atomId": "603CBB6C-A32D-4BD6-8053-CDEA99DC5406"
+        })
+
+        fake_response = json.dumps({
+            "status": "notfound",
+            "detail": "it's gone"
+        })
+
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials'):
+            with patch('portal.plugins.gnmatomresponder.media_atom.request_atom_resend', side_effect=HttpError("http:/test-uri", 404, fake_response, {}, {})) as mock_request_resend:
+                with patch('portal.plugins.gnmatomresponder.tasks.timed_request_resend') as mock_retry_task:
+                    m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+                    m.get_item_for_atomid = MagicMock(return_value=None)
+
+                    with self.assertRaises(HttpError):
+                        m.process(fake_message, 0, attempt=10)
+
+                    mock_request_resend.assert_called_once_with("603CBB6C-A32D-4BD6-8053-CDEA99DC5406", settings.ATOM_TOOL_HOST, settings.ATOM_TOOL_SECRET)
+                    mock_retry_task.apply_async.assert_not_called()

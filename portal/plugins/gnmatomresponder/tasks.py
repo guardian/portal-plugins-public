@@ -178,3 +178,24 @@ def timed_request_resend(atom_id):
         logger.error(e)
         inform_sentry_exception()
         raise
+
+
+@shared_task
+def timed_retry_process_message(record, approx_arrival, attempt=0):
+    """
+    task that can be used to retry an ingest if messages have arrived before content is available
+    :return:
+    """
+    from master_importer import MasterImportResponder
+    from management.commands.run_atom_responder import Command as AtomResponderCommand
+    import json
+
+    content = json.loads(record)
+    logger.info("{0}: starting timed retry".format(content['atomId']))
+    imp = MasterImportResponder(AtomResponderCommand.role_name, AtomResponderCommand.session_name,
+                                AtomResponderCommand.stream_name, "timed-resync",
+                                aws_access_key_id=settings.ATOM_RESPONDER_AWS_KEY_ID,
+                                aws_secret_access_key=settings.ATOM_RESPONDER_SECRET)
+
+    imp.process(record, approx_arrival, attempt=attempt)
+    logger.info("{0}: timed retry completed".format(content['atomId']))

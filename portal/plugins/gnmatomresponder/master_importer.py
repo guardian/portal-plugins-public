@@ -95,7 +95,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
             created = True
         return master_item, created
 
-    def process(self,record, approx_arrival):
+    def process(self,record, approx_arrival, attempt=0):
         """
         Process a message from the kinesis stream.  Each record is a JSON document which contains keys for atomId, s3Key,
         projectId.  This will find an item with the given atom ID or create a new one, get a signed download URL from
@@ -104,9 +104,11 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         when the job terminates.
         :param record: JSON document in the form of a string
         :param approx_arrival:
+        :param attempt: optional integer showing how many times this has been retried
         :return:
         """
-        from media_atom import request_atom_resend
+        from media_atom import request_atom_resend, HttpError
+        from tasks import timed_request_resend
         content = json.loads(record)
 
         logger.info(content)
@@ -128,15 +130,6 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
             logger.info("PAC form data message complete")
         elif content['type'] == const.MESSAGE_TYPE_PROJECT_ASSIGNED:
             logger.info("Got project (re-)assignment message: {0}".format(content))
-            # project_collection = self.get_project_collection(content)
-            # if 'title' in content:
-            #     atom_title = content['title']
-            # else:
-            #     atom_title = None
-            # if 'user' in content:
-            #     atom_user = content['user']
-            # else:
-            #     atom_user = None
 
             master_item = self.get_item_for_atomid(content['atomId'])
             if master_item is not None:
@@ -144,7 +137,20 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                 self.assign_atom_to_project(content['atomId'], content['commissionId'], content['projectId'], master_item)
             else:
                 logger.warning("No master item exists for atom {0}.  Requesting a re-send from media atom tool".format(content['atomId']))
-                request_atom_resend(content['atomId'], settings.ATOM_TOOL_HOST, settings.ATOM_TOOL_SECRET)
+                try:
+                    request_atom_resend(content['atomId'], settings.ATOM_TOOL_HOST, settings.ATOM_TOOL_SECRET)
+                except HttpError as e:
+                    if e.code == 404:
+                        if attempt >= 10:
+                            logger.error("{0}: still nothing after 10 attempts. Giving up.".format(content['atomId']))
+                            raise
+                        logger.warning("{0}: Media atom tool responded with a 404 on attempt {1}: {2}. Retrying in 60s.".format(content['atomId'], attempt, e.content))
+                        timed_request_resend.apply_async(args=(record, approx_arrival),
+                                                         kwargs={'attempt': attempt+1},
+                                                         countdown=60)
+                    else:
+                        logger.exception("{0}: Could not request resync".format(content['atomId']))
+
             logger.info("Project (re-)assignment complete")
         else:
             raise ValueError("Unrecognised message type: {0}".format(content['type']))

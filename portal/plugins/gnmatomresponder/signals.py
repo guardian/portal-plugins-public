@@ -7,6 +7,7 @@ if not 'CI' in os.environ:
     #this import at root level makes things tricky, but is necessary to support the sender= argument on the decorators
     #below.
     from portal.plugins.gnm_masters.tasks import update_pacdata
+    from portal.plugins.gnm_projects.signals import post_create_project, post_project_updated
 else:
     #dummy implementation for CI
     def update_pacdata():
@@ -71,3 +72,27 @@ def edl_import_revoked(request=None, signum=None, terminated=None, expired=None,
         logger.warning("PAC form import revoked on something not imported from atom tool")
     except Exception as e:
         logger.exception(str(e))
+
+
+@receiver(post_create_project)
+def handle_project_created(sender, project_model, **kwargs):
+    from media_atom import update_kinesis, MSG_PROJECT_CREATED, MSG_PROJECT_UPDATED
+
+    logger.info("Got project create notification from  {0}".format(sender))
+    try:
+        update_kinesis(project_model, MSG_PROJECT_CREATED)
+    except Exception as e:
+        logger.exception("Handling project create notification")
+        raise
+
+
+@receiver(post_project_updated)
+def handle_project_created(sender, project_model, **kwargs):
+    from media_atom import update_kinesis, MSG_PROJECT_CREATED, MSG_PROJECT_UPDATED
+
+    logger.info("Got project update notification from  {0}".format(sender))
+    try:
+        update_kinesis(project_model, MSG_PROJECT_UPDATED)
+    except Exception as e:
+        logger.exception("Handling project create notification")
+        raise

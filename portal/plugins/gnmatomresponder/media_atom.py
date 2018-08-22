@@ -109,9 +109,9 @@ def update_kinesis(project_model, message_type):
         'id': project_id,
         'title': project_model.gnm_project_headline,
         'status': project_model.gnm_project_status,
-        'commissionId': site_id + str(project_model.commission.collection_id),
+        'commissionId': site_id + "-" + str(project_model.commission.collection_id),
         'commissionTitle': project_model.commission.gnm_commission_title,
-        'productionOffice': None, #this is not used to my knowlege?
+        'productionOffice': "None", #this is not used to my knowlege?
         'created': project_model.created.isoformat()
     }
     logger.debug("{0}: Message is {1}".format(project_id, message_content))
@@ -119,5 +119,5 @@ def update_kinesis(project_model, message_type):
     kinesis_connection.put_record(
         stream_name=settings.MEDIA_ATOM_STREAM_NAME,
         data=json.dumps(message_content),
-        partition_key=project_model.collection_id)
+        partition_key=project_id)
     logger.info("{0}: Project update sent".format(project_id))

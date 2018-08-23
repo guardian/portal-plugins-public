@@ -3,6 +3,7 @@ from django.db import models
 #technically this does not belong here but it needs to be called late in every init, in order to register signals but import
 #from other modules' .tasks
 from .signals import *
+setup_signals()
 
 
 class ImportJob(models.Model):

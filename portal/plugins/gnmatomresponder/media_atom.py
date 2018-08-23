@@ -64,3 +64,60 @@ def request_atom_resend(atomid, host, secret):
         logger.debug(pformat(response.json()))
     else:
         raise HttpError(uri,response.status_code, response.text, headers, response.headers)
+
+MSG_PROJECT_CREATED = 'project-created'
+MSG_PROJECT_UPDATED = 'project-updated'
+
+
+def update_kinesis(project_model, message_type):
+    """
+    notifies media atom of a project update or create by pushing a message onto its kinesis stream.
+    the kinesis stream is indicated in settings.
+    :param project_model: ProjectModel instance that has been created/updated
+    :param message_type: either `media_atom.MSG_PROJECT_CREATED` or `media_atom.MSG_PROJECT_UPDATED`
+    :return:
+    """
+    from portal.plugins.gnm_vidispine_utils.vs_helpers import site_id
+    from boto import sts, kinesis
+    from django.conf import settings
+    import json, logging
+
+    SESSION_NAME = 'pluto-media-atom-integration'
+
+    project_id = site_id + "-" + str(project_model.collection_id)
+    logger.info("{0}: Project updated, notifying {1} via role {2}".format(project_id, settings.MEDIA_ATOM_STREAM_NAME, settings.MEDIA_ATOM_ROLE_ARN))
+
+    sts_connection = sts.STSConnection(
+        aws_access_key_id=settings.MEDIA_ATOM_AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.MEDIA_ATOM_AWS_SECRET_ACCESS_KEY)
+
+    assume_role_result = sts_connection.assume_role(
+        role_arn=settings.MEDIA_ATOM_ROLE_ARN,
+        role_session_name=SESSION_NAME)
+
+    credentials = assume_role_result.credentials
+
+    logger.debug("{0}: Got kinesis credentials".format(project_id))
+    kinesis_connection = kinesis.connect_to_region(
+        region_name='eu-west-1',
+        aws_access_key_id=credentials.access_key,
+        aws_secret_access_key=credentials.secret_key,
+        security_token=credentials.session_token)
+
+    message_content = {
+        'type': message_type,
+        'id': project_id,
+        'title': project_model.gnm_project_headline,
+        'status': project_model.gnm_project_status,
+        'commissionId': site_id + "-" + str(project_model.commission.collection_id),
+        'commissionTitle': project_model.commission.gnm_commission_title,
+        'productionOffice': "None", #this is not used to my knowlege?
+        'created': project_model.created.isoformat()
+    }
+    logger.debug("{0}: Message is {1}".format(project_id, message_content))
+
+    kinesis_connection.put_record(
+        stream_name=settings.MEDIA_ATOM_STREAM_NAME,
+        data=json.dumps(message_content),
+        partition_key=project_id)
+    logger.info("{0}: Project update sent".format(project_id))

@@ -71,3 +71,35 @@ def edl_import_revoked(request=None, signum=None, terminated=None, expired=None,
         logger.warning("PAC form import revoked on something not imported from atom tool")
     except Exception as e:
         logger.exception(str(e))
+
+
+def handle_project_created(sender, project_model, **kwargs):
+    from media_atom import update_kinesis, MSG_PROJECT_CREATED, MSG_PROJECT_UPDATED
+
+    logger.info("Got project create notification from  {0}".format(sender))
+    try:
+        update_kinesis(project_model, MSG_PROJECT_CREATED)
+    except Exception as e:
+        logger.exception("Handling project create notification")
+        raise
+
+
+def handle_project_updated(sender, project_model, **kwargs):
+    from media_atom import update_kinesis, MSG_PROJECT_CREATED, MSG_PROJECT_UPDATED
+
+    logger.info("Got project update notification from  {0}".format(sender))
+    try:
+        update_kinesis(project_model, MSG_PROJECT_UPDATED)
+    except Exception as e:
+        logger.exception("Handling project create notification")
+        raise
+
+def setup_signals():
+    """
+    called from models.py during intialisation to register our vs_project_saved signal handler.
+    :return:
+    """
+    if not 'CI' in os.environ:
+        from portal.plugins.gnm_projects.signals import post_create_project, post_project_updated
+        post_create_project.connect(handle_project_created, dispatch_uid='media-atom-notify-project-created')
+        post_project_updated.connect(handle_project_updated, dispatch_uid='media-atom-notify-project-updated')

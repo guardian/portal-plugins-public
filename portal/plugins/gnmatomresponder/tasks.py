@@ -171,9 +171,10 @@ def timed_request_resend(atom_id):
     from portal.plugins.kinesisresponder.sentry import inform_sentry_exception
 
     try:
-        logger.info("Requesting resend of atom {0}".format(atom_id))
-        request_atom_resend(atom_id, settings.ATOM_TOOL_HOST, settings.ATOM_TOOL_SECRET)
-        logger.info("Resend of atom {0} done".format(atom_id))
+        #logger.info("Requesting resend of atom {0}".format(atom_id))
+        #request_atom_resend(atom_id, settings.ATOM_TOOL_HOST, settings.ATOM_TOOL_SECRET)
+        #logger.info("Resend of atom {0} done".format(atom_id))
+        logger.error("timed_request_resend is currently disabled.")
     except Exception as e:
         logger.error(e)
         inform_sentry_exception()

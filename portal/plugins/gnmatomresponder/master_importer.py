@@ -188,8 +188,8 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         if importjob.processing == True:
             logger.info('Data for item {0} already being processed. Aborting.'.format(vs_item_id))
             inform_sentry_exception({
-                "master_item": master_item
-                "content": content.__dict__
+                "master_item": master_item,
+                "content": content.__dict__,
                 "parent": parent
             })
             return

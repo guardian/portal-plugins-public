@@ -199,6 +199,7 @@ def process_notification(notification):
     from models import ImportJob
     importjob = ImportJob.objects.get(job_id=notification.jobId)
     importjob.status = notification.status
+    importjob.processing = False
 
     if importjob.is_failed():
         handle_failed_job(importjob)

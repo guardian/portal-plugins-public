@@ -26,6 +26,7 @@ class ImportJob(models.Model):
     completed_at = models.DateTimeField(null=True)
     s3_path = models.CharField(max_length=2048, null=True)
     retry_number = models.IntegerField(default=0)
+    processing = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-started_at']

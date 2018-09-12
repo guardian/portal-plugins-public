@@ -179,6 +179,23 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         from pac_xml import PacXmlProcessor
         from mock import MagicMock
         if not isinstance(master_item, VSItem) and not isinstance(master_item, MagicMock): raise TypeError #for intellij
+        from portal.plugins.kinesisresponder.sentry import inform_sentry
+
+        vs_item_id = master_item.name
+
+        try:
+            importjob = ImportJob.objects.get(item_id=vs_item_id)
+        except ImportJob.DoesNotExist:
+            pass
+        else:
+            if importjob.processing == True:
+                logger.info('Data for item {0} already being processed. Aborting.'.format(vs_item_id))
+                inform_sentry('Data for item {0} already being processed. Aborting.'.format(vs_item_id), {
+                    "master_item": master_item,
+                    "content": content.__dict__,
+                    "parent": parent
+                })
+                return
 
         safe_title = content.get('title','(unknown title)').encode("UTF-8","backslashescape").decode("UTF-8")
 
@@ -200,7 +217,6 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         except UnicodeDecodeError:
             pass
 
-        vs_item_id = master_item.get("itemId")
         job_result = master_item.import_to_shape(uri=download_url,
                                                  essence=True,
                                                  shape_tag=getattr(settings,"ATOM_RESPONDER_SHAPE_TAG","lowres"),
@@ -228,7 +244,8 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
                            user_email=content.get('user',"Unknown user"),
                            atom_id=content['atomId'],
                            atom_title=content.get('title', "Unknown title"),
-                           s3_path=content['s3Key'])
+                           s3_path=content['s3Key'],
+                           processing=True)
         previous_attempt = record.previous_attempt()
         if previous_attempt:
             record.retry_number = previous_attempt.retry_number+1

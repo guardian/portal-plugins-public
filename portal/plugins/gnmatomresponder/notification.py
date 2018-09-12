@@ -200,6 +200,7 @@ def process_notification(notification):
     importjob = ImportJob.objects.get(job_id=notification.jobId)
     importjob.status = notification.status
     importjob.processing = False
+    importjob.save()
 
     if importjob.is_failed():
         handle_failed_job(importjob)

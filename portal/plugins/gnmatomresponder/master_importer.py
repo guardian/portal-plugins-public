@@ -179,18 +179,18 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         from pac_xml import PacXmlProcessor
         from mock import MagicMock
         if not isinstance(master_item, VSItem) and not isinstance(master_item, MagicMock): raise TypeError #for intellij
-        from portal.plugins.kinesisresponder.sentry import inform_sentry_exception
+        from portal.plugins.kinesisresponder.sentry import inform_sentry
 
         vs_item_id = master_item.get("itemId")
 
         try:
             importjob = ImportJob.objects.get(item_id=vs_item_id)
-        except:
+        except ImportJob.DoesNotExist:
             pass
         else:
             if importjob.processing == True:
                 logger.info('Data for item {0} already being processed. Aborting.'.format(vs_item_id))
-                inform_sentry_exception({
+                inform_sentry('Data for item {0} already being processed. Aborting.'.format(vs_item_id), {
                     "master_item": master_item,
                     "content": content.__dict__,
                     "parent": parent

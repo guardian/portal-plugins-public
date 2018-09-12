@@ -183,16 +183,19 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         vs_item_id = master_item.get("itemId")
 
-        importjob = ImportJob.objects.get(item_id=vs_item_id)
-
-        if importjob.processing == True:
-            logger.info('Data for item {0} already being processed. Aborting.'.format(vs_item_id))
-            inform_sentry_exception({
-                "master_item": master_item,
-                "content": content.__dict__,
-                "parent": parent
-            })
-            return
+        try:
+            importjob = ImportJob.objects.get(item_id=vs_item_id)
+        except:
+            pass
+        else:
+            if importjob.processing == True:
+                logger.info('Data for item {0} already being processed. Aborting.'.format(vs_item_id))
+                inform_sentry_exception({
+                    "master_item": master_item,
+                    "content": content.__dict__,
+                    "parent": parent
+                })
+                return
 
         safe_title = content.get('title','(unknown title)').encode("UTF-8","backslashescape").decode("UTF-8")
 

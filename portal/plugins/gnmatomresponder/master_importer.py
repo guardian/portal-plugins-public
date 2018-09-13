@@ -230,7 +230,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
             logger.info('Data for item {0} already processed. Aborting.'.format(vs_item_id))
             inform_sentry('Data for item {0} already processed. Aborting.'.format(vs_item_id), {
                 "master_item": master_item,
-                "content": content.__dict__,
+                "content": content,
                 "parent": parent
             })
             return
@@ -241,7 +241,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
             logger.info('Data for item {0} already being processed. Aborting.'.format(vs_item_id))
             inform_sentry('Data for item {0} already being processed. Aborting.'.format(vs_item_id), {
                 "master_item": master_item,
-                "content": content.__dict__,
+                "content": content,
                 "parent": parent
             })
             return

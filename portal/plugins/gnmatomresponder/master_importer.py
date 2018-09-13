@@ -198,6 +198,18 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         return False
 
+    def check_for_processing(self, vs_item_id):
+        from models import ImportJob
+
+        jobs = ImportJob.objects.filter(item_id=vs_item_id).filter(processing=True)
+
+        number = len(jobs)
+
+        if number > 0:
+            return True
+
+        return False
+
     def import_new_item(self, master_item, content, parent=None):
         from models import ImportJob, PacFormXml
         from pac_xml import PacXmlProcessor
@@ -223,19 +235,16 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
             })
             return
 
-        try:
-            importjob = ImportJob.objects.get(item_id=vs_item_id)
-        except ImportJob.DoesNotExist:
-            pass
-        else:
-            if importjob.processing == True:
-                logger.info('Data for item {0} already being processed. Aborting.'.format(vs_item_id))
-                inform_sentry('Data for item {0} already being processed. Aborting.'.format(vs_item_id), {
-                    "master_item": master_item,
-                    "content": content.__dict__,
-                    "parent": parent
-                })
-                return
+        processing_job = self.check_for_processing(vs_item_id)
+
+        if processing_job is True:
+            logger.info('Data for item {0} already being processed. Aborting.'.format(vs_item_id))
+            inform_sentry('Data for item {0} already being processed. Aborting.'.format(vs_item_id), {
+                "master_item": master_item,
+                "content": content.__dict__,
+                "parent": parent
+            })
+            return
 
         safe_title = content.get('title','(unknown title)').encode("UTF-8","backslashescape").decode("UTF-8")
 

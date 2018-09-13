@@ -181,7 +181,7 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         if not isinstance(master_item, VSItem) and not isinstance(master_item, MagicMock): raise TypeError #for intellij
         from portal.plugins.kinesisresponder.sentry import inform_sentry
 
-        vs_item_id = master_item.name
+        vs_item_id = master_item.get("itemId")
 
         try:
             importjob = ImportJob.objects.get(item_id=vs_item_id)

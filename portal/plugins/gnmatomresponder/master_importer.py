@@ -207,6 +207,9 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         vs_item_id = master_item.get("itemId")
 
+        if vs_item_id is None:
+            vs_item_id = master_item.name
+
         old_finished_jobs = self.check_for_old_finished_jobs(vs_item_id)
 
         old_key = self.check_key(content['s3Key'], vs_item_id)

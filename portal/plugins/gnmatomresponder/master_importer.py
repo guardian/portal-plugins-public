@@ -174,6 +174,30 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         record.save()
         return record
 
+    def check_for_old_finished_jobs(self, vs_item_id):
+        from models import ImportJob
+
+        jobs = ImportJob.objects.filter(item_id=vs_item_id).filter(status='FINISHED')
+
+        number = len(jobs)
+
+        if number > 0:
+            return True
+
+        return False
+
+    def check_key(self, key, vs_item_id):
+        from models import ImportJob
+
+        jobs = ImportJob.objects.filter(item_id=vs_item_id).filter(s3_path=key)
+
+        number = len(jobs)
+
+        if number > 0:
+            return True
+
+        return False
+
     def import_new_item(self, master_item, content, parent=None):
         from models import ImportJob, PacFormXml
         from pac_xml import PacXmlProcessor
@@ -182,6 +206,19 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         from portal.plugins.kinesisresponder.sentry import inform_sentry
 
         vs_item_id = master_item.name
+
+        old_finished_jobs = self.check_for_old_finished_jobs(vs_item_id)
+
+        old_key = self.check_key(content['s3Key'], vs_item_id)
+
+        if old_finished_jobs is True and old_key is True:
+            logger.info('Data for item {0} already processed. Aborting.'.format(vs_item_id))
+            inform_sentry('Data for item {0} already processed. Aborting.'.format(vs_item_id), {
+                "master_item": master_item,
+                "content": content.__dict__,
+                "parent": parent
+            })
+            return
 
         try:
             importjob = ImportJob.objects.get(item_id=vs_item_id)

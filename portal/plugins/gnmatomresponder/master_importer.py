@@ -183,6 +183,9 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         vs_item_id = master_item.get("itemId")
 
+        if vs_item_id is None:
+            vs_item_id = master_item.name
+
         try:
             importjob = ImportJob.objects.get(item_id=vs_item_id)
         except ImportJob.DoesNotExist:

@@ -14,6 +14,7 @@
     status: STARTED
     started_at: 2017-09-14T13:21:02Z
     atom_id: AFF32555-2EBD-455D-BAAA-74EF8BEE2877
+    processing: False
 - model: gnmatomresponder.importjob
   pk: 2
   fields:
@@ -46,3 +47,5 @@
     status: FINISHED
     started_at: 2017-01-14T13:21:02Z
     completed_at: 2017-01-14T13:48:00Z
+    s3_path: uploads/06636fe2-10f1-418f-b4df-91f5353931ac-3/complete
+    processing: True

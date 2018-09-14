@@ -179,36 +179,21 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
 
         jobs = ImportJob.objects.filter(item_id=vs_item_id).filter(status='FINISHED')
 
-        number = len(jobs)
-
-        if number > 0:
-            return True
-
-        return False
+        return len(jobs) > 0
 
     def check_key(self, key, vs_item_id):
         from models import ImportJob
 
         jobs = ImportJob.objects.filter(item_id=vs_item_id).filter(s3_path=key)
 
-        number = len(jobs)
-
-        if number > 0:
-            return True
-
-        return False
+        return len(jobs) > 0
 
     def check_for_processing(self, vs_item_id):
         from models import ImportJob
 
         jobs = ImportJob.objects.filter(item_id=vs_item_id).filter(processing=True)
 
-        number = len(jobs)
-
-        if number > 0:
-            return True
-
-        return False
+        return len(jobs) > 0
 
     def import_new_item(self, master_item, content, parent=None):
         from models import ImportJob, PacFormXml

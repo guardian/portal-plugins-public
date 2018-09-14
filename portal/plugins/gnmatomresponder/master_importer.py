@@ -177,23 +177,23 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
     def check_for_old_finished_jobs(self, vs_item_id):
         from models import ImportJob
 
-        jobs = ImportJob.objects.filter(item_id=vs_item_id).filter(status='FINISHED')
+        jobs = ImportJob.objects.filter(item_id=vs_item_id).filter(status='FINISHED').count()
 
-        return len(jobs) > 0
+        return jobs > 0
 
     def check_key(self, key, vs_item_id):
         from models import ImportJob
 
-        jobs = ImportJob.objects.filter(item_id=vs_item_id).filter(s3_path=key)
+        jobs = ImportJob.objects.filter(item_id=vs_item_id).filter(s3_path=key).count()
 
-        return len(jobs) > 0
+        return jobs > 0
 
     def check_for_processing(self, vs_item_id):
         from models import ImportJob
 
-        jobs = ImportJob.objects.filter(item_id=vs_item_id).filter(processing=True)
+        jobs = ImportJob.objects.filter(item_id=vs_item_id).filter(processing=True).count()
 
-        return len(jobs) > 0
+        return jobs > 0
 
     def import_new_item(self, master_item, content, parent=None):
         from models import ImportJob, PacFormXml
@@ -212,8 +212,8 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         old_key = self.check_key(content['s3Key'], vs_item_id)
 
         if old_finished_jobs is True and old_key is True:
-            logger.info('Data for item {0} already processed. Aborting.'.format(vs_item_id))
-            inform_sentry('Data for item {0} already processed. Aborting.'.format(vs_item_id), {
+            logger.info('A job for item {0} has already been successfully completed. Aborting.'.format(vs_item_id))
+            inform_sentry('A job for item {0} has already been successfully completed. Aborting.'.format(vs_item_id), {
                 "master_item": master_item,
                 "content": content,
                 "parent": parent
@@ -223,8 +223,8 @@ class MasterImportResponder(KinesisResponder, S3Mixin, VSMixin):
         processing_job = self.check_for_processing(vs_item_id)
 
         if processing_job is True:
-            logger.info('Data for item {0} already being processed. Aborting.'.format(vs_item_id))
-            inform_sentry('Data for item {0} already being processed. Aborting.'.format(vs_item_id), {
+            logger.info('Job for item {0} already in progress. Aborting.'.format(vs_item_id))
+            inform_sentry('Job for item {0} already in progress. Aborting.'.format(vs_item_id), {
                 "master_item": master_item,
                 "content": content,
                 "parent": parent

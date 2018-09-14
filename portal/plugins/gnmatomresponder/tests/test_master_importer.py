@@ -6,12 +6,14 @@ from django.core.management import execute_from_command_line
 
 execute_from_command_line(['manage.py', 'syncdb', '--noinput'])
 execute_from_command_line(['manage.py', 'migrate', '--noinput'])
+execute_from_command_line(['manage.py', 'loaddata', 'fixtures/ImportJobs.yaml'])
 execute_from_command_line(['manage.py', 'loaddata', 'fixtures/PacFormXml.yaml'])
 
 
 class TestMasterImporter(django.test.TestCase):
     fixtures = [
-        "PacFormXml"
+        'ImportJobs',
+        'PacFormXml'
     ]
 
     def test_register_pac_xml(self):
@@ -385,3 +387,75 @@ class TestMasterImporter(django.test.TestCase):
 
                     mock_request_resend.assert_called_once_with("603CBB6C-A32D-4BD6-8053-CDEA99DC5406", settings.ATOM_TOOL_HOST, settings.ATOM_TOOL_SECRET)
                     mock_retry_task.apply_async.assert_not_called()
+
+    def test_check_for_old_finished_jobs(self):
+        """
+        check_for_old_finished_jobs should return True if jobs with the status of 'FINISHED' are present for the item
+        :return:
+        """
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
+            m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+            old_finished_jobs = m.check_for_old_finished_jobs('VX-1')
+            self.assertEqual(old_finished_jobs, True)
+
+    def test_check_for_old_finished_jobs_false(self):
+        """
+        check_for_old_finished_jobs should return False if jobs with the status of 'FINISHED' are not present for the item
+        :return:
+        """
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
+            m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+            old_finished_jobs = m.check_for_old_finished_jobs('VX-99')
+            self.assertEqual(old_finished_jobs, False)
+
+    def test_check_key(self):
+        """
+        check_key should return True if jobs with the key are present for the item
+        :return:
+        """
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
+            m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+            old_key = m.check_key('uploads/06636fe2-10f1-418f-b4df-91f5353931ac-3/complete', 'VX-1')
+            self.assertEqual(old_key, True)
+
+    def test_check_key_false(self):
+        """
+        check_key should return False if jobs with the key are present not for the item
+        :return:
+        """
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
+            m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+            old_key = m.check_key('uploads/06636fe2-10f1-418f-b4df-91f5353931ae-3/complete', 'VX-1')
+            self.assertEqual(old_key, False)
+
+    def test_check_for_processing(self):
+        """
+        check_for_processing should return True if jobs with 'processing' set to True are present for the item
+        :return:
+        """
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
+            m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+            processing_job = m.check_for_processing('VX-1')
+            self.assertEqual(processing_job, True)
+
+    def test_check_for_processing_false(self):
+        """
+        check_for_processing should return False if jobs with 'processing' set to True are not present for the item
+        :return:
+        """
+        from portal.plugins.gnmatomresponder.master_importer import MasterImportResponder
+
+        with patch('portal.plugins.gnmatomresponder.master_importer.MasterImportResponder.refresh_access_credentials') as mock_refresh_creds:
+            m = MasterImportResponder("fake role", "fake session", "fake stream", "shard-00000")
+            processing_job = m.check_for_processing('VX-99')
+            self.assertEqual(processing_job, False)

@@ -7,11 +7,13 @@
         <![CDATA[
            from portal.plugins.gnmpropagation import tasks
            import logging
-           logger = logging.getLogger(__name__)
+           logger = logging.getLogger("portal.plugins.gnmpropagation.businesslogic")
            logger.info("Starting propagation from {0}".format(collectionId))
 
-           result = tasks.propagate.apply_async((collectionId, 'gnm_storage_rule_sensitive', gnm_storage_rule_sensitive, ), queue='propagator')
-           logger.info("Propagation task {0} scheduled".format(result))
+           #result = tasks.propagate.apply_async((collectionId, 'gnm_storage_rule_sensitive', gnm_storage_rule_sensitive, ), queue='propagator')
+           result = "NOT"
+           logger.info("Propagation task {0} scheduled for gnm_storage_rule_sensitive={1} on {2}".format(result, gnm_storage_rule_sensitive, collectionId))
+
         ]]>
     </rule>
 
@@ -21,11 +23,12 @@
         <![CDATA[
            from portal.plugins.gnmpropagation import tasks
            import logging
-           logger = logging.getLogger(__name__)
+           logger = logging.getLogger("portal.plugins.gnmpropagation.businesslogic")
            logger.info("Starting propagation from {0}".format(collectionId))
 
-           result = tasks.propagate.apply_async((collectionId, 'gnm_storage_rule_deletable', gnm_storage_rule_deletable, ), queue='propagator')
-           logger.info("Propagation task {0} scheduled".format(result))
+           #result = tasks.propagate.apply_async((collectionId, 'gnm_storage_rule_deletable', gnm_storage_rule_deletable, ), queue='propagator')
+           result = "NOT"
+           logger.info("Propagation task {0} scheduled for gnm_storage_rule_deletable={1} on {2}".format(result, gnm_storage_rule_deletable, collectionId))
         ]]>
     </rule>
 
@@ -34,11 +37,12 @@
         <![CDATA[
            from portal.plugins.gnmpropagation import tasks
            import logging
-           logger = logging.getLogger(__name__)
+           logger = logging.getLogger("portal.plugins.gnmpropagation.businesslogic")
            logger.info("Starting propagation from {0}".format(collectionId))
 
-           result = tasks.propagate.apply_async((collectionId, 'gnm_storage_rule_deep_archive', gnm_storage_rule_deep_archive, ), queue='propagator')
-           logger.info("Propagation task {0} scheduled".format(result))
+           #result = tasks.propagate.apply_async((collectionId, 'gnm_storage_rule_deep_archive', gnm_storage_rule_deep_archive, ), queue='propagator')
+           result = "NOT"
+           logger.info("Propagation task {0} scheduled for gnm_storage_rule_deep_archive={1} on {2}".format(result, gnm_storage_rule_deep_archive, collectionId))
         ]]>
     </rule>
 </rules>

@@ -20,7 +20,7 @@ class UnknownFieldError(StandardError):
 
 #see http://docs.celeryproject.org/en/latest/userguide/tasks.html
 #rate limit = 0.5 tasks per second, i.e. only start them every 2s.
-@celery.task(rate_limit=0.5,queue='propagator')
+@celery.task(queue='propagator')
 def propagate(collectionid,field,current_value):
     from gnmvidispine.vs_collection import VSCollection, VSItem
     import traceback

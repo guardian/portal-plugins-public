@@ -70,11 +70,13 @@ def propagate(collectionid,field,current_value):
         if subitem.get(field) != current_value:
             try:
                 subitem.set_metadata({field: current_value})
+                logger.info("value {f}={v} set on {0} {1}".format(type, subitem.name, f=field, v=current_value))
             except StandardError as e:
+                logger.error(str(e))
                 if raven_client is not None: raven_client.captureException()
-                raise
+        else:
+            logger.info("value {f} was already {v} on {0} {1}".format(type, subitem.name, f=field, v=current_value))
 
-        logger.info("value set on {0} {1}".format(type, subitem.name))
         n+=1
 
     logger.info("Propagation run completed for {0}.  Affected {1} items".format(collectionid, n))

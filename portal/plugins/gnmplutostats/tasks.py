@@ -146,7 +146,7 @@ def scan_category(category_name=""):
     """
     import traceback
     from categoryscanner import update_category_size
-
+    
     #check if we have been disabled and if so just abort
     if not getattr(settings,"GNMPLUTOSTATS_CATEGORY_SCAN_ENABLED",True):
         logger.warning("Scan category {0}: Category scanning has been disabled, exiting".format(category_name))
@@ -170,6 +170,10 @@ def trigger_category_sizing():
     scans the entire catalogue and aggregates by attached/unattached (to a collection)
     """
     from categoryscanner import find_categories
+    if not getattr(settings,"GNMPLUTOSTATS_CATEGORY_SCAN_ENABLED",False):
+        logger.error("GNMPLUTOSTATS_CATEGORY_SCAN_ENABLED is false, not going to trigger launching")
+        return "GNMPLUTOSTATS_CATEGORY_SCAN_ENABLED is false, not going to trigger launching"
+
     n=0
     logger.info("triggering category sizing for entire catalogue")
     for catname in find_categories():

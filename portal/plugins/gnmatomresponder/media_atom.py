@@ -111,7 +111,7 @@ def update_kinesis(project_model, message_type):
         'status': project_model.gnm_project_status,
         'commissionId': site_id + "-" + str(project_model.commission.collection_id),
         'commissionTitle': project_model.commission.gnm_commission_title,
-        'productionOffice': "None", #this is not used to my knowlege?
+        'productionOffice': project_model.gnm_project_production_office,
         'created': project_model.created.isoformat()
     }
     logger.debug("{0}: Message is {1}".format(project_id, message_content))

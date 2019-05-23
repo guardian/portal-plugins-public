@@ -381,7 +381,7 @@ def create_link_for_main(item_id, shape_tag, obfuscate=True, is_update=False):
 
     try:
         s3key = upload_to_s3(shaperef, filename=filename)
-        s3key.set_canned_acl("public-read")
+
     except NeedsRetry as e:
         #if it's still not present, call ourselves again in up to 30s time.
         create_link_for.apply_async((item_id, shape_tag), kwargs={'obfuscate': obfuscate, 'is_update': True},

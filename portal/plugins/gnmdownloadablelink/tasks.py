@@ -196,7 +196,9 @@ def multipart_upload_vsfile_to_s3(file_ref,filename,mime_type):
         mpUpload.abort()
         raise NeedsRetry
 
-    s3Object = mpUpload.Object()
+    s3Object = mpUpload.complete(MultipartUpload={
+        'Parts': parts_list
+    })  #this returns the s3.Object that has been created
 
     if int(s3Object.content_length) != int(file_ref.size):
         logger.error("Expected to upload {0} bytes but only uploaded {1}".format(file_ref.size, total_size))
@@ -205,9 +207,8 @@ def multipart_upload_vsfile_to_s3(file_ref,filename,mime_type):
 
     #this will give an S3ResponseError: Bad Request if no data was uploaded - https://github.com/boto/boto/issues/3536
     logger.info("{0} completed upload with {1} parts, expected {2}".format(filename, n, expected_parts))
-    return mpUpload.complete(MultipartUpload={
-        'Parts': parts_list
-    })  #this returns the s3.Object that has been created
+
+    return s3Object
 
 
 def upload_vsfile_to_s3(file_ref,filename,mime_type):

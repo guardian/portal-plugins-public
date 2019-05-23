@@ -404,6 +404,7 @@ def create_link_for_main(item_id, shape_tag, obfuscate=True, is_update=False):
     link_model.status = "Available"
     #link_model.public_url = s3key.generate_url(expires_in=0, query_auth=False)
     link_model.public_url = s3client.generate_presigned_url("get_object", ExpiresIn=0, Params={'Bucket': s3key.bucket_name, 'Key': s3key.key})
+    print "Set {0}".format(link_model.public_url)
     link_model.s3_url = "s3://{0}/{1}".format(settings.DOWNLOADABLE_LINK_BUCKET,s3key.key)
 
     link_model.save()

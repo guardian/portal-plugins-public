@@ -66,7 +66,6 @@ class TestCreateLinkFor(django.test.TestCase):
         if a shape is existing, create_link_for should immediately upload and create a link
         :return:
         """
-        from boto.s3.key import Key
         from gnmvidispine.vs_shape import VSShape
         from gnmvidispine.vs_item import VSItem
         from portal.plugins.gnmdownloadablelink.models import DownloadableLink
@@ -76,10 +75,12 @@ class TestCreateLinkFor(django.test.TestCase):
         mock_item.get = MagicMock(return_value="item title here")
         mock_shape = MagicMock(target=VSShape)
 
-        mock_s3key = MagicMock(target=Key)
-        mock_s3key.set_canned_acl = MagicMock()
-        mock_s3key.generate_url = MagicMock(return_value="https://fake-download-url")
-        mock_s3key.key = "path/to/uploaded_file"
+        mock_s3key = MagicMock()
+        mock_s3key.bucket_name="test_bucket"
+        mock_s3key.key="path/to/uploaded_file"
+
+        mock_s3client = MagicMock()
+        mock_s3client.generate_presigned_url = MagicMock(return_value="https://fake-download-url")
 
         mdl_before = DownloadableLink.objects.get(item_id="VX-11", shapetag="original")
         self.assertEqual(mdl_before.status, "Requested")
@@ -88,14 +89,14 @@ class TestCreateLinkFor(django.test.TestCase):
             with patch("portal.plugins.gnmdownloadablelink.tasks.get_shape_for", return_value=mock_shape) as mock_get_shape:
                 with patch("portal.plugins.gnmdownloadablelink.tasks.upload_to_s3", return_value=mock_s3key) as mock_upload:
                     with patch("portal.plugins.gnmdownloadablelink.tasks.create_link_for.apply_async") as mock_apply:
-                        with patch("portal.plugins.gnmdownloadablelink.tasks.s3_connect_lowerlevel") as mock_s3client:
+                        with patch("portal.plugins.gnmdownloadablelink.tasks.s3_connect_lowerlevel", return_value=mock_s3client):
                             from portal.plugins.gnmdownloadablelink.tasks import create_link_for
                             result = create_link_for("VX-11", "original", obfuscate=False)
 
                             mock_get_shape.assert_called_once_with(mock_item,"original",allow_transcode=True)
                             mock_item.populate.assert_called_once_with('VX-11', specificFields=['title'])
                             mock_upload.assert_called_once_with(mock_shape, filename="item_title_here")
-                            mock_s3key.generate_url.assert_called_once_with(expires_in=0, query_auth=False)
+                            mock_s3client.generate_presigned_url.assert_called_once()
                             mock_apply.assert_not_called()
                             mdl_after = DownloadableLink.objects.get(item_id="VX-11", shapetag="original")
                             self.assertEqual(mdl_after.status, "Available")

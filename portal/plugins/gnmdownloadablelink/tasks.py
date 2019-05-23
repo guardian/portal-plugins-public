@@ -39,28 +39,46 @@ def get_shape_for(itemref, shape_tag, allow_transcode=True):
 
 
 def s3_connect():
-    from boto.s3 import connect_to_region
+    import boto3
     #FIXME: need to update these setting names
     if hasattr(settings,'DOWNLOADABLE_LINK_KEY') and hasattr(settings,'DOWNLOADABLE_LINK_SECRET'):
-        return connect_to_region(getattr(settings,"AWS_REGION","eu-west-1"),
-                                 aws_access_key_id=settings.DOWNLOADABLE_LINK_KEY,
-                                 aws_secret_access_key=settings.DOWNLOADABLE_LINK_SECRET
-                                 )
+        return boto3.resource('s3',
+                              region_name=getattr(settings,"AWS_REGION","eu-west-1"),
+                              aws_access_key_id=settings.DOWNLOADABLE_LINK_KEY,
+                              aws_secret_access_key=settings.DOWNLOADABLE_LINK_SECRET)
     else:
         raise RuntimeError("no credentials")
 
 
-CHUNK_SIZE=10*1024*1024
+def s3_connect_lowerlevel():
+    import boto3
+
+    if hasattr(settings,'DOWNLOADABLE_LINK_KEY') and hasattr(settings,'DOWNLOADABLE_LINK_SECRET'):
+        return boto3.client('s3',
+                              region_name=getattr(settings,"AWS_REGION","eu-west-1"),
+                              aws_access_key_id=settings.DOWNLOADABLE_LINK_KEY,
+                              aws_secret_access_key=settings.DOWNLOADABLE_LINK_SECRET)
+    else:
+        raise RuntimeError("no credentials")
+
+#50Mb chunk size is inline with Mr Pushy
+CHUNK_SIZE=50*1024*1024
+
+
+def upload_progress_callback(bytes_amount):
+    logger.info("Uploaded {0} bytes".format(bytes_amount))
+
 
 def singlepart_upload_vsfile_to_s3(file_ref,filename,mime_type):
     """
     Attempts to add the given file
     :param file_ref: VSFile reference
     :param filename: file name to upload as
-    :return: boto.s3.Key for the uploaded file
+    :return: boto.s3.Object for the uploaded file
     """
-    import boto.s3.key
     from gnmvidispine.vs_storage import VSFile
+    from boto3.s3.transfer import TransferConfig
+
     from chunked_downloader import ChunkedDownloader, ChunkDoesNotExist
 
     if not isinstance(file_ref,VSFile):
@@ -68,21 +86,32 @@ def singlepart_upload_vsfile_to_s3(file_ref,filename,mime_type):
 
     download_url = "{u}:{p}/API/storage/file/{id}/data".format(u=settings.VIDISPINE_URL,p=settings.VIDISPINE_PORT,id=file_ref.name)
 
-    d = ChunkedDownloader(download_url, auth=(settings.VIDISPINE_USERNAME,settings.VIDISPINE_PASSWORD), chunksize=CHUNK_SIZE)
+    d = ChunkedDownloader(download_url, auth=(settings.VIDISPINE_USERNAME,settings.VIDISPINE_PASSWORD), chunksize=int(file_ref.size))
 
-    s3conn = s3_connect()
-    bucket = s3conn.get_bucket(settings.DOWNLOADABLE_LINK_BUCKET)
-    key = boto.s3.key.Key(bucket)
-    key.key = filename
+    resource = s3_connect()
+    bucket = resource.Bucket(settings.DOWNLOADABLE_LINK_BUCKET)
 
     datastream = d.stream_chunk(0)
-    total_size = key.set_contents_from_file(datastream, headers={'Content-Type': mime_type}, reduced_redundancy=True)
 
-    if int(total_size) != int(file_ref.size):
-        logger.error("Expected to upload {0} bytes but only uploaded {1}".format(file_ref.size, total_size))
+    config = TransferConfig(multipart_threshold=file_ref.size)
+
+    bucket.upload_fileobj(datastream, filename,
+                          ExtraArgs={
+                              "StorageClass": "REDUCED_REDUNDANCY",
+                              "ACL": "public-read",
+                              "Metadata": {
+                                  "ContentType": mime_type
+                              }
+                          },
+                          Config=config,
+                          Callback=upload_progress_callback)
+
+    s3key = resource.Object(settings.DOWNLOADABLE_LINK_BUCKET, filename)
+    if int(s3key.content_length) != int(file_ref.size):
+        logger.error("Expected to upload {0} bytes but only uploaded {1}".format(file_ref.size, s3key.content_length))
         raise NeedsRetry
 
-    return key
+    return s3key
 
 
 def multipart_upload_vsfile_to_s3(file_ref,filename,mime_type):
@@ -105,18 +134,30 @@ def multipart_upload_vsfile_to_s3(file_ref,filename,mime_type):
 
     d = ChunkedDownloader(download_url, auth=(settings.VIDISPINE_USERNAME,settings.VIDISPINE_PASSWORD), chunksize=CHUNK_SIZE)
 
-    s3conn = s3_connect()
-    bucket = s3conn.get_bucket(settings.DOWNLOADABLE_LINK_BUCKET)
+    s3client = s3_connect_lowerlevel()
+    resource = s3_connect()
 
     #FIXME: check that filename does not exist
-    mp = bucket.initiate_multipart_upload(filename,headers={'Content-Type': mime_type}, reduced_redundancy=True)
+    initiate_response = s3client.create_multipart_upload(
+        ACL='public-read',
+        Bucket=settings.DOWNLOADABLE_LINK_BUCKET,
+        ContentType=mime_type,
+        Key=filename,
+        StorageClass='REDUCED_REDUNDANCY'
+    )
+
+    mpUpload = resource.MultipartUpload(settings.DOWNLOADABLE_LINK_BUCKET, filename, initiate_response['UploadId'])
 
     def upload_chunk(data_stream, name, part_num):
         for i in range(15):
             try:
-                uploaded = mp.upload_part_from_file(data_stream, part_num=part_num+1,)
-                logger.info("{0}: uploaded part {1}".format(name, uploaded.__dict__))
-                return uploaded
+                response = s3client.upload_part(Body=data_stream,
+                                                PartNumber=part_num+1,
+                                                Bucket=settings.DOWNLOADABLE_LINK_BUCKET,
+                                                Key=filename,
+                                                UploadId=initiate_response['UploadId'])
+                logger.info("{0}: uploaded part {1}".format(name, response))
+                return response
             except Exception as x:
                 if i == 10: # retry 10 times
                     raise x
@@ -126,11 +167,16 @@ def multipart_upload_vsfile_to_s3(file_ref,filename,mime_type):
     n=0
     total_size=0
 
+    parts_list = []
+
     while True:
         try:
             datastream = d.stream_chunk(n)
             uploaded = upload_chunk(datastream, filename, n)
-            total_size+=uploaded.size
+            parts_list.append({
+                'ETag': uploaded['ETag'],
+                'PartNumber': n+1
+            })
             n+=1
         except ChunkDoesNotExist:
             logger.debug("Chunk does not exist, stopping")
@@ -139,17 +185,21 @@ def multipart_upload_vsfile_to_s3(file_ref,filename,mime_type):
     #we should have completed the upload here
     if n<expected_parts:
         logger.error("Expected to upload {0} parts, but apparently completed after {1} parts".format(expected_parts, n))
-        mp.cancel_upload()
+        mpUpload.abort()
         raise NeedsRetry
-    if int(total_size) != int(file_ref.size):
+
+    s3Object = mpUpload.Object()
+
+    if int(s3Object.content_length) != int(file_ref.size):
         logger.error("Expected to upload {0} bytes but only uploaded {1}".format(file_ref.size, total_size))
-        mp.cancel_upload()
+        mpUpload.abort()
         raise NeedsRetry
-    if n>1:
-        #this will give an S3ResponseError: Bad Request if no data was uploaded - https://github.com/boto/boto/issues/3536
-        logger.info("{0} completed upload with {1} parts, expected {2}".format(filename, n, expected_parts))
-        mp.complete_upload()
-    return bucket.get_key(filename)
+
+    #this will give an S3ResponseError: Bad Request if no data was uploaded - https://github.com/boto/boto/issues/3536
+    logger.info("{0} completed upload with {1} parts, expected {2}".format(filename, n, expected_parts))
+    return mpUpload.complete(MultipartUpload={
+        'Parts': parts_list
+    })  #this returns the s3.Object that has been created
 
 
 def upload_vsfile_to_s3(file_ref,filename,mime_type):

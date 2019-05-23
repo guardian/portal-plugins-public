@@ -5,5 +5,6 @@ import os
 if os.path.exists(django_test_settings.DATABASES['default']['NAME']):
     os.unlink(django_test_settings.DATABASES['default']['NAME'])
 
-execute_from_command_line(['manage.py', 'syncdb', '--noinput'])
-execute_from_command_line(['manage.py', 'migrate', '--noinput'])
+if not 'MANUALTEST' in os.environ:
+    execute_from_command_line(['manage.py', 'syncdb', '--noinput'])
+    execute_from_command_line(['manage.py', 'migrate', '--noinput'])

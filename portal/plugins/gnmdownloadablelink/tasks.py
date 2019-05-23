@@ -444,16 +444,11 @@ def remove_file_from_s3(s3_url):
     if broken_down_url.hostname!=settings.DOWNLOADABLE_LINK_BUCKET:
         logger.warning("Provided bucket {0} does not match expected value from settings {1}".format(broken_down_url.hostname,settings.DOWNLOADABLE_LINK_BUCKET))
 
-    s3conn = s3_connect()
-    bucket = s3conn.get_bucket(broken_down_url.hostname)
+    s3client = s3_connect_lowerlevel()
 
-    key = bucket.get_key(s3path)
-    if key is None:
-        raise ValueError("File {0} on bucket {1} does not appear to exist".format(s3path, broken_down_url.hostname))
-    #exceptions from this are caught in the caller
-    key.delete()
+    response = s3client.delete_object(Bucket=broken_down_url.hostname, Key=s3path)
     logger.info("Successfully deleted {0}".format(s3_url))
-    return key
+    return response
 
 
 @periodic_task(run_every=getattr(settings,"DOWNLOADABLE_LINK_CHECK_INTERVAL",300))

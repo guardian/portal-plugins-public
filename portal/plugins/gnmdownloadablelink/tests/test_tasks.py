@@ -238,44 +238,26 @@ class TestRemoveFileFromS3(django.test.TestCase):
         in the URL
         :return:
         """
-        from boto.s3.bucket import Bucket
-        from boto.s3.key import Key
-
-        fake_key = MagicMock(target=Key)
-        fake_key.delete = MagicMock()
-        fake_bucket = MagicMock(target=Bucket)
-        fake_bucket.get_key = MagicMock(return_value=fake_key)
-
         fake_connection = MagicMock()
-        fake_connection.get_bucket = MagicMock(return_value=fake_bucket)
+        fake_connection.delete_object = MagicMock()
 
-        with patch("portal.plugins.gnmdownloadablelink.tasks.s3_connect", return_value=fake_connection) as mock_connect:
+        with patch("portal.plugins.gnmdownloadablelink.tasks.s3_connect_lowerlevel", return_value=fake_connection) as mock_connect:
             from portal.plugins.gnmdownloadablelink.tasks import remove_file_from_s3
 
             result = remove_file_from_s3("s3://mybucket/path/to/my/file.ext")
 
-            fake_connection.get_bucket.assert_called_once_with("mybucket")
-            fake_bucket.get_key.assert_called_once_with("path/to/my/file.ext")
-            fake_key.delete.assert_called_once_with()
-            self.assertEqual(result, fake_key)
+            fake_connection.delete_object.assert_called_once_with(Bucket="mybucket",Key="path/to/my/file.ext")
+
 
     def test_remove_file_from_s3_invalid_scheme(self):
         """
         remove_file_from_s3 should raise ValueError if the passed URL is not an S3 url
         :return:
         """
-        from boto.s3.bucket import Bucket
-        from boto.s3.key import Key
-
-        fake_key = MagicMock(target=Key)
-        fake_key.delete = MagicMock()
-        fake_bucket = MagicMock(target=Bucket)
-        fake_bucket.get_key = MagicMock(return_value=fake_key)
-
         fake_connection = MagicMock()
-        fake_connection.get_bucket = MagicMock(return_value=fake_bucket)
+        fake_connection.delete_object = MagicMock()
 
-        with patch("portal.plugins.gnmdownloadablelink.tasks.s3_connect", return_value=fake_connection) as mock_connect:
+        with patch("portal.plugins.gnmdownloadablelink.tasks.s3_connect_lowerlevel", return_value=fake_connection) as mock_connect:
             from portal.plugins.gnmdownloadablelink.tasks import remove_file_from_s3
 
             with self.assertRaises(ValueError) as raised_excep:
@@ -287,16 +269,8 @@ class TestRemoveFileFromS3(django.test.TestCase):
         remove_file_from_s3 should raise ValueError if the passed URL does not contain a filepath
         :return:
         """
-        from boto.s3.bucket import Bucket
-        from boto.s3.key import Key
-
-        fake_key = MagicMock(target=Key)
-        fake_key.delete = MagicMock()
-        fake_bucket = MagicMock(target=Bucket)
-        fake_bucket.get_key = MagicMock(return_value=fake_key)
-
         fake_connection = MagicMock()
-        fake_connection.get_bucket = MagicMock(return_value=fake_bucket)
+        fake_connection.delete_object = MagicMock()
 
         with patch("portal.plugins.gnmdownloadablelink.tasks.s3_connect", return_value=fake_connection) as mock_connect:
             from portal.plugins.gnmdownloadablelink.tasks import remove_file_from_s3
@@ -304,26 +278,3 @@ class TestRemoveFileFromS3(django.test.TestCase):
             with self.assertRaises(ValueError) as raised_excep:
                 result = remove_file_from_s3("s3://mybucket")
             self.assertEqual(str(raised_excep.exception),"No file provided to delete")
-
-    def test_remove_file_from_s3_notexist(self):
-        """
-        remove_file_from_s3 should raise ValueError if the passed URL does not identify an existing file
-        :return:
-        """
-        from boto.s3.bucket import Bucket
-        from boto.s3.key import Key
-
-        fake_key = MagicMock(target=Key)
-        fake_key.delete = MagicMock()
-        fake_bucket = MagicMock(target=Bucket)
-        fake_bucket.get_key = MagicMock(return_value=None)
-
-        fake_connection = MagicMock()
-        fake_connection.get_bucket = MagicMock(return_value=fake_bucket)
-
-        with patch("portal.plugins.gnmdownloadablelink.tasks.s3_connect", return_value=fake_connection) as mock_connect:
-            from portal.plugins.gnmdownloadablelink.tasks import remove_file_from_s3
-
-            with self.assertRaises(ValueError) as raised_excep:
-                result = remove_file_from_s3("s3://mybucket/path/to/my/file.ext")
-            self.assertEqual(str(raised_excep.exception),"File path/to/my/file.ext on bucket mybucket does not appear to exist")

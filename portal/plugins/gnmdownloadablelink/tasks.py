@@ -50,14 +50,22 @@ def s3_connect():
         raise RuntimeError("no credentials")
 
 
-def s3_connect_lowerlevel():
+def s3_connect_lowerlevel(config=None):
     import boto3
 
     if hasattr(settings,'DOWNLOADABLE_LINK_KEY') and hasattr(settings,'DOWNLOADABLE_LINK_SECRET'):
-        return boto3.client('s3',
-                              region_name=getattr(settings,"AWS_REGION","eu-west-1"),
-                              aws_access_key_id=settings.DOWNLOADABLE_LINK_KEY,
-                              aws_secret_access_key=settings.DOWNLOADABLE_LINK_SECRET)
+        if config:
+            return boto3.client('s3',
+                                region_name=getattr(settings,"AWS_REGION","eu-west-1"),
+                                aws_access_key_id=settings.DOWNLOADABLE_LINK_KEY,
+                                aws_secret_access_key=settings.DOWNLOADABLE_LINK_SECRET,
+                                config=config)
+        else:
+            return boto3.client('s3',
+                                region_name=getattr(settings,"AWS_REGION","eu-west-1"),
+                                aws_access_key_id=settings.DOWNLOADABLE_LINK_KEY,
+                                aws_secret_access_key=settings.DOWNLOADABLE_LINK_SECRET)
+
     else:
         raise RuntimeError("no credentials")
 
@@ -343,6 +351,8 @@ def create_link_for_main(item_id, shape_tag, obfuscate=True, is_update=False):
     from uuid import uuid4
     from base64 import b64encode
     from models import DownloadableLink
+    import botocore
+    from botocore.client import Config
 
     link_model = DownloadableLink.objects.get(item_id=item_id,shapetag=shape_tag)
     if link_model.status == "Upload Queued" or link_model.status=="Transcoding":
@@ -388,8 +398,12 @@ def create_link_for_main(item_id, shape_tag, obfuscate=True, is_update=False):
                                     countdown=getattr(settings,"DOWNLOADABLE_LINK_RETRYTIME",30))
         return str(e)
 
+    #initiating a client like this lets us get the permanent public URL - https://stackoverflow.com/questions/33809592/upload-to-amazon-s3-using-boto3-and-return-public-url
+    s3client = s3_connect_lowerlevel(config=Config(signature_version=botocore.UNSIGNED))
+
     link_model.status = "Available"
-    link_model.public_url = s3key.generate_url(expires_in=0, query_auth=False)
+    #link_model.public_url = s3key.generate_url(expires_in=0, query_auth=False)
+    link_model.public_url = s3client.generate_presigned_url("get_object", ExpiresIn=0, Params={'Bucket': s3key.bucket_name, 'Key': s3key.key})
     link_model.s3_url = "s3://{0}/{1}".format(settings.DOWNLOADABLE_LINK_BUCKET,s3key.key)
 
     link_model.save()

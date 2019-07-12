@@ -40,8 +40,8 @@ class TestMediaAtomResend(django.test.TestCase):
 
                 request_atom_resend("fake-atomid","myhost","SomeSillySecret")
 
-                mock_get_token.assert_called_once_with("https://myhost/api2/pluto/resend/fake-atomid", "SomeSillySecret")
-                mock_post.assert_called_once_with('https://myhost/api2/pluto/resend/fake-atomid', headers={'X-Gu-Tools-HMAC-Date': 'Thu, 01 Mar 2018 18:13:14 GMT', 'X-Gu-Tools-HMAC-Token': 'HMAC fake-code'})
+                mock_get_token.assert_called_once_with("https://myhost/api/pluto/resend/fake-atomid", "SomeSillySecret")
+                mock_post.assert_called_once_with('https://myhost/api/pluto/resend/fake-atomid', headers={'X-Gu-Tools-HMAC-Date': 'Thu, 01 Mar 2018 18:13:14 GMT', 'X-Gu-Tools-HMAC-Token': 'HMAC fake-code'})
 
     def test_atom_resend_error(self):
         """
@@ -54,9 +54,9 @@ class TestMediaAtomResend(django.test.TestCase):
                 with self.assertRaises(HttpError) as raised_excep:
                     request_atom_resend("fake-atomid","myhost","SomeSillySecret")
 
-                mock_get_token.assert_called_once_with("https://myhost/api2/pluto/resend/fake-atomid", "SomeSillySecret")
-                mock_post.assert_called_once_with('https://myhost/api2/pluto/resend/fake-atomid', headers={'X-Gu-Tools-HMAC-Date': 'Thu, 01 Mar 2018 18:13:14 GMT', 'X-Gu-Tools-HMAC-Token': 'HMAC fake-code'})
+                mock_get_token.assert_called_once_with("https://myhost/api/pluto/resend/fake-atomid", "SomeSillySecret")
+                mock_post.assert_called_once_with('https://myhost/api/pluto/resend/fake-atomid', headers={'X-Gu-Tools-HMAC-Date': 'Thu, 01 Mar 2018 18:13:14 GMT', 'X-Gu-Tools-HMAC-Token': 'HMAC fake-code'})
                 self.assertEqual(raised_excep.exception.code, 500)
-                self.assertEqual(raised_excep.exception.uri, "https://myhost/api2/pluto/resend/fake-atomid")
+                self.assertEqual(raised_excep.exception.uri, "https://myhost/api/pluto/resend/fake-atomid")
                 self.assertEqual(raised_excep.exception.request_headers, {'X-Gu-Tools-HMAC-Date': 'Thu, 01 Mar 2018 18:13:14 GMT', 'X-Gu-Tools-HMAC-Token': 'HMAC fake-code'})
                 self.assertEqual(raised_excep.exception.response_headers, {"Content-Type":"application/json"})

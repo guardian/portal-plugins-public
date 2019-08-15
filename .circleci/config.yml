@@ -64,10 +64,6 @@ jobs:
     ### gnmatomresponder
     - run: DJANGO_SETTINGS_MODULE=portal.plugins.gnmatomresponder.tests.django_test_settings nosetests -v portal/plugins/gnmatomresponder/tests --xunit-file=${CIRCLE_TEST_REPORTS}/gnmatomresponder.xml
 
-    ### gnmdownloadablelink
-    - run: DJANGO_SETTINGS_MODULE=portal.plugins.gnmdownloadablelink.tests.django_test_settings nosetests -v portal/plugins/gnmdownloadablelink/tests --xunit-file=${CIRCLE_TEST_REPORTS}/gnmdownloadablelink.xml
-    - run: cd portal/plugins/gnmdownloadablelink; npm run test
-
     ### gnmoptin
     - run: DJANGO_SETTINGS_MODULE=portal.plugins.gnmoptin.tests.django_test_settings nosetests -v portal/plugins/gnmoptin/tests --xunit-file=${CIRCLE_TEST_REPORTS}/gnmoptin.xml
 

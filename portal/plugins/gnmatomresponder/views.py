@@ -23,6 +23,7 @@ class JobNotifyView(APIView):
         from job_notification import JobNotification
         from lxml.etree import XMLSyntaxError, LxmlError
         from notification import process_notification
+        from models import ImportJob
         import traceback
 
         logger.info("Received import notification")
@@ -35,9 +36,12 @@ class JobNotifyView(APIView):
             logger.error("Unable to process Vidispine XML document, but syntax as ok")
             return Response({'status': 'Unable to process'}, status=500) #returning 500=> VS will try again (more likely problem is our side)
 
-        process_notification(notification)
-
-        return Response({'status': 'ok'})
+        try:
+            process_notification(notification)
+            return Response({'status': 'ok'})
+        except ImportJob.DoesNotExist:
+            logger.error("JobNotifyView: No import job found for {0}".format(notification))
+            return Response({'status': 'notfound'}, status=404)
 
 
 class ImportJobListView(ListView):

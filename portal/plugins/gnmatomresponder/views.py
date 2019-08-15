@@ -41,7 +41,7 @@ class JobNotifyView(APIView):
             return Response({'status': 'ok'})
         except ImportJob.DoesNotExist:
             logger.error("JobNotifyView: No import job found for {0}".format(notification))
-            return Response({'status': 'notfound'}, status=404)
+            return Response({'status': 'notfound'}, status=200)
 
 
 class ImportJobListView(ListView):

@@ -161,7 +161,7 @@ def expire_processed_pacrecords():
 
 
 @shared_task
-def timed_request_resend(atom_id):
+def timed_request_resend(atom_id, **kwargs):
     """
     task that can run after a delay to request that an item is resent
     :param atom_id:  atom id to resend

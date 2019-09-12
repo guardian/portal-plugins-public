@@ -46,7 +46,7 @@ def request_atom_resend(atomid, host, secret):
     :param options:
     :return:
     """
-    uri = "https://{host}/api2/pluto/resend/{id}".format(host=host, id=atomid)
+    uri = "https://{host}/api/pluto/resend/{id}".format(host=host, id=atomid)
     logger.debug("uri is " + uri)
     authtoken, httpdate = get_token(uri, secret)
     logger.debug(authtoken)

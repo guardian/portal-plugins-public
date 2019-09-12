@@ -2,8 +2,9 @@ import logging
 from celery.schedules import crontab
 from celery.decorators import periodic_task
 from celery import Celery
+import httplib2
 
-log = logging.getLogger('main')
+log = logging.getLogger(__name__)
 
 pagerduty_url = 'https://events.pagerduty.com/generic/2010-04-15/create_event.json'
 
@@ -61,7 +62,7 @@ def make_vidispine_request(agent,method,urlpath,body,headers,content_type='appli
 
 def get_system_type():
     from django.core.cache import cache
-    import httplib2
+
     system_type = cache.get('gnmpagerduty_system_type')
     if system_type is None:
         h=httplib2.Http()

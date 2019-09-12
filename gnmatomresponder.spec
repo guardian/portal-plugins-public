@@ -1,7 +1,7 @@
 %define name portal-pluto-gnmatomresponder
 %define version 1.0
 %define unmangled_version 1.0
-%define release 20
+%define release 21
 
 Summary: Integration to ingest media that has been sent to the media atom tool
 Name: %{name}

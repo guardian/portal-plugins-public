@@ -7,6 +7,8 @@ import logging
 
 register = template.Library()
 
+logger = logging.getLogger(__name__)
+
 @register.filter("jobstatus_formatter")
 def jobStatusFormatter(value):
     classname = value.lower()
@@ -93,7 +95,8 @@ def automationIndicator(value):
             icon_url = iconpath + 'severity_3.png'
             text = 'Failed'
     except Exception as e:
-        logging.error("automationIndicator could not get automation status from '{0}'".format(value))
+        logger.exception(e)
+        logger.error("automationIndicator could not get automation status from '{0}'".format(value))
         icon_url = iconpath + 'severity_3.png'
         text = 'Internal error'
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
@@ -112,7 +115,8 @@ def msInfo(value):
             icon_url = iconpath + 'severity_3.png'
             text = 'Forbid'
     except Exception as e:
-        logging.error("automationIndicator could not get automation status from '{0}'".format(value))
+        logger.exception(e)
+        logger.error("automationIndicator could not get automation status from '{0}'".format(value))
         icon_url = iconpath + 'severity_3.png'
         text = 'Internal error'
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
@@ -131,7 +135,8 @@ def dmInfo(value):
             icon_url = iconpath + 'severity_3.png'
             text = 'Forbid'
     except Exception as e:
-        logging.error("dmInfo could not get automation status from '{0}'".format(value))
+        logger.exception(e)
+        logger.error("dmInfo could not get automation status from '{0}'".format(value))
         icon_url = iconpath + 'severity_3.png'
         text = 'Internal error'
 
@@ -152,7 +157,8 @@ def ytInfo(value):
             icon_url = iconpath + 'severity_3.png'
             text = 'Forbid'
     except Exception as e:
-        logging.error("ytInfo could not get automation status from '{0}'".format(value))
+        logger.exception(e)
+        logger.error("ytInfo could not get automation status from '{0}'".format(value))
         icon_url = iconpath + 'severity_3.png'
         text = 'Internal error'
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
@@ -171,7 +177,8 @@ def fbInfo(value):
             icon_url = iconpath + 'severity_3.png'
             text = 'Forbid'
     except Exception as e:
-        logging.error("fbInfo could not get automation status from '{0}'".format(value))
+        logger.exception(e)
+        logger.error("fbInfo could not get automation status from '{0}'".format(value))
         icon_url = iconpath + 'severity_3.png'
         text = 'Internal error'
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
@@ -190,7 +197,8 @@ def sInfo(value):
             icon_url = iconpath + 'severity_3.png'
             text = 'Forbid'
     except Exception as e:
-        logging.error("sInfo could not get automation status from '{0}'".format(value))
+        logger.exception(e)
+        logger.error("sInfo could not get automation status from '{0}'".format(value))
         icon_url = iconpath + 'severity_3.png'
         text = 'Internal error'
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
@@ -225,7 +233,7 @@ def automationErrors(value):
             text = 'Unknown'
     except Exception as e:
         text = "automationErrors could not get automation status from '{0}'".format(value)
-        logging.exception(e)
+        logger.exception(e)
 
     return mark_safe(text)
 
@@ -256,7 +264,7 @@ def displayDate(value):
     import time
     import re
     if not isinstance(value, basestring):
-        logging.warning("displayDate expects a string, got a type {0} ({1})".format(value.__class__.__name__, value))
+        logger.warning("displayDate expects a string, got a type {0} ({1})".format(value.__class__.__name__, value))
         return "n/a"
 
     if re.match("\d", value) is not None:
@@ -282,7 +290,7 @@ def displayDateInfo(value):
     import time
     import re
     if not isinstance(value, basestring):
-        logging.warning("displayDateInfo expects a string, got a type {0} ({1})".format(value.__class__.__name__, value))
+        logger.warning("displayDateInfo expects a string, got a type {0} ({1})".format(value.__class__.__name__, value))
         return "n/a"
 
     # example 2015-11-12T15:01:30.591+0000

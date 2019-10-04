@@ -225,7 +225,7 @@ def automationErrors(value):
             text = 'Unknown'
     except Exception as e:
         text = "automationErrors could not get automation status from '{0}'".format(value)
-        logging.error(text)
+        logging.exception(e)
 
     return mark_safe(text)
 

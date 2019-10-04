@@ -82,16 +82,20 @@ def automationIndicator(value):
 
     text = "default"
 
-    if '"status": "ok"' in value:
-        icon_url = iconpath + 'severity_0.png'
-        text = 'Okay'
-    elif value=="":
-        icon_url = iconpath + 'severity_2.png'
-        text = 'Not&nbsp;set'
-    else:
+    try:
+        if '"status": "ok"' in value:
+            icon_url = iconpath + 'severity_0.png'
+            text = 'Okay'
+        elif value=="":
+            icon_url = iconpath + 'severity_2.png'
+            text = 'Not&nbsp;set'
+        else:
+            icon_url = iconpath + 'severity_3.png'
+            text = 'Failed'
+    except Exception as e:
+        logging.error("automationIndicator could not get automation status from '{0}'".format(value))
         icon_url = iconpath + 'severity_3.png'
-        text = 'Failed'
-
+        text = 'Internal error'
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
 
 @register.filter("msinfo")
@@ -100,13 +104,17 @@ def msInfo(value):
     icon_url = iconpath + 'severity_1.png'
     text = "n/a"
 
-    if '"mainstreamsyndication": "allow"' in value:
-        icon_url = iconpath + 'severity_0.png'
-        text = 'Allow'
-    elif '"mainstreamsyndication": "forbid"' in value:
+    try:
+        if '"mainstreamsyndication": "allow"' in value:
+            icon_url = iconpath + 'severity_0.png'
+            text = 'Allow'
+        elif '"mainstreamsyndication": "forbid"' in value:
+            icon_url = iconpath + 'severity_3.png'
+            text = 'Forbid'
+    except Exception as e:
+        logging.error("automationIndicator could not get automation status from '{0}'".format(value))
         icon_url = iconpath + 'severity_3.png'
-        text = 'Forbid'
-
+        text = 'Internal error'
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
 
 @register.filter("dminfo")
@@ -115,14 +123,20 @@ def dmInfo(value):
     icon_url = iconpath + 'severity_1.png'
     text = "n/a"
 
-    if '"dailymotion": "allow"' in value:
-        icon_url = iconpath + 'severity_0.png'
-        text = 'Allow'
-    elif '"dailymotion": "forbid"' in value:
+    try:
+        if '"dailymotion": "allow"' in value:
+            icon_url = iconpath + 'severity_0.png'
+            text = 'Allow'
+        elif '"dailymotion": "forbid"' in value:
+            icon_url = iconpath + 'severity_3.png'
+            text = 'Forbid'
+    except Exception as e:
+        logging.error("dmInfo could not get automation status from '{0}'".format(value))
         icon_url = iconpath + 'severity_3.png'
-        text = 'Forbid'
+        text = 'Internal error'
 
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
+
 
 @register.filter("ytinfo")
 def ytInfo(value):
@@ -130,13 +144,17 @@ def ytInfo(value):
     icon_url = iconpath + 'severity_1.png'
     text = "n/a"
 
-    if '"youtube": "allow"' in value:
-        icon_url = iconpath + 'severity_0.png'
-        text = 'Allow'
-    elif '"youtube": "forbid"' in value:
+    try:
+        if '"youtube": "allow"' in value:
+            icon_url = iconpath + 'severity_0.png'
+            text = 'Allow'
+        elif '"youtube": "forbid"' in value:
+            icon_url = iconpath + 'severity_3.png'
+            text = 'Forbid'
+    except Exception as e:
+        logging.error("ytInfo could not get automation status from '{0}'".format(value))
         icon_url = iconpath + 'severity_3.png'
-        text = 'Forbid'
-
+        text = 'Internal error'
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
 
 @register.filter("fbinfo")
@@ -145,13 +163,17 @@ def fbInfo(value):
     icon_url = iconpath + 'severity_1.png'
     text = "n/a"
 
-    if '"facebook": "allow"' in value:
-        icon_url = iconpath + 'severity_0.png'
-        text = 'Allow'
-    elif '"facebook": "forbid"' in value:
+    try:
+        if '"facebook": "allow"' in value:
+            icon_url = iconpath + 'severity_0.png'
+            text = 'Allow'
+        elif '"facebook": "forbid"' in value:
+            icon_url = iconpath + 'severity_3.png'
+            text = 'Forbid'
+    except Exception as e:
+        logging.error("fbInfo could not get automation status from '{0}'".format(value))
         icon_url = iconpath + 'severity_3.png'
-        text = 'Forbid'
-
+        text = 'Internal error'
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
 
 @register.filter("sinfo")
@@ -160,13 +182,17 @@ def sInfo(value):
     icon_url = iconpath + 'severity_1.png'
     text = "n/a"
 
-    if '"spotify": "allow"' in value:
-        icon_url = iconpath + 'severity_0.png'
-        text = 'Allow'
-    elif '"spotify": "forbid"' in value:
+    try:
+        if '"spotify": "allow"' in value:
+            icon_url = iconpath + 'severity_0.png'
+            text = 'Allow'
+        elif '"spotify": "forbid"' in value:
+            icon_url = iconpath + 'severity_3.png'
+            text = 'Forbid'
+    except Exception as e:
+        logging.error("sInfo could not get automation status from '{0}'".format(value))
         icon_url = iconpath + 'severity_3.png'
-        text = 'Forbid'
-
+        text = 'Internal error'
     return mark_safe(u"<img class=\"inline_icon\" src=\"{0}\">{1}".format(icon_url,text))
 
 @register.filter("automationerrors")
@@ -176,26 +202,30 @@ def automationErrors(value):
 
     text = ""
 
-    if '"status": "ok"' in value:
-        text = 'None'
-    elif '"status": "error"' in value:
-        try:
-            jdata = json.loads(value)
-        except:
-            return 'Unknown'
-        try:
-            jdata2 = jdata['error']
-        except:
-            return 'Unknown'
-        try:
-            return jdata2['message']
-        except:
-            return 'Unknown'
+    try:
+        if '"status": "ok"' in value:
+            text = 'None'
+        elif '"status": "error"' in value:
+            try:
+                jdata = json.loads(value)
+            except:
+                return 'Unknown'
+            try:
+                jdata2 = jdata['error']
+            except:
+                return 'Unknown'
+            try:
+                return jdata2['message']
+            except:
+                return 'Unknown'
 
-    elif value=="":
-        text = 'Unknown'
-    else:
-        text = 'Unknown'
+        elif value=="":
+            text = 'Unknown'
+        else:
+            text = 'Unknown'
+    except Exception as e:
+        text = "automationErrors could not get automation status from '{0}'".format(value)
+        logging.error(text)
 
     return mark_safe(text)
 
@@ -225,6 +255,9 @@ def displayDate(value):
 
     import time
     import re
+    if not isinstance(value, basestring):
+        logging.warning("displayDate expects a string, got a type {0} ({1})".format(value.__class__.__name__, value))
+        return "n/a"
 
     if re.match("\d", value) is not None:
 
@@ -248,6 +281,10 @@ def displayDateInfo(value):
 
     import time
     import re
+    if not isinstance(value, basestring):
+        logging.warning("displayDateInfo expects a string, got a type {0} ({1})".format(value.__class__.__name__, value))
+        return "n/a"
+
     # example 2015-11-12T15:01:30.591+0000
     if re.match("\d", value) is not None:
 

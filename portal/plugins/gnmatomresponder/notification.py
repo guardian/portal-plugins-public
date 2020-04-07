@@ -197,6 +197,9 @@ def process_notification(notification):
     :return:
     """
     from models import ImportJob
+    from portal.plugins.kinesisresponder.sentry import inform_sentry_exception
+    from transcode_check import check_for_broken_proxy, delete_existing_proxy
+
     importjob = ImportJob.objects.get(job_id=notification.jobId)
     importjob.status = notification.status
     importjob.processing = False
@@ -204,5 +207,18 @@ def process_notification(notification):
 
     if importjob.is_failed():
         handle_failed_job(importjob)
-
+    else:
+        try:
+            logger.info("{0}: Checking for broken proxy".format(importjob.item_id))
+            should_regen, shape_id = check_for_broken_proxy(importjob.item_id)
+            if should_regen:
+                logger.info("{0}: Proxy needs regen. Existing shape id is {1}".format(importjob.item_id, shape_id))
+                if shape_id is not None:
+                    logger.info("{0}: Deleting invalid proxy")
+                    delete_existing_proxy(importjob.item_id, shape_id)
+            else:
+                logger.info("{0}: Proxy is OK".format(importjob.item_id))
+        except Exception as e:
+            logger.exception("{0}: Could not do proxy check: ", exc_info=e)
+            inform_sentry_exception()
     importjob.save()

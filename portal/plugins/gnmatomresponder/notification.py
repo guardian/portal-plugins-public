@@ -198,7 +198,7 @@ def process_notification(notification):
     """
     from models import ImportJob
     from portal.plugins.kinesisresponder.sentry import inform_sentry_exception
-    from transcode_check import check_for_broken_proxy, delete_existing_proxy
+    from transcode_check import check_for_broken_proxy, delete_existing_proxy, transcode_proxy
 
     importjob = ImportJob.objects.get(job_id=notification.jobId)
     importjob.status = notification.status
@@ -216,6 +216,7 @@ def process_notification(notification):
                 if shape_id is not None:
                     logger.info("{0}: Deleting invalid proxy")
                     delete_existing_proxy(importjob.item_id, shape_id)
+                transcode_proxy(importjob.item_id, "lowres")
             else:
                 logger.info("{0}: Proxy is OK".format(importjob.item_id))
         except Exception as e:

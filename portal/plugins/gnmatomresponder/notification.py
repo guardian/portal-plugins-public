@@ -214,7 +214,7 @@ def process_notification(notification):
             if should_regen:
                 logger.info("{0}: Proxy needs regen. Existing shape id is {1}".format(importjob.item_id, shape_id))
                 if shape_id is not None:
-                    logger.info("{0}: Deleting invalid proxy")
+                    logger.info("{0}: Deleting invalid proxy".format(importjob.item_id))
                     delete_existing_proxy(importjob.item_id, shape_id)
                 transcode_proxy(importjob.item_id, "lowres")
             else:

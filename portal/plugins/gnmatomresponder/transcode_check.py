@@ -92,7 +92,7 @@ def transcode_proxy(vsid, shape_tag):
     :param shape_tag: type of proxy to create
     :return:
     """
-    url = "{0}:{1}/API/item/{2}/transcode?tag={3}".format(settings.VIDISPINE_URL, settings.VIDISPINE_PORT, vsid, shape_tag)
+    url = "{0}:{1}/API/item/{2}/transcode?priority=HIGH&tag={3}".format(settings.VIDISPINE_URL, settings.VIDISPINE_PORT, vsid, shape_tag)
     response = requests.post(url, auth=(settings.VIDISPINE_USERNAME, settings.VIDISPINE_PASSWORD))
     if 299 > response.status_code >= 200:
         logger.info("{0}: transcode started successfully: {1}".format(vsid, response.text))

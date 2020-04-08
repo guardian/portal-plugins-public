@@ -12,7 +12,7 @@ def list_shape_ids(vsid):
     url = "{0}:{1}/API/item/{2}/shape".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,vsid)
     result = requests.get(url, auth=(settings.VIDISPINE_USERNAME,settings.VIDISPINE_PASSWORD), headers={"Accept":"application/xml"})
     if result.status_code == 200:
-        doc = fromstring(result.text)
+        doc = fromstring(result.text.encode("utf-8"))
         for node in doc.findall("{0}uri".format(xmlns)):
             yield node.text
     else:
@@ -31,11 +31,11 @@ def check_shape_tag(vsid, shapeid, tagtofind):
     url = "{0}:{1}/API/item/{2}/shape/{3}".format(settings.VIDISPINE_URL,settings.VIDISPINE_PORT,vsid, shapeid)
     result = requests.get(url, auth=(settings.VIDISPINE_USERNAME,settings.VIDISPINE_PASSWORD), headers={"Accept":"application/xml"})
     if result.status_code == 200:
-        doc = fromstring(result.text)
-        shape_tag_node = doc.find("{0}tag")
+        doc = fromstring(result.text.encode("utf-8"))
+        shape_tag_node = doc.find("{0}tag".format(xmlns))
 
         if shape_tag_node is None:
-            logger.warn("shape {0} on item {1} has no shape tag node", shapeid. vsid)
+            logger.warn("shape {0} on item {1} has no shape tag node".format(shapeid, vsid))
             return None
 
         if shape_tag_node.text == tagtofind:
@@ -78,7 +78,7 @@ def delete_existing_proxy(vsid, shape_id):
     :return:
     """
     url = "{0}:{1}/API/item/{2}/shape/{3}".format(settings.VIDISPINE_URL, settings.VIDISPINE_PORT, vsid, shape_id)
-    response = requests.delete(url, auth=(settings.VIDISPINE_USERNAMENAME, settings.VIDISPINE_PASSWORD))
+    response = requests.delete(url, auth=(settings.VIDISPINE_USERNAME, settings.VIDISPINE_PASSWORD))
     if 299 > response.status_code >= 200:
        return True
     else:
@@ -93,7 +93,7 @@ def transcode_proxy(vsid, shape_tag):
     :return:
     """
     url = "{0}:{1}/API/item/{2}/transcode?tag={3}".format(settings.VIDISPINE_URL, settings.VIDISPINE_PORT, vsid, shape_tag)
-    response = requests.post(url, auth=(settings.VIDISPINE_USERNAMENAME, settings.VIDISPINE_PASSWORD))
+    response = requests.post(url, auth=(settings.VIDISPINE_USERNAME, settings.VIDISPINE_PASSWORD))
     if 299 > response.status_code >= 200:
         logger.info("{0}: transcode started successfully: {1}".format(vsid, response.text))
         return True

@@ -151,7 +151,7 @@ class KinesisResponder(Thread):
                     if self.should_save:
                         dbrec.save()
                 except Exception as e:
-                    logger.error(traceback.format_exc())
+                    logger.error("Could not process a record: {0} {1}".format(str(e.__class__.__name__), str(e)))
                     inform_sentry_exception(extra_ctx={
                         "record": dbrec.__dict__
                     })

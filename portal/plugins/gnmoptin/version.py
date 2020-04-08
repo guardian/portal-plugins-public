@@ -1,1 +1,1 @@
-build_number="SNAPSHOT"
+build_number=DEV

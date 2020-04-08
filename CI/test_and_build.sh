@@ -2,6 +2,9 @@
 
 source ~/.bashrc
 BUILDDIR=$(pwd)
+if [ "$CIRCLE_BUILD_NUM" == "" ]; then
+  declare -x CIRCLE_BUILD_NUM=DEV
+fi
 declare -x CI=1
 
 echo ===================================================
@@ -31,6 +34,7 @@ echo ===================================================
 mkdir -p ~/fredex42/gnmvidispine
 git clone https://github.com/fredex42/gnmvidispine  ~/fredex42/gnmvidispine
 cd  ~/fredex42/gnmvidispine; source ~/virtualenvs/portal-plugins-public/bin/activate && python setup.py install >/dev/null
+pip install -r ~/fredex42/gnmvidispine/requirements.txt
 declare -x PYTHONPATH=~/fredex42/gnmvidispine:$PYTHONPATH
 
 echo ===================================================
